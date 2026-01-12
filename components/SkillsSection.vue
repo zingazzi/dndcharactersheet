@@ -15,17 +15,63 @@
           />
           <span class="skill-name">{{ skill.name }}</span>
         </label>
-        <span class="skill-modifier">{{ formatModifier(skill.modifier) }}</span>
+        <span class="skill-modifier clickable" @click="rollSkillCheck(skill)">{{ formatModifier(skill.modifier) }}</span>
       </div>
     </div>
+    <Toast
+      :is-visible="toast.isVisible"
+      :title="toast.title"
+      :roll="toast.roll"
+      :modifier="toast.modifier"
+      :total="toast.total"
+      @close="closeToast"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import type { Skill } from '~/types/character'
+
 const { character, updateSkillProficiency } = useCharacter()
 
 const formatModifier = (modifier: number): string => {
   return modifier >= 0 ? `+${modifier}` : `${modifier}`
+}
+
+const toast = ref({
+  isVisible: false,
+  title: '',
+  roll: 0,
+  modifier: 0,
+  total: 0,
+})
+
+const rollD20 = (): number => {
+  return Math.floor(Math.random() * 20) + 1
+}
+
+const showToast = (title: string, roll: number, modifier: number) => {
+  const total = roll + modifier
+  toast.value = {
+    isVisible: true,
+    title,
+    roll,
+    modifier,
+    total,
+  }
+}
+
+const closeToast = () => {
+  toast.value.isVisible = false
+}
+
+const { addRoll } = useDiceHistory()
+
+const rollSkillCheck = (skill: Skill) => {
+  const roll = rollD20()
+  const title = `${skill.name} Check`
+  showToast(title, roll, skill.modifier)
+  addRoll(title, roll, skill.modifier)
 }
 </script>
 
@@ -81,5 +127,18 @@ const formatModifier = (modifier: number): string => {
   min-width: 40px;
   text-align: right;
   color: #333;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.clickable {
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.clickable:hover {
+  background: #e3f2fd;
+  transform: scale(1.05);
 }
 </style>

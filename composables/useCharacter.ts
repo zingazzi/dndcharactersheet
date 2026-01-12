@@ -61,7 +61,11 @@ export const useCharacter = () => {
     initiative: 2,
     proficiencyBonus,
     abilities: initialAbilities,
-    senses: 'Passive Perception 13, Darkvision 60 ft.',
+    senses: {
+      passivePerception: 0,
+      passiveInvestigation: 0,
+      passiveInsight: 0,
+    },
     skills: DND_SKILLS.map(skill => {
       const abilityKey = skill.ability as keyof typeof initialAbilities
       const abilityModifier = calculateModifier(initialAbilities[abilityKey].score)

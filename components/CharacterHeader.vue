@@ -27,6 +27,13 @@
       </div>
     </div>
     <div class="header-stats">
+      <button @click="openHistoryModal" class="history-btn" title="Dice History">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 3h18v18H3zM9 9h6v6H9z"/>
+          <path d="M21 12c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3z"/>
+          <path d="M3 12c0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3-3 1.34-3 3z"/>
+        </svg>
+      </button>
       <div class="stat">
         <label>AC</label>
         <input
@@ -68,6 +75,10 @@
         />
       </div>
     </div>
+    <DiceHistoryModal
+      :is-open="isHistoryModalOpen"
+      @close="closeHistoryModal"
+    />
   </div>
 </template>
 
@@ -75,6 +86,16 @@
 import type { Character } from '~/types/character'
 
 const { character } = useCharacter()
+
+const isHistoryModalOpen = ref(false)
+
+const openHistoryModal = () => {
+  isHistoryModalOpen.value = true
+}
+
+const closeHistoryModal = () => {
+  isHistoryModalOpen.value = false
+}
 
 const handleImageUpload = (event: Event) => {
   const target = event.target as HTMLInputElement
@@ -170,8 +191,25 @@ const handleImageUpload = (event: Event) => {
 
 .header-stats {
   display: flex;
-  gap: 1.5rem;
+  gap: 1rem;
   align-items: center;
+}
+
+.history-btn {
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.history-btn:hover {
+  background: #357abd;
 }
 
 .stat {

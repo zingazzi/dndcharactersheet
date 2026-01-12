@@ -81,7 +81,11 @@ export interface Character {
 
   // Abilities
   abilities: AbilityScores
-  senses: string
+  senses: {
+    passivePerception: number
+    passiveInvestigation: number
+    passiveInsight: number
+  }
 
   // Skills
   skills: Skill[]
