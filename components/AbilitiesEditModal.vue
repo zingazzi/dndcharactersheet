@@ -278,7 +278,7 @@ watch(() => props.isOpen, (isOpen) => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -286,14 +286,18 @@ watch(() => props.isOpen, (isOpen) => {
 }
 
 .modal-content {
-  background: white;
+  background: linear-gradient(135deg, #f4e8d0 0%, #e8d4b8 100%);
+  border: 3px solid #8b4513;
   border-radius: 8px;
   width: 90%;
   max-width: 800px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 
+    0 0 0 2px #d4a574,
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 0 50px rgba(139, 69, 19, 0.1);
 }
 
 .modal-header {
@@ -307,6 +311,10 @@ watch(() => props.isOpen, (isOpen) => {
 .modal-header h2 {
   margin: 0;
   font-size: 1.5rem;
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  color: #5c3a21;
+  letter-spacing: 0.05em;
 }
 
 .close-btn {
@@ -347,9 +355,12 @@ watch(() => props.isOpen, (isOpen) => {
 
 .method-select {
   padding: 0.5rem;
-  border: 1px solid #ccc;
+  border: 2px solid #8b4513;
   border-radius: 4px;
   font-size: 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  color: #2c1810;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .abilities-edit-grid {
@@ -374,9 +385,12 @@ watch(() => props.isOpen, (isOpen) => {
 .score-select,
 .modifier-input {
   padding: 0.5rem;
-  border: 1px solid #ccc;
+  border: 2px solid #8b4513;
   border-radius: 4px;
   font-size: 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  color: #2c1810;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .point-buy-info {
@@ -397,18 +411,27 @@ watch(() => props.isOpen, (isOpen) => {
 
 .roll-btn,
 .roll-single-btn {
-  padding: 0.5rem 1rem;
-  background: #4a90e2;
-  color: white;
-  border: none;
+  padding: 0.5rem 1.25rem;
+  background: linear-gradient(180deg, #8b4513 0%, #6b3410 100%);
+  color: #f4e8d0;
+  border: 2px solid #5c3a21;
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.2s ease;
 }
 
 .roll-btn:hover,
 .roll-single-btn:hover {
-  background: #357abd;
+  background: linear-gradient(180deg, #9d5520 0%, #7b4415 100%);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 6px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .roll-controls {
@@ -451,28 +474,38 @@ watch(() => props.isOpen, (isOpen) => {
 .btn-cancel,
 .btn-save {
   padding: 0.75rem 1.5rem;
-  border: none;
+  border: 2px solid #5c3a21;
   border-radius: 4px;
   cursor: pointer;
   font-size: 1rem;
   font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .btn-cancel {
-  background: #e0e0e0;
-  color: #333;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(244, 232, 208, 0.4) 100%);
+  color: #5c3a21;
+  border-color: #8b4513;
 }
 
 .btn-cancel:hover {
-  background: #d0d0d0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.8) 0%, rgba(244, 232, 208, 0.6) 100%);
+  transform: translateY(-1px);
 }
 
 .btn-save {
-  background: #4a90e2;
-  color: white;
+  background: linear-gradient(180deg, #8b4513 0%, #6b3410 100%);
+  color: #f4e8d0;
 }
 
 .btn-save:hover {
-  background: #357abd;
+  background: linear-gradient(180deg, #9d5520 0%, #7b4415 100%);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 6px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 </style>

@@ -61,13 +61,17 @@ watch(() => props.isVisible, (visible) => {
   position: fixed;
   top: 20px;
   right: 20px;
-  background: white;
+  background: linear-gradient(135deg, #f4e8d0 0%, #e8d4b8 100%);
+  border: 3px solid #8b4513;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 
+    0 0 0 2px #d4a574,
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 0 50px rgba(139, 69, 19, 0.1);
   min-width: 300px;
   max-width: 400px;
   z-index: 10000;
-  border-left: 4px solid #4a90e2;
+  border-left: 4px solid #8b4513;
 }
 
 .toast.success {
@@ -104,11 +108,11 @@ watch(() => props.isVisible, (visible) => {
 }
 
 .toast-close {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
+  background: linear-gradient(180deg, #8b4513 0%, #6b3410 100%);
+  border: 2px solid #5c3a21;
+  font-size: 1.2rem;
   cursor: pointer;
-  color: #666;
+  color: #f4e8d0;
   line-height: 1;
   padding: 0;
   width: 24px;
@@ -116,10 +120,19 @@ watch(() => props.isVisible, (visible) => {
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 4px;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.2s ease;
 }
 
 .toast-close:hover {
-  color: #000;
+  background: linear-gradient(180deg, #9d5520 0%, #7b4415 100%);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 6px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .toast-body {
@@ -147,13 +160,17 @@ watch(() => props.isVisible, (visible) => {
 
 .roll-result {
   padding: 0.5rem 1rem;
-  background: #4a90e2;
-  color: white;
+  background: linear-gradient(180deg, #8b4513 0%, #6b3410 100%);
+  color: #f4e8d0;
+  border: 2px solid #5c3a21;
   border-radius: 4px;
   font-weight: bold;
   font-size: 1.3rem;
   min-width: 60px;
   text-align: center;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .toast-enter-active,

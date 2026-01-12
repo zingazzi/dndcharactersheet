@@ -141,10 +141,15 @@ const handleAddAction = () => {
 
 <style scoped>
 .actions-section {
-  padding: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  margin-bottom: 1rem;
+  padding: 1.5rem;
+  border: 2px solid #8b4513;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: 
+    0 0 0 1px #d4a574,
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .section-header {
@@ -158,30 +163,47 @@ const handleAddAction = () => {
 
 .section-header h3 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  color: #5c3a21;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .btn-add,
 .btn-save {
-  padding: 0.5rem 1rem;
-  background: #4a90e2;
-  color: white;
-  border: none;
+  padding: 0.5rem 1.25rem;
+  background: linear-gradient(180deg, #8b4513 0%, #6b3410 100%);
+  color: #f4e8d0;
+  border: 2px solid #5c3a21;
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.2s ease;
 }
 
 .btn-add:hover,
 .btn-save:hover {
-  background: #357abd;
+  background: linear-gradient(180deg, #9d5520 0%, #7b4415 100%);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 6px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .add-action-form {
   padding: 1rem;
-  background: #f9f9f9;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid #d4a574;
+  border-radius: 6px;
   margin-bottom: 1rem;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .form-row {
@@ -193,9 +215,12 @@ const handleAddAction = () => {
 .form-input,
 .form-textarea {
   padding: 0.5rem;
-  border: 1px solid #ccc;
+  border: 2px solid #8b4513;
   border-radius: 4px;
   font-family: inherit;
+  background: rgba(255, 255, 255, 0.8);
+  color: #2c1810;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .form-input {
@@ -216,9 +241,10 @@ const handleAddAction = () => {
 
 .action-item {
   padding: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: #fafafa;
+  border: 2px solid #d4a574;
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(244, 232, 208, 0.3) 100%);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .action-header {
@@ -275,19 +301,25 @@ const handleAddAction = () => {
 .detail-input {
   flex: 1;
   padding: 0.25rem 0.5rem;
-  border: 1px solid #ccc;
+  border: 2px solid #8b4513;
   border-radius: 4px;
   font-size: 0.9rem;
+  background: rgba(255, 255, 255, 0.8);
+  color: #2c1810;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .action-description {
   width: 100%;
   padding: 0.5rem;
-  border: 1px solid #ccc;
+  border: 2px solid #8b4513;
   border-radius: 4px;
   font-family: inherit;
   font-size: 0.9rem;
   resize: vertical;
+  background: rgba(255, 255, 255, 0.8);
+  color: #2c1810;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .empty-state {

@@ -127,10 +127,15 @@ const handleAddItem = () => {
 
 <style scoped>
 .inventory-section {
-  padding: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  margin-bottom: 1rem;
+  padding: 1.5rem;
+  border: 2px solid #8b4513;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: 
+    0 0 0 1px #d4a574,
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .section-header {
@@ -144,7 +149,13 @@ const handleAddItem = () => {
 
 .section-header h3 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  color: #5c3a21;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .btn-add,

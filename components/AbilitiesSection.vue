@@ -207,10 +207,15 @@ const rollSavingThrow = (key: keyof Character['abilities']) => {
 
 <style scoped>
 .abilities-section {
-  padding: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  margin-bottom: 1rem;
+  padding: 1.5rem;
+  border: 2px solid #8b4513;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: 
+    0 0 0 1px #d4a574,
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .section-header {
@@ -224,21 +229,36 @@ const rollSavingThrow = (key: keyof Character['abilities']) => {
 
 .abilities-section h3 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  color: #5c3a21;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .edit-btn {
-  padding: 0.5rem 1rem;
-  background: #4a90e2;
-  color: white;
-  border: none;
+  padding: 0.5rem 1.25rem;
+  background: linear-gradient(180deg, #8b4513 0%, #6b3410 100%);
+  color: #f4e8d0;
+  border: 2px solid #5c3a21;
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.2s ease;
 }
 
 .edit-btn:hover {
-  background: #357abd;
+  background: linear-gradient(180deg, #9d5520 0%, #7b4415 100%);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 6px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .abilities-grid {
@@ -252,16 +272,31 @@ const rollSavingThrow = (key: keyof Character['abilities']) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.75rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: #f9f9f9;
+  padding: 1rem;
+  border: 2px solid #8b4513;
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(244, 232, 208, 0.4) 100%);
+  box-shadow: 
+    0 0 0 1px #d4a574,
+    0 2px 4px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ability-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 0 0 1px #d4a574,
+    0 4px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .ability-name {
   font-size: 0.9rem;
   font-weight: 600;
+  font-family: 'Cinzel', serif;
   margin-bottom: 0.25rem;
+  letter-spacing: 0.05em;
 }
 
 .ability-abbrev {
@@ -277,12 +312,14 @@ const rollSavingThrow = (key: keyof Character['abilities']) => {
 .score-display {
   font-size: 1.5rem;
   font-weight: bold;
+  font-family: 'MedievalSharp', 'Cinzel', serif;
   color: #333;
 }
 
 .ability-modifier {
   font-size: 1.1rem;
   font-weight: bold;
+  font-family: 'MedievalSharp', 'Cinzel', serif;
   color: #333;
   margin-bottom: 0.5rem;
 }
@@ -296,7 +333,7 @@ const rollSavingThrow = (key: keyof Character['abilities']) => {
 }
 
 .clickable:hover {
-  background: #e3f2fd;
+  background: rgba(212, 165, 116, 0.3);
 }
 
 .save-throw {
@@ -315,20 +352,24 @@ const rollSavingThrow = (key: keyof Character['abilities']) => {
 
 .save-modifier {
   font-weight: bold;
+  font-family: 'MedievalSharp', 'Cinzel', serif;
   color: #555;
 }
 
 .senses-section {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #ddd;
+  border-top: 2px solid #8b4513;
 }
 
 .senses-section h4 {
   margin: 0 0 0.75rem 0;
-  font-size: 1rem;
+  font-size: 1.1rem;
+  font-family: 'Cinzel', serif;
   font-weight: 600;
-  color: #555;
+  color: #5c3a21;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.05em;
 }
 
 .senses-grid {
@@ -352,11 +393,12 @@ const rollSavingThrow = (key: keyof Character['abilities']) => {
 .sense-value {
   font-size: 1.1rem;
   font-weight: bold;
-  color: #333;
+  color: #2c1810;
   padding: 0.5rem;
-  background: #f9f9f9;
-  border: 1px solid #e0e0e0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(244, 232, 208, 0.4) 100%);
+  border: 2px solid #8b4513;
   border-radius: 4px;
   text-align: center;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 </style>

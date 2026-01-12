@@ -66,17 +66,28 @@ const { character } = useCharacter()
 
 <style scoped>
 .background-section {
-  padding: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  margin-bottom: 1rem;
+  padding: 1.5rem;
+  border: 2px solid #8b4513;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: 
+    0 0 0 1px #d4a574,
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .background-section h3 {
   margin: 0 0 1rem 0;
-  font-size: 1.2rem;
-  border-bottom: 1px solid #ddd;
+  font-size: 1.4rem;
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  color: #5c3a21;
+  border-bottom: 2px solid #8b4513;
   padding-bottom: 0.5rem;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .background-content {
@@ -100,18 +111,23 @@ const { character } = useCharacter()
 .background-input,
 .background-textarea {
   padding: 0.75rem;
-  border: 1px solid #ccc;
+  border: 2px solid #8b4513;
   border-radius: 4px;
   font-family: inherit;
   font-size: 0.95rem;
   resize: vertical;
+  background: rgba(255, 255, 255, 0.8);
+  color: #2c1810;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .background-input:focus,
 .background-textarea:focus {
   outline: none;
-  border-color: #4a90e2;
-  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
+  border-color: #6b3410;
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.1),
+    0 0 0 3px rgba(139, 69, 19, 0.2);
 }
 
 .background-textarea {

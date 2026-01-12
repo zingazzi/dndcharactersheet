@@ -115,10 +115,13 @@ const handleImageUpload = (event: Event) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
-  border-bottom: 2px solid #333;
-  margin-bottom: 1rem;
+  padding: 1.5rem;
+  border-bottom: 3px double #8b4513;
+  margin-bottom: 1.5rem;
   gap: 2rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(244, 232, 208, 0.1) 100%);
+  border-radius: 4px;
+  position: relative;
 }
 
 .header-left {
@@ -132,10 +135,13 @@ const handleImageUpload = (event: Event) => {
   position: relative;
   width: 80px;
   height: 80px;
-  border: 2px solid #333;
+  border: 3px solid #8b4513;
   border-radius: 4px;
   overflow: hidden;
   flex-shrink: 0;
+  box-shadow: 
+    0 0 0 2px #d4a574,
+    0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .character-image img {
@@ -173,20 +179,32 @@ const handleImageUpload = (event: Event) => {
 }
 
 .character-name {
-  font-size: 1.5rem;
-  font-weight: bold;
+  font-size: 1.8rem;
+  font-weight: 700;
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
   padding: 0.5rem;
-  border: 1px solid #ccc;
+  border: 2px solid #8b4513;
   border-radius: 4px;
   width: 100%;
+  background: rgba(255, 255, 255, 0.7);
+  color: #2c1810;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  letter-spacing: 0.05em;
 }
 
 .class-level {
-  font-size: 1rem;
+  font-size: 1.1rem;
+  font-style: italic;
+  font-family: 'Cinzel', serif;
+  font-weight: 500;
   padding: 0.5rem;
-  border: 1px solid #ccc;
+  border: 2px solid #8b4513;
   border-radius: 4px;
   width: 100%;
+  background: rgba(255, 255, 255, 0.7);
+  color: #5c3a21;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  letter-spacing: 0.03em;
 }
 
 .header-stats {
@@ -196,20 +214,27 @@ const handleImageUpload = (event: Event) => {
 }
 
 .history-btn {
-  background: #4a90e2;
-  color: white;
-  border: none;
+  background: linear-gradient(180deg, #8b4513 0%, #6b3410 100%);
+  color: #f4e8d0;
+  border: 2px solid #5c3a21;
   border-radius: 4px;
   padding: 0.5rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .history-btn:hover {
-  background: #357abd;
+  background: linear-gradient(180deg, #9d5520 0%, #7b4415 100%);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 6px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .stat {
@@ -229,9 +254,13 @@ const handleImageUpload = (event: Event) => {
   width: 60px;
   padding: 0.5rem;
   text-align: center;
-  border: 1px solid #ccc;
+  border: 2px solid #8b4513;
   border-radius: 4px;
   font-size: 1.1rem;
+  background: rgba(255, 255, 255, 0.8);
+  color: #2c1810;
+  font-weight: bold;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .stat-input.small {

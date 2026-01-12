@@ -26,7 +26,6 @@ onMounted(() => {
 <style scoped>
 .container {
   min-height: 100vh;
-  background: #f5f5f5;
-  padding: 1rem;
+  padding: 1rem 0;
 }
 </style>

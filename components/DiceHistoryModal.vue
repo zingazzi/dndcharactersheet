@@ -94,7 +94,7 @@ const clearHistory = () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -102,14 +102,18 @@ const clearHistory = () => {
 }
 
 .modal-content {
-  background: white;
+  background: linear-gradient(135deg, #f4e8d0 0%, #e8d4b8 100%);
+  border: 3px solid #8b4513;
   border-radius: 8px;
   width: 90%;
   max-width: 600px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 
+    0 0 0 2px #d4a574,
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 0 50px rgba(139, 69, 19, 0.1);
 }
 
 .modal-header {
@@ -123,6 +127,10 @@ const clearHistory = () => {
 .modal-header h2 {
   margin: 0;
   font-size: 1.5rem;
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  color: #5c3a21;
+  letter-spacing: 0.05em;
 }
 
 .header-actions {
@@ -132,11 +140,11 @@ const clearHistory = () => {
 }
 
 .close-btn {
-  background: none;
-  border: none;
-  font-size: 2rem;
+  background: linear-gradient(180deg, #8b4513 0%, #6b3410 100%);
+  border: 2px solid #5c3a21;
+  font-size: 1.5rem;
   cursor: pointer;
-  color: #666;
+  color: #f4e8d0;
   line-height: 1;
   padding: 0;
   width: 32px;
@@ -144,24 +152,42 @@ const clearHistory = () => {
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 4px;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.2s ease;
 }
 
 .close-btn:hover {
-  color: #000;
+  background: linear-gradient(180deg, #9d5520 0%, #7b4415 100%);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 6px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .btn-clear {
-  padding: 0.5rem 1rem;
-  background: #e74c3c;
-  color: white;
-  border: none;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(180deg, #c0392b 0%, #a93226 100%);
+  color: #f4e8d0;
+  border: 2px solid #5c3a21;
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .btn-clear:hover {
-  background: #c0392b;
+  background: linear-gradient(180deg, #d04437 0%, #b83a2d 100%);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 3px 6px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .modal-body {

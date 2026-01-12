@@ -77,17 +77,28 @@ const rollSkillCheck = (skill: Skill) => {
 
 <style scoped>
 .skills-section {
-  padding: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  margin-bottom: 1rem;
+  padding: 1.5rem;
+  border: 2px solid #8b4513;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: 
+    0 0 0 1px #d4a574,
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .skills-section h3 {
   margin: 0 0 1rem 0;
-  font-size: 1.2rem;
-  border-bottom: 1px solid #ddd;
+  font-size: 1.4rem;
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  color: #5c3a21;
+  border-bottom: 2px solid #8b4513;
   padding-bottom: 0.5rem;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .skills-list {
@@ -100,10 +111,17 @@ const rollSkillCheck = (skill: Skill) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem;
-  border: 1px solid #eee;
+  padding: 0.75rem;
+  border: 1px solid #d4a574;
   border-radius: 4px;
-  background: #fafafa;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(244, 232, 208, 0.3) 100%);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.skill-item:hover {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(244, 232, 208, 0.5) 100%);
+  border-color: #8b4513;
 }
 
 .skill-checkbox {
@@ -120,10 +138,13 @@ const rollSkillCheck = (skill: Skill) => {
 
 .skill-name {
   font-size: 0.9rem;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.02em;
 }
 
 .skill-modifier {
   font-weight: bold;
+  font-family: 'MedievalSharp', 'Cinzel', serif;
   min-width: 40px;
   text-align: right;
   color: #333;
@@ -138,7 +159,6 @@ const rollSkillCheck = (skill: Skill) => {
 }
 
 .clickable:hover {
-  background: #e3f2fd;
-  transform: scale(1.05);
+  background: rgba(212, 165, 116, 0.3);
 }
 </style>
