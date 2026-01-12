@@ -25,11 +25,15 @@ function calculateModifier(score: number): number {
   return Math.floor((score - 10) / 2)
 }
 
-function createAbilityScore(score: number = 10, saveProficient: boolean = false, proficiencyBonus: number = 0): AbilityScore {
-  const modifier = calculateModifier(score)
+function createAbilityScore(score: number = 10, saveProficient: boolean = false, proficiencyBonus: number = 0, customModifier: number = 0): AbilityScore {
+  // Final score is base score + custom modifier
+  const finalScore = score + customModifier
+  // Modifier is calculated from the final score
+  const modifier = calculateModifier(finalScore)
   return {
     score,
     modifier,
+    customModifier,
     saveProficient,
     saveModifier: modifier + (saveProficient ? proficiencyBonus : 0),
   }
@@ -38,12 +42,12 @@ function createAbilityScore(score: number = 10, saveProficient: boolean = false,
 export const useCharacter = () => {
   const proficiencyBonus = 3
   const initialAbilities = {
-    strength: createAbilityScore(16, true, proficiencyBonus), // Fighter with STR save
-    dexterity: createAbilityScore(14, false, proficiencyBonus),
-    constitution: createAbilityScore(15, true, proficiencyBonus), // Fighter with CON save
-    intelligence: createAbilityScore(10, false, proficiencyBonus),
-    wisdom: createAbilityScore(12, false, proficiencyBonus),
-    charisma: createAbilityScore(8, false, proficiencyBonus),
+    strength: createAbilityScore(16, true, proficiencyBonus, 0), // Fighter with STR save
+    dexterity: createAbilityScore(14, false, proficiencyBonus, 0),
+    constitution: createAbilityScore(15, true, proficiencyBonus, 0), // Fighter with CON save
+    intelligence: createAbilityScore(10, false, proficiencyBonus, 0),
+    wisdom: createAbilityScore(12, false, proficiencyBonus, 0),
+    charisma: createAbilityScore(8, false, proficiencyBonus, 0),
   }
 
   const character = useState<Character>('character', () => ({
@@ -178,8 +182,27 @@ export const useCharacter = () => {
   const updateAbilityScore = (ability: keyof Character['abilities'], score: number) => {
     const proficiencyBonus = character.value.proficiencyBonus
     const saveProficient = character.value.abilities[ability].saveProficient
-    character.value.abilities[ability] = createAbilityScore(score, saveProficient, proficiencyBonus)
+    const customModifier = character.value.abilities[ability].customModifier
+    character.value.abilities[ability] = createAbilityScore(score, saveProficient, proficiencyBonus, customModifier)
     updateSkillModifiers()
+  }
+
+  const updateCustomModifier = (ability: keyof Character['abilities'], customModifier: number) => {
+    const proficiencyBonus = character.value.proficiencyBonus
+    const saveProficient = character.value.abilities[ability].saveProficient
+    const score = character.value.abilities[ability].score
+    character.value.abilities[ability] = createAbilityScore(score, saveProficient, proficiencyBonus, customModifier)
+    updateSkillModifiers()
+  }
+
+  const setAbilityScores = (scores: Partial<Record<keyof Character['abilities'], number>>) => {
+    Object.keys(scores).forEach(key => {
+      const ability = key as keyof Character['abilities']
+      const score = scores[ability]
+      if (score !== undefined) {
+        updateAbilityScore(ability, score)
+      }
+    })
   }
 
   const updateSaveProficiency = (ability: keyof Character['abilities'], proficient: boolean) => {
@@ -217,7 +240,10 @@ export const useCharacter = () => {
   }
 
   const updateSkillModifier = (skill: Skill) => {
-    const abilityModifier = character.value.abilities[skill.ability].modifier
+    const ability = character.value.abilities[skill.ability]
+    // Calculate modifier from final score (base score + custom modifier)
+    const finalScore = ability.score + (ability.customModifier || 0)
+    const abilityModifier = calculateModifier(finalScore)
     const proficiencyBonus = character.value.proficiencyBonus
     skill.modifier = abilityModifier + (skill.proficient ? proficiencyBonus : 0)
   }
@@ -302,6 +328,8 @@ export const useCharacter = () => {
   return {
     character,
     updateAbilityScore,
+    updateCustomModifier,
+    setAbilityScores,
     updateSaveProficiency,
     updateSkillProficiency,
     updateProficiencyBonus,

@@ -1,6 +1,9 @@
 <template>
   <div class="abilities-section">
-    <h3>Abilities & Saves</h3>
+    <div class="section-header">
+      <h3>Abilities & Saves</h3>
+      <button @click="openEditModal" class="edit-btn">Edit</button>
+    </div>
     <div class="abilities-grid">
       <div
         v-for="(ability, key) in character.abilities"
@@ -10,14 +13,7 @@
         <div class="ability-name">{{ getAbilityName(key) }}</div>
         <div class="ability-abbrev">{{ getAbilityAbbrev(key) }}</div>
         <div class="ability-score">
-          <input
-            :value="ability.score"
-            @input="updateAbilityScore(key, +($event.target as HTMLInputElement).value)"
-            type="number"
-            class="score-input"
-            min="1"
-            max="30"
-          />
+          <span class="score-display">{{ finalScore(key) }}</span>
         </div>
         <div class="ability-modifier">
           {{ formatModifier(ability.modifier) }}
@@ -37,19 +33,53 @@
     </div>
     <div class="senses-section">
       <label>Senses</label>
-      <textarea
-        v-model="character.senses"
-        placeholder="e.g., Passive Perception 15, Darkvision 60 ft."
-        rows="2"
-      />
+      <div class="senses-display">
+        {{ character.senses || 'No senses specified' }}
+      </div>
     </div>
+    <AbilitiesEditModal
+      :is-open="isEditModalOpen"
+      @close="closeEditModal"
+      @save="handleSaveAbilities"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import type { Character } from '~/types/character'
 
-const { character, updateAbilityScore, updateSaveProficiency } = useCharacter()
+const { character, updateSaveProficiency, setAbilityScores, updateCustomModifier } = useCharacter()
+
+const isEditModalOpen = ref(false)
+
+const openEditModal = () => {
+  isEditModalOpen.value = true
+}
+
+const closeEditModal = () => {
+  isEditModalOpen.value = false
+}
+
+const handleSaveAbilities = (newAbilities: Character['abilities']) => {
+  // Update all ability scores and custom modifiers
+  Object.keys(newAbilities).forEach(key => {
+    const abilityKey = key as keyof Character['abilities']
+    const newAbility = newAbilities[abilityKey]
+    const oldAbility = character.value.abilities[abilityKey]
+    
+    // Update score if changed
+    if (newAbility.score !== oldAbility.score) {
+      setAbilityScores({ [abilityKey]: newAbility.score })
+    }
+    
+    // Update custom modifier if changed
+    if (newAbility.customModifier !== oldAbility.customModifier) {
+      updateCustomModifier(abilityKey, newAbility.customModifier)
+    }
+  })
+  
+  closeEditModal()
+}
 
 const getAbilityName = (key: keyof Character['abilities']): string => {
   const names: Record<keyof Character['abilities'], string> = {
@@ -78,6 +108,11 @@ const getAbilityAbbrev = (key: keyof Character['abilities']): string => {
 const formatModifier = (modifier: number): string => {
   return modifier >= 0 ? `+${modifier}` : `${modifier}`
 }
+
+const finalScore = (key: keyof Character['abilities']): number => {
+  const ability = character.value.abilities[key]
+  return ability.score + (ability.customModifier || 0)
+}
 </script>
 
 <style scoped>
@@ -88,11 +123,32 @@ const formatModifier = (modifier: number): string => {
   margin-bottom: 1rem;
 }
 
-.abilities-section h3 {
-  margin: 0 0 1rem 0;
-  font-size: 1.2rem;
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
   border-bottom: 1px solid #ddd;
   padding-bottom: 0.5rem;
+}
+
+.abilities-section h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.edit-btn {
+  padding: 0.5rem 1rem;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.edit-btn:hover {
+  background: #357abd;
 }
 
 .abilities-grid {
@@ -128,14 +184,10 @@ const formatModifier = (modifier: number): string => {
   margin-bottom: 0.5rem;
 }
 
-.score-input {
-  width: 60px;
-  padding: 0.5rem;
-  text-align: center;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 1.2rem;
+.score-display {
+  font-size: 1.5rem;
   font-weight: bold;
+  color: #333;
 }
 
 .ability-modifier {
@@ -176,12 +228,14 @@ const formatModifier = (modifier: number): string => {
   margin-bottom: 0.5rem;
 }
 
-.senses-section textarea {
+.senses-display {
   width: 100%;
   padding: 0.5rem;
-  border: 1px solid #ccc;
+  border: 1px solid #e0e0e0;
   border-radius: 4px;
+  background: #f9f9f9;
+  color: #666;
+  min-height: 2.5rem;
   font-family: inherit;
-  resize: vertical;
 }
 </style>

@@ -1,6 +1,7 @@
 export interface AbilityScore {
   score: number
   modifier: number
+  customModifier: number // Additional custom modifier (e.g., from magic items)
   saveProficient: boolean
   saveModifier: number
 }
