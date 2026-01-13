@@ -1,25 +1,33 @@
 <template>
-  <div class="abilities-section">
-    <div class="section-header">
-      <h3>Abilities & Saves</h3>
-      <button @click="openEditModal" class="edit-btn">Edit</button>
+  <div class="p-6 border-2 border-brown rounded-md mb-6 bg-white/40 shadow-[0_0_0_1px_#d4a574,0_2px_8px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.3)]">
+    <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-300">
+      <h3 class="m-0 text-xl font-cinzel font-semibold text-text-brown text-shadow-dnd tracking-wide uppercase">Abilities & Saves</h3>
+      <button
+        @click="openEditModal"
+        class="px-5 py-2 bg-gradient-to-b from-brown to-brown-dark text-parchment border-2 border-brown-border rounded cursor-pointer text-sm font-semibold shadow-dnd transition-all duration-200 hover:from-brown-light hover:to-brown hover:-translate-y-0.5 hover:shadow-dnd-lg"
+      >
+        Edit
+      </button>
     </div>
-    <div class="abilities-grid">
+    <div class="grid grid-cols-3 gap-4 mb-4">
       <div
         v-for="(ability, key) in character.abilities"
         :key="key"
-        class="ability-card"
+        class="flex flex-col items-center p-4 border-2 border-brown rounded-md bg-gradient-to-b from-white/60 to-parchment/40 shadow-[0_0_0_1px_#d4a574,0_2px_4px_rgba(0,0,0,0.15),inset_0_1px_0_rgba(255,255,255,0.4)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_0_1px_#d4a574,0_4px_8px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.4)]"
       >
-        <div class="ability-name">{{ getAbilityName(key) }}</div>
-        <div class="ability-abbrev">{{ getAbilityAbbrev(key) }}</div>
-        <div class="ability-score">
-          <span class="score-display">{{ finalScore(key) }}</span>
+        <div class="text-sm font-semibold font-cinzel mb-1 tracking-wide">{{ getAbilityName(key) }}</div>
+        <div class="text-xs text-gray-600 mb-2">{{ getAbilityAbbrev(key) }}</div>
+        <div class="mb-2">
+          <span class="text-2xl font-bold font-medieval text-gray-800">{{ finalScore(key) }}</span>
         </div>
-        <div class="ability-modifier clickable" @click="rollAbilityCheck(key)">
+        <div
+          class="text-lg font-bold font-medieval text-gray-800 mb-2 cursor-pointer select-none transition-colors duration-200 px-2 py-1 rounded hover:bg-gold/30"
+          @click="rollAbilityCheck(key)"
+        >
           {{ formatModifier(ability.modifier) }}
         </div>
-        <div class="save-throw">
-          <label>
+        <div class="flex items-center gap-2 text-sm">
+          <label class="flex items-center gap-1 cursor-pointer">
             <input
               type="checkbox"
               :checked="ability.saveProficient"
@@ -27,24 +35,35 @@
             />
             <span>Save</span>
           </label>
-          <span class="save-modifier clickable" @click="rollSavingThrow(key)">{{ formatModifier(ability.saveModifier) }}</span>
+          <span
+            class="font-bold font-medieval text-gray-700 cursor-pointer select-none transition-colors duration-200 px-2 py-1 rounded hover:bg-gold/30"
+            @click="rollSavingThrow(key)"
+          >
+            {{ formatModifier(ability.saveModifier) }}
+          </span>
         </div>
       </div>
     </div>
-    <div class="senses-section">
-      <h4>Senses</h4>
-      <div class="senses-grid">
-        <div class="sense-item">
-          <label>Passive Perception</label>
-          <div class="sense-value">{{ calculatePassivePerception() }}</div>
+    <div class="mt-4 pt-4 border-t-2 border-brown">
+      <h4 class="m-0 mb-3 text-lg font-cinzel font-semibold text-text-brown text-shadow-dnd tracking-wide">Senses</h4>
+      <div class="grid grid-cols-3 gap-4">
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-semibold text-gray-600">Passive Perception</label>
+          <div class="text-lg font-bold text-text-dark p-2 bg-gradient-to-b from-white/60 to-parchment/40 border-2 border-brown rounded text-center shadow-dnd-inner">
+            {{ calculatePassivePerception() }}
+          </div>
         </div>
-        <div class="sense-item">
-          <label>Passive Investigation</label>
-          <div class="sense-value">{{ calculatePassiveInvestigation() }}</div>
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-semibold text-gray-600">Passive Investigation</label>
+          <div class="text-lg font-bold text-text-dark p-2 bg-gradient-to-b from-white/60 to-parchment/40 border-2 border-brown rounded text-center shadow-dnd-inner">
+            {{ calculatePassiveInvestigation() }}
+          </div>
         </div>
-        <div class="sense-item">
-          <label>Passive Insight</label>
-          <div class="sense-value">{{ calculatePassiveInsight() }}</div>
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-semibold text-gray-600">Passive Insight</label>
+          <div class="text-lg font-bold text-text-dark p-2 bg-gradient-to-b from-white/60 to-parchment/40 border-2 border-brown rounded text-center shadow-dnd-inner">
+            {{ calculatePassiveInsight() }}
+          </div>
         </div>
       </div>
     </div>
@@ -204,201 +223,3 @@ const rollSavingThrow = (key: keyof Character['abilities']) => {
   addRoll(title, roll, ability.saveModifier)
 }
 </script>
-
-<style scoped>
-.abilities-section {
-  padding: 1.5rem;
-  border: 2px solid #8b4513;
-  border-radius: 6px;
-  margin-bottom: 1.5rem;
-  background: rgba(255, 255, 255, 0.4);
-  box-shadow: 
-    0 0 0 1px #d4a574,
-    0 2px 8px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 0.5rem;
-}
-
-.abilities-section h3 {
-  margin: 0;
-  font-size: 1.4rem;
-  font-family: 'Cinzel', serif;
-  font-weight: 600;
-  color: #5c3a21;
-  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.edit-btn {
-  padding: 0.5rem 1.25rem;
-  background: linear-gradient(180deg, #8b4513 0%, #6b3410 100%);
-  color: #f4e8d0;
-  border: 2px solid #5c3a21;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 600;
-  box-shadow: 
-    0 2px 4px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  transition: all 0.2s ease;
-}
-
-.edit-btn:hover {
-  background: linear-gradient(180deg, #9d5520 0%, #7b4415 100%);
-  transform: translateY(-1px);
-  box-shadow: 
-    0 3px 6px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.abilities-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.ability-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 1rem;
-  border: 2px solid #8b4513;
-  border-radius: 6px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(244, 232, 208, 0.4) 100%);
-  box-shadow: 
-    0 0 0 1px #d4a574,
-    0 2px 4px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.ability-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 
-    0 0 0 1px #d4a574,
-    0 4px 8px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
-}
-
-.ability-name {
-  font-size: 0.9rem;
-  font-weight: 600;
-  font-family: 'Cinzel', serif;
-  margin-bottom: 0.25rem;
-  letter-spacing: 0.05em;
-}
-
-.ability-abbrev {
-  font-size: 0.75rem;
-  color: #666;
-  margin-bottom: 0.5rem;
-}
-
-.ability-score {
-  margin-bottom: 0.5rem;
-}
-
-.score-display {
-  font-size: 1.5rem;
-  font-weight: bold;
-  font-family: 'MedievalSharp', 'Cinzel', serif;
-  color: #333;
-}
-
-.ability-modifier {
-  font-size: 1.1rem;
-  font-weight: bold;
-  font-family: 'MedievalSharp', 'Cinzel', serif;
-  color: #333;
-  margin-bottom: 0.5rem;
-}
-
-.clickable {
-  cursor: pointer;
-  user-select: none;
-  transition: background-color 0.2s ease;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-}
-
-.clickable:hover {
-  background: rgba(212, 165, 116, 0.3);
-}
-
-.save-throw {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-}
-
-.save-throw label {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  cursor: pointer;
-}
-
-.save-modifier {
-  font-weight: bold;
-  font-family: 'MedievalSharp', 'Cinzel', serif;
-  color: #555;
-}
-
-.senses-section {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 2px solid #8b4513;
-}
-
-.senses-section h4 {
-  margin: 0 0 0.75rem 0;
-  font-size: 1.1rem;
-  font-family: 'Cinzel', serif;
-  font-weight: 600;
-  color: #5c3a21;
-  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
-  letter-spacing: 0.05em;
-}
-
-.senses-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-}
-
-.sense-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.sense-item label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #666;
-}
-
-.sense-value {
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: #2c1810;
-  padding: 0.5rem;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(244, 232, 208, 0.4) 100%);
-  border: 2px solid #8b4513;
-  border-radius: 4px;
-  text-align: center;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-</style>

@@ -1,26 +1,32 @@
 <template>
-  <div class="menu-bar">
-    <div class="menu-item" @mouseenter="showFileMenu = true" @mouseleave="showFileMenu = false">
-      <span class="menu-label">File</span>
-      <div v-if="showFileMenu" class="dropdown-menu">
-        <div class="menu-option" @click="openNewCharacter">
+  <div class="flex items-center gap-0 py-2 px-4 bg-gradient-to-b from-parchment/90 to-parchment-dark/80 border-b-2 border-brown shadow-md relative z-[100]">
+    <div class="relative py-2 px-4 cursor-pointer select-none transition-colors duration-200 hover:bg-brown/10" @mouseenter="showFileMenu = true" @mouseleave="showFileMenu = false">
+      <span class="font-cinzel font-semibold text-sm text-text-brown tracking-wide">File</span>
+      <div
+        v-if="showFileMenu"
+        class="absolute top-full left-0 min-w-[180px] bg-gradient-to-b from-parchment to-parchment-dark border-2 border-brown rounded shadow-dnd-lg mt-1 z-[1000]"
+      >
+        <div class="py-3 px-4 cursor-pointer transition-colors duration-200 font-cinzel text-sm text-text-dark border-b border-brown/20 hover:bg-brown/15" @click="openNewCharacter">
           <span>New Character</span>
         </div>
-        <div class="menu-option disabled">
+        <div class="py-3 px-4 opacity-50 cursor-not-allowed font-cinzel text-sm text-gray-600 border-b border-brown/20">
           <span>Load Character</span>
         </div>
-        <div class="menu-option disabled">
+        <div class="py-3 px-4 opacity-50 cursor-not-allowed font-cinzel text-sm text-gray-600">
           <span>Save Character</span>
         </div>
       </div>
     </div>
-    <div class="menu-item" @mouseenter="showOptionsMenu = true" @mouseleave="showOptionsMenu = false">
-      <span class="menu-label">Options</span>
-      <div v-if="showOptionsMenu" class="dropdown-menu">
-        <div class="menu-option disabled">
+    <div class="relative py-2 px-4 cursor-pointer select-none transition-colors duration-200 hover:bg-brown/10" @mouseenter="showOptionsMenu = true" @mouseleave="showOptionsMenu = false">
+      <span class="font-cinzel font-semibold text-sm text-text-brown tracking-wide">Options</span>
+      <div
+        v-if="showOptionsMenu"
+        class="absolute top-full left-0 min-w-[180px] bg-gradient-to-b from-parchment to-parchment-dark border-2 border-brown rounded shadow-dnd-lg mt-1 z-[1000]"
+      >
+        <div class="py-3 px-4 opacity-50 cursor-not-allowed font-cinzel text-sm text-gray-600 border-b border-brown/20">
           <span>Settings</span>
         </div>
-        <div class="menu-option disabled">
+        <div class="py-3 px-4 opacity-50 cursor-not-allowed font-cinzel text-sm text-gray-600">
           <span>Color Scheme</span>
         </div>
       </div>
@@ -55,75 +61,3 @@ const handleCreateCharacter = (characterClass: string, selectedSkills: string[])
 }
 </script>
 
-<style scoped>
-.menu-bar {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  padding: 0.5rem 1rem;
-  background: linear-gradient(180deg, rgba(244, 232, 208, 0.9) 0%, rgba(232, 212, 184, 0.8) 100%);
-  border-bottom: 2px solid #8b4513;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  position: relative;
-  z-index: 100;
-}
-
-.menu-item {
-  position: relative;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  user-select: none;
-  transition: background-color 0.2s ease;
-}
-
-.menu-item:hover {
-  background: rgba(139, 69, 19, 0.1);
-}
-
-.menu-label {
-  font-family: 'Cinzel', serif;
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: #5c3a21;
-  letter-spacing: 0.05em;
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  min-width: 180px;
-  background: linear-gradient(180deg, #f4e8d0 0%, #e8d4b8 100%);
-  border: 2px solid #8b4513;
-  border-radius: 4px;
-  box-shadow: 
-    0 0 0 1px #d4a574,
-    0 4px 12px rgba(0, 0, 0, 0.3);
-  margin-top: 0.25rem;
-  z-index: 1000;
-}
-
-.menu-option {
-  padding: 0.75rem 1rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  font-family: 'Cinzel', serif;
-  font-size: 0.9rem;
-  color: #2c1810;
-  border-bottom: 1px solid rgba(139, 69, 19, 0.2);
-}
-
-.menu-option:last-child {
-  border-bottom: none;
-}
-
-.menu-option:not(.disabled):hover {
-  background: rgba(139, 69, 19, 0.15);
-}
-
-.menu-option.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  color: #666;
-}
-</style>

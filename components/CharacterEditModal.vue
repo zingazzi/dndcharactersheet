@@ -2,38 +2,43 @@
   <div v-if="isOpen" class="modal-overlay" @click.self="close">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>Edit Character</h2>
-        <button @click="close" class="close-btn">×</button>
+        <h2 class="m-0 text-2xl font-cinzel font-semibold text-text-brown tracking-wide">Edit Character</h2>
+        <button
+          @click="close"
+          class="bg-transparent border-none text-3xl text-brown cursor-pointer w-8 h-8 flex items-center justify-center rounded transition-all duration-200 hover:bg-brown/20 hover:scale-110 leading-none"
+        >
+          ×
+        </button>
       </div>
       <div class="modal-body">
-        <div class="form-group">
-          <label for="character-name">Character Name</label>
+        <div class="mb-6">
+          <label for="character-name" class="block mb-2 font-semibold text-text-brown font-cinzel">Character Name</label>
           <input
             id="character-name"
             v-model="editingName"
             type="text"
-            class="form-input"
+            class="input-dnd"
             placeholder="Enter character name"
           />
         </div>
-        <div class="form-group">
-          <label for="character-image">Character Image</label>
-          <div class="image-preview">
-            <img v-if="previewImage" :src="previewImage" alt="Preview" />
-            <div v-else class="image-placeholder">No image</div>
+        <div class="mb-6">
+          <label for="character-image" class="block mb-2 font-semibold text-text-brown font-cinzel">Character Image</label>
+          <div class="w-full h-[200px] border-2 border-brown rounded overflow-hidden mb-2 bg-gray-100 flex items-center justify-center">
+            <img v-if="previewImage" :src="previewImage" alt="Preview" class="w-full h-full object-cover" />
+            <div v-else class="text-gray-600 italic">No image</div>
           </div>
           <input
             id="character-image"
             type="file"
             accept="image/*"
             @change="handleImageChange"
-            class="file-input"
+            class="input-dnd cursor-pointer"
           />
         </div>
       </div>
       <div class="modal-footer">
-        <button @click="close" class="btn-cancel">Cancel</button>
-        <button @click="save" class="btn-save">Save</button>
+        <button @click="close" class="btn-dnd-secondary">Cancel</button>
+        <button @click="save" class="btn-dnd-primary">Save</button>
       </div>
     </div>
   </div>
@@ -82,189 +87,3 @@ const save = () => {
   close()
 }
 </script>
-
-<style scoped>
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(2px);
-}
-
-.modal-content {
-  background: linear-gradient(180deg, #f4e8d0 0%, #e8d4b8 100%);
-  border: 4px double #8b4513;
-  border-radius: 8px;
-  box-shadow: 
-    0 0 0 2px #d4a574,
-    0 8px 32px rgba(0, 0, 0, 0.5);
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  border-bottom: 2px solid #8b4513;
-  background: linear-gradient(180deg, rgba(139, 69, 19, 0.1) 0%, transparent 100%);
-}
-
-.modal-header h2 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-family: 'Cinzel', serif;
-  font-weight: 600;
-  color: #5c3a21;
-  letter-spacing: 0.05em;
-}
-
-.close-btn {
-  background: transparent;
-  border: none;
-  font-size: 2rem;
-  color: #8b4513;
-  cursor: pointer;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-  line-height: 1;
-}
-
-.close-btn:hover {
-  background: rgba(139, 69, 19, 0.2);
-  transform: scale(1.1);
-}
-
-.modal-body {
-  padding: 1.5rem;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #5c3a21;
-  font-family: 'Cinzel', serif;
-}
-
-.form-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #8b4513;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.8);
-  color: #2c1810;
-  font-family: 'Cinzel', serif;
-  font-size: 1rem;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: #6b3410;
-  box-shadow: 
-    inset 0 2px 4px rgba(0, 0, 0, 0.1),
-    0 0 0 3px rgba(139, 69, 19, 0.2);
-}
-
-.image-preview {
-  width: 100%;
-  height: 200px;
-  border: 2px solid #8b4513;
-  border-radius: 4px;
-  overflow: hidden;
-  margin-bottom: 0.5rem;
-  background: #f0f0f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.image-preview img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.image-placeholder {
-  color: #666;
-  font-style: italic;
-}
-
-.file-input {
-  width: 100%;
-  padding: 0.5rem;
-  border: 2px solid #8b4513;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.8);
-  font-family: 'Cinzel', serif;
-  cursor: pointer;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  padding: 1.5rem;
-  border-top: 2px solid #8b4513;
-  background: linear-gradient(180deg, transparent 0%, rgba(139, 69, 19, 0.1) 100%);
-}
-
-.btn-cancel,
-.btn-save {
-  padding: 0.75rem 1.5rem;
-  border: 2px solid #8b4513;
-  border-radius: 4px;
-  cursor: pointer;
-  font-family: 'Cinzel', serif;
-  font-weight: 600;
-  font-size: 1rem;
-  transition: all 0.2s ease;
-}
-
-.btn-cancel {
-  background: rgba(255, 255, 255, 0.6);
-  color: #5c3a21;
-}
-
-.btn-cancel:hover {
-  background: rgba(255, 255, 255, 0.8);
-  transform: translateY(-1px);
-}
-
-.btn-save {
-  background: linear-gradient(180deg, #8b4513 0%, #6b3410 100%);
-  color: #f4e8d0;
-  box-shadow: 
-    0 2px 4px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.btn-save:hover {
-  background: linear-gradient(180deg, #9d5520 0%, #7b4415 100%);
-  transform: translateY(-1px);
-  box-shadow: 
-    0 3px 6px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-</style>

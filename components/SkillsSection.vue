@@ -1,21 +1,27 @@
 <template>
-  <div class="skills-section">
-    <h3>Skills</h3>
-    <div class="skills-list">
+  <div class="p-6 border-2 border-brown rounded-md mb-6 bg-white/40 shadow-[0_0_0_1px_#d4a574,0_2px_8px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.3)]">
+    <h3 class="m-0 mb-4 text-xl font-cinzel font-semibold text-text-brown border-b-2 border-brown pb-2 text-shadow-dnd tracking-wide uppercase">Skills</h3>
+    <div class="grid grid-cols-2 gap-2">
       <div
         v-for="skill in character.skills"
         :key="skill.name"
-        class="skill-item"
+        class="flex justify-between items-center p-3 border border-gold rounded bg-gradient-to-b from-white/50 to-parchment/30 shadow-dnd-inner transition-all duration-200 hover:from-white/70 hover:to-parchment/50 hover:border-brown"
       >
-        <label class="skill-checkbox">
+        <label class="flex items-center gap-2 cursor-pointer flex-1">
           <input
             type="checkbox"
             :checked="skill.proficient"
             @change="updateSkillProficiency(skill.name, ($event.target as HTMLInputElement).checked)"
+            class="cursor-pointer"
           />
-          <span class="skill-name">{{ skill.name }}</span>
+          <span class="text-sm font-cinzel tracking-wide">{{ skill.name }}</span>
         </label>
-        <span class="skill-modifier clickable" @click="rollSkillCheck(skill)">{{ formatModifier(skill.modifier) }}</span>
+        <span
+          class="font-bold font-medieval min-w-[40px] text-right text-gray-800 cursor-pointer select-none transition-colors duration-200 px-2 py-1 rounded hover:bg-gold/30"
+          @click="rollSkillCheck(skill)"
+        >
+          {{ formatModifier(skill.modifier) }}
+        </span>
       </div>
     </div>
     <Toast
@@ -74,91 +80,3 @@ const rollSkillCheck = (skill: Skill) => {
   addRoll(title, roll, skill.modifier)
 }
 </script>
-
-<style scoped>
-.skills-section {
-  padding: 1.5rem;
-  border: 2px solid #8b4513;
-  border-radius: 6px;
-  margin-bottom: 1.5rem;
-  background: rgba(255, 255, 255, 0.4);
-  box-shadow: 
-    0 0 0 1px #d4a574,
-    0 2px 8px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.skills-section h3 {
-  margin: 0 0 1rem 0;
-  font-size: 1.4rem;
-  font-family: 'Cinzel', serif;
-  font-weight: 600;
-  color: #5c3a21;
-  border-bottom: 2px solid #8b4513;
-  padding-bottom: 0.5rem;
-  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.skills-list {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem;
-}
-
-.skill-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem;
-  border: 1px solid #d4a574;
-  border-radius: 4px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(244, 232, 208, 0.3) 100%);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
-}
-
-.skill-item:hover {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(244, 232, 208, 0.5) 100%);
-  border-color: #8b4513;
-}
-
-.skill-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  flex: 1;
-}
-
-.skill-checkbox input[type="checkbox"] {
-  cursor: pointer;
-}
-
-.skill-name {
-  font-size: 0.9rem;
-  font-family: 'Cinzel', serif;
-  letter-spacing: 0.02em;
-}
-
-.skill-modifier {
-  font-weight: bold;
-  font-family: 'MedievalSharp', 'Cinzel', serif;
-  min-width: 40px;
-  text-align: right;
-  color: #333;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-}
-
-.clickable {
-  cursor: pointer;
-  user-select: none;
-  transition: all 0.2s ease;
-}
-
-.clickable:hover {
-  background: rgba(212, 165, 116, 0.3);
-}
-</style>

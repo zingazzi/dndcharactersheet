@@ -1,47 +1,50 @@
 <template>
-  <div class="spells-section">
-    <div class="section-header">
-      <h3>Spells</h3>
-      <button @click="showAddForm = !showAddForm" class="btn-add">
+  <div class="p-6 border-2 border-brown rounded-md mb-6 bg-white/40 shadow-[0_0_0_1px_#d4a574,0_2px_8px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.3)]">
+    <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-300">
+      <h3 class="m-0 text-xl font-cinzel font-semibold text-text-brown text-shadow-dnd tracking-wide uppercase">Spells</h3>
+      <button
+        @click="showAddForm = !showAddForm"
+        class="btn-dnd-primary"
+      >
         {{ showAddForm ? 'Cancel' : '+ Add Spell' }}
       </button>
     </div>
-    <div class="spell-slots">
-      <h4>Spell Slots</h4>
-      <div class="slots-grid">
+    <div class="mb-6 pb-4 border-b border-gray-300">
+      <h4 class="m-0 mb-3 text-base text-gray-700">Spell Slots</h4>
+      <div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 mb-3">
         <div
           v-for="slot in character.spellSlots"
           :key="slot.level"
-          class="slot-item"
+          class="flex flex-col gap-1"
         >
-          <label>Level {{ slot.level }}</label>
-          <div class="slot-controls">
+          <label class="text-sm font-semibold text-gray-700">Level {{ slot.level }}</label>
+          <div class="flex items-center gap-1">
             <input
               v-model.number="slot.used"
               type="number"
               :max="slot.total"
               min="0"
-              class="slot-input"
+              class="input-dnd-number w-[50px] text-center py-1"
             />
             <span>/</span>
             <input
               v-model.number="slot.total"
               type="number"
               min="0"
-              class="slot-input"
+              class="input-dnd-number w-[50px] text-center py-1"
             />
           </div>
         </div>
       </div>
-      <button @click="addSpellSlot" class="btn-add-slot">+ Add Spell Slot Level</button>
+      <button @click="addSpellSlot" class="btn-dnd-secondary text-sm">+ Add Spell Slot Level</button>
     </div>
-    <div v-if="showAddForm" class="add-spell-form">
-      <div class="form-row">
+    <div v-if="showAddForm" class="p-4 bg-gray-50 rounded-md mb-4">
+      <div class="flex gap-2 mb-2">
         <input
           v-model="newSpell.name"
           type="text"
           placeholder="Spell Name"
-          class="form-input"
+          class="input-dnd flex-1"
         />
         <input
           v-model.number="newSpell.level"
@@ -49,43 +52,43 @@
           placeholder="Level"
           min="0"
           max="9"
-          class="form-input small"
+          class="input-dnd w-[100px]"
         />
         <input
           v-model="newSpell.school"
           type="text"
           placeholder="School"
-          class="form-input"
+          class="input-dnd flex-1"
         />
       </div>
-      <div class="form-row">
+      <div class="flex gap-2 mb-2">
         <input
           v-model="newSpell.castingTime"
           type="text"
           placeholder="Casting Time"
-          class="form-input"
+          class="input-dnd flex-1"
         />
         <input
           v-model="newSpell.range"
           type="text"
           placeholder="Range"
-          class="form-input"
+          class="input-dnd flex-1"
         />
         <input
           v-model="newSpell.components"
           type="text"
           placeholder="Components"
-          class="form-input"
+          class="input-dnd flex-1"
         />
       </div>
-      <div class="form-row">
+      <div class="flex gap-2 mb-2">
         <input
           v-model="newSpell.duration"
           type="text"
           placeholder="Duration"
-          class="form-input"
+          class="input-dnd flex-1"
         />
-        <label class="checkbox-label">
+        <label class="flex items-center gap-2 cursor-pointer text-sm">
           <input
             v-model="newSpell.prepared"
             type="checkbox"
@@ -97,67 +100,72 @@
         v-model="newSpell.description"
         placeholder="Description"
         rows="4"
-        class="form-textarea"
+        class="input-dnd-textarea w-full mb-2"
       />
-      <button @click="handleAddSpell" class="btn-save">Save</button>
+      <button @click="handleAddSpell" class="btn-dnd-primary">Save</button>
     </div>
-    <div class="spells-list">
-      <h4>Known Spells</h4>
+    <div class="flex flex-col gap-4">
+      <h4 class="m-0 mb-1 text-base text-gray-700">Known Spells</h4>
       <div
         v-for="spell in character.spells"
         :key="spell.id"
-        class="spell-item"
+        class="p-4 border border-gray-300 rounded bg-gray-50"
       >
-        <div class="spell-header">
-          <div class="spell-name-level">
-            <span class="spell-name">{{ spell.name }}</span>
-            <span class="spell-level">Level {{ spell.level }}</span>
-            <span v-if="spell.prepared" class="prepared-badge">Prepared</span>
+        <div class="flex justify-between items-center mb-3">
+          <div class="flex items-center gap-3">
+            <span class="text-lg font-bold">{{ spell.name }}</span>
+            <span class="text-sm text-gray-600 px-2 py-1 bg-gray-200 rounded">Level {{ spell.level }}</span>
+            <span v-if="spell.prepared" class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded font-semibold">Prepared</span>
           </div>
-          <button @click="removeSpell(spell.id)" class="btn-remove">×</button>
+          <button
+            @click="removeSpell(spell.id)"
+            class="bg-red-600 text-white border-none rounded-full w-6 h-6 cursor-pointer text-xl leading-none flex items-center justify-center hover:bg-red-700"
+          >
+            ×
+          </button>
         </div>
-        <div class="spell-details">
-          <div class="spell-detail-row">
-            <span class="detail-label">School:</span>
+        <div class="grid grid-cols-2 gap-2 mb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold text-gray-700 min-w-[100px]">School:</span>
             <input
               v-model="spell.school"
               type="text"
-              class="detail-input"
+              class="input-dnd flex-1 text-sm py-1 px-2"
             />
           </div>
-          <div class="spell-detail-row">
-            <span class="detail-label">Casting Time:</span>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold text-gray-700 min-w-[100px]">Casting Time:</span>
             <input
               v-model="spell.castingTime"
               type="text"
-              class="detail-input"
+              class="input-dnd flex-1 text-sm py-1 px-2"
             />
           </div>
-          <div class="spell-detail-row">
-            <span class="detail-label">Range:</span>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold text-gray-700 min-w-[100px]">Range:</span>
             <input
               v-model="spell.range"
               type="text"
-              class="detail-input"
+              class="input-dnd flex-1 text-sm py-1 px-2"
             />
           </div>
-          <div class="spell-detail-row">
-            <span class="detail-label">Components:</span>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold text-gray-700 min-w-[100px]">Components:</span>
             <input
               v-model="spell.components"
               type="text"
-              class="detail-input"
+              class="input-dnd flex-1 text-sm py-1 px-2"
             />
           </div>
-          <div class="spell-detail-row">
-            <span class="detail-label">Duration:</span>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold text-gray-700 min-w-[100px]">Duration:</span>
             <input
               v-model="spell.duration"
               type="text"
-              class="detail-input"
+              class="input-dnd flex-1 text-sm py-1 px-2"
             />
           </div>
-          <label class="checkbox-label">
+          <label class="flex items-center gap-2 cursor-pointer text-sm">
             <input
               v-model="spell.prepared"
               type="checkbox"
@@ -169,10 +177,10 @@
           v-model="spell.description"
           placeholder="Description"
           rows="3"
-          class="spell-description"
+          class="input-dnd-textarea w-full text-sm"
         />
       </div>
-      <div v-if="character.spells.length === 0" class="empty-state">
+      <div v-if="character.spells.length === 0" class="text-center py-8 text-gray-500 italic">
         No spells added yet. Click "+ Add Spell" to get started.
       </div>
     </div>
@@ -226,261 +234,3 @@ const addSpellSlot = () => {
   })
 }
 </script>
-
-<style scoped>
-.spells-section {
-  padding: 1.5rem;
-  border: 2px solid #8b4513;
-  border-radius: 6px;
-  margin-bottom: 1.5rem;
-  background: rgba(255, 255, 255, 0.4);
-  box-shadow: 
-    0 0 0 1px #d4a574,
-    0 2px 8px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 0.5rem;
-}
-
-.section-header h3 {
-  margin: 0;
-  font-size: 1.4rem;
-  font-family: 'Cinzel', serif;
-  font-weight: 600;
-  color: #5c3a21;
-  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.btn-add,
-.btn-save,
-.btn-add-slot {
-  padding: 0.5rem 1rem;
-  background: #4a90e2;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.btn-add:hover,
-.btn-save:hover,
-.btn-add-slot:hover {
-  background: #357abd;
-}
-
-.spell-slots {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #ddd;
-}
-
-.spell-slots h4 {
-  margin: 0 0 0.75rem 0;
-  font-size: 1rem;
-  color: #555;
-}
-
-.slots-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
-.slot-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.slot-item label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #555;
-}
-
-.slot-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.slot-input {
-  width: 50px;
-  padding: 0.25rem;
-  text-align: center;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.add-spell-form {
-  padding: 1rem;
-  background: #f9f9f9;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-}
-
-.form-row {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.form-input,
-.form-textarea {
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-family: inherit;
-}
-
-.form-input {
-  flex: 1;
-}
-
-.form-input.small {
-  width: 100px;
-}
-
-.form-textarea {
-  width: 100%;
-  resize: vertical;
-  margin-bottom: 0.5rem;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.spells-list h4 {
-  margin: 0 0 1rem 0;
-  font-size: 1rem;
-  color: #555;
-}
-
-.spells-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.spell-item {
-  padding: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: #fafafa;
-}
-
-.spell-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-}
-
-.spell-name-level {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.spell-name {
-  font-size: 1.1rem;
-  font-weight: bold;
-}
-
-.spell-level {
-  font-size: 0.85rem;
-  color: #666;
-  padding: 0.25rem 0.5rem;
-  background: #e9e9e9;
-  border-radius: 4px;
-}
-
-.prepared-badge {
-  font-size: 0.75rem;
-  color: #27ae60;
-  background: #d5f4e6;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-weight: 600;
-}
-
-.btn-remove {
-  background: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  cursor: pointer;
-  font-size: 1.2rem;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-remove:hover {
-  background: #c0392b;
-}
-
-.spell-details {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.spell-detail-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.detail-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #555;
-  min-width: 100px;
-}
-
-.detail-input {
-  flex: 1;
-  padding: 0.25rem 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 0.9rem;
-}
-
-.spell-description {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 0.9rem;
-  resize: vertical;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 2rem;
-  color: #999;
-  font-style: italic;
-}
-</style>

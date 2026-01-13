@@ -1,7 +1,7 @@
 <template>
-  <div class="container">
+  <div class="w-full min-h-screen">
     <MenuBar />
-    <div v-if="error" style="background: #fee; color: #c00; border-radius: 4px;">
+    <div v-if="error" class="p-4 bg-red-100 text-red-800 rounded">
       <h2>Error loading character sheet</h2>
       <p>{{ error }}</p>
     </div>
@@ -23,10 +23,3 @@ onMounted(() => {
   }
 })
 </script>
-
-<style scoped>
-.container {
-  min-height: 100vh;
- 
-}
-</style>

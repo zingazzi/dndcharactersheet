@@ -1,25 +1,28 @@
 <template>
-  <div class="inventory-section">
-    <div class="section-header">
-      <h3>Inventory</h3>
-      <button @click="showAddForm = !showAddForm" class="btn-add">
+  <div class="p-6 border-2 border-brown rounded-md mb-6 bg-white/40 shadow-[0_0_0_1px_#d4a574,0_2px_8px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.3)]">
+    <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-300">
+      <h3 class="m-0 text-xl font-cinzel font-semibold text-text-brown text-shadow-dnd tracking-wide uppercase">Inventory</h3>
+      <button
+        @click="showAddForm = !showAddForm"
+        class="btn-dnd-primary"
+      >
         {{ showAddForm ? 'Cancel' : '+ Add Item' }}
       </button>
     </div>
-    <div v-if="showAddForm" class="add-item-form">
-      <div class="form-row">
+    <div v-if="showAddForm" class="p-4 bg-gray-50 rounded-md mb-4">
+      <div class="flex gap-2 mb-2">
         <input
           v-model="newItem.name"
           type="text"
           placeholder="Item Name"
-          class="form-input"
+          class="input-dnd flex-1"
         />
         <input
           v-model.number="newItem.quantity"
           type="number"
           placeholder="Quantity"
           min="1"
-          class="form-input small"
+          class="input-dnd w-[120px]"
         />
         <input
           v-model.number="newItem.weight"
@@ -27,71 +30,76 @@
           placeholder="Weight (lbs)"
           min="0"
           step="0.1"
-          class="form-input small"
+          class="input-dnd w-[120px]"
         />
       </div>
       <textarea
         v-model="newItem.description"
         placeholder="Description (optional)"
         rows="2"
-        class="form-textarea"
+        class="input-dnd-textarea w-full mb-2"
       />
-      <button @click="handleAddItem" class="btn-save">Save</button>
+      <button @click="handleAddItem" class="btn-dnd-primary">Save</button>
     </div>
-    <div class="inventory-list">
+    <div class="flex flex-col gap-4">
       <div
         v-for="item in character.inventory"
         :key="item.id"
-        class="inventory-item"
+        class="p-4 border border-gray-300 rounded bg-gray-50"
       >
-        <div class="item-header">
-          <div class="item-name-quantity">
-            <span class="item-name">{{ item.name }}</span>
-            <span class="item-quantity">×{{ item.quantity }}</span>
-            <span class="item-weight">{{ item.weight }} lbs</span>
+        <div class="flex justify-between items-center mb-2">
+          <div class="flex items-center gap-3">
+            <span class="text-lg font-bold">{{ item.name }}</span>
+            <span class="text-sm text-gray-600">×{{ item.quantity }}</span>
+            <span class="text-xs text-gray-500 px-2 py-1 bg-gray-200 rounded">{{ item.weight }} lbs</span>
           </div>
-          <button @click="removeInventoryItem(item.id)" class="btn-remove">×</button>
+          <button
+            @click="removeInventoryItem(item.id)"
+            class="bg-red-600 text-white border-none rounded-full w-6 h-6 cursor-pointer text-xl leading-none flex items-center justify-center hover:bg-red-700"
+          >
+            ×
+          </button>
         </div>
-        <div v-if="item.description" class="item-description">
+        <div v-if="item.description" class="mb-2 p-2 bg-gray-100 rounded text-sm text-gray-700">
           {{ item.description }}
         </div>
-        <div class="item-edit">
-          <div class="edit-row">
-            <label>Name:</label>
+        <div class="mt-2 pt-2 border-t border-gray-300">
+          <div class="flex items-center gap-2 mb-2">
+            <label class="text-xs font-semibold text-gray-700 min-w-[80px]">Name:</label>
             <input
               v-model="item.name"
               type="text"
-              class="edit-input"
+              class="input-dnd flex-1 text-sm py-1 px-2"
             />
           </div>
-          <div class="edit-row">
-            <label>Quantity:</label>
+          <div class="flex items-center gap-2 mb-2">
+            <label class="text-xs font-semibold text-gray-700 min-w-[80px]">Quantity:</label>
             <input
               v-model.number="item.quantity"
               type="number"
               min="1"
-              class="edit-input small"
+              class="input-dnd w-[100px] text-sm py-1 px-2"
             />
-            <label>Weight:</label>
+            <label class="text-xs font-semibold text-gray-700 min-w-[60px]">Weight:</label>
             <input
               v-model.number="item.weight"
               type="number"
               min="0"
               step="0.1"
-              class="edit-input small"
+              class="input-dnd w-[100px] text-sm py-1 px-2"
             />
           </div>
-          <div class="edit-row">
-            <label>Description:</label>
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-semibold text-gray-700 min-w-[80px]">Description:</label>
             <textarea
               v-model="item.description"
               rows="2"
-              class="edit-textarea"
+              class="input-dnd-textarea flex-1 text-sm"
             />
           </div>
         </div>
       </div>
-      <div v-if="character.inventory.length === 0" class="empty-state">
+      <div v-if="character.inventory.length === 0" class="text-center py-8 text-gray-500 italic">
         No items in inventory. Click "+ Add Item" to get started.
       </div>
     </div>
@@ -124,209 +132,3 @@ const handleAddItem = () => {
   }
 }
 </script>
-
-<style scoped>
-.inventory-section {
-  padding: 1.5rem;
-  border: 2px solid #8b4513;
-  border-radius: 6px;
-  margin-bottom: 1.5rem;
-  background: rgba(255, 255, 255, 0.4);
-  box-shadow: 
-    0 0 0 1px #d4a574,
-    0 2px 8px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 0.5rem;
-}
-
-.section-header h3 {
-  margin: 0;
-  font-size: 1.4rem;
-  font-family: 'Cinzel', serif;
-  font-weight: 600;
-  color: #5c3a21;
-  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.btn-add,
-.btn-save {
-  padding: 0.5rem 1rem;
-  background: #4a90e2;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.btn-add:hover,
-.btn-save:hover {
-  background: #357abd;
-}
-
-.add-item-form {
-  padding: 1rem;
-  background: #f9f9f9;
-  border-radius: 4px;
-  margin-bottom: 1rem;
-}
-
-.form-row {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.form-input,
-.form-textarea {
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-family: inherit;
-}
-
-.form-input {
-  flex: 1;
-}
-
-.form-input.small {
-  width: 120px;
-}
-
-.form-textarea {
-  width: 100%;
-  resize: vertical;
-  margin-bottom: 0.5rem;
-}
-
-.inventory-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.inventory-item {
-  padding: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: #fafafa;
-}
-
-.item-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.item-name-quantity {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.item-name {
-  font-size: 1.1rem;
-  font-weight: bold;
-}
-
-.item-quantity {
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.item-weight {
-  font-size: 0.85rem;
-  color: #888;
-  padding: 0.25rem 0.5rem;
-  background: #e9e9e9;
-  border-radius: 4px;
-}
-
-.btn-remove {
-  background: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  cursor: pointer;
-  font-size: 1.2rem;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-remove:hover {
-  background: #c0392b;
-}
-
-.item-description {
-  margin-bottom: 0.5rem;
-  padding: 0.5rem;
-  background: #f0f0f0;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  color: #555;
-}
-
-.item-edit {
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid #ddd;
-}
-
-.edit-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.edit-row label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #555;
-  min-width: 80px;
-}
-
-.edit-input,
-.edit-textarea {
-  padding: 0.25rem 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  font-family: inherit;
-}
-
-.edit-input {
-  flex: 1;
-}
-
-.edit-input.small {
-  width: 100px;
-}
-
-.edit-textarea {
-  flex: 1;
-  resize: vertical;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 2rem;
-  color: #999;
-  font-style: italic;
-}
-</style>

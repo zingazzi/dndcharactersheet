@@ -1,95 +1,103 @@
 <template>
-  <div class="actions-section">
-    <div class="section-header">
-      <h3>Actions</h3>
-      <button @click="showAddForm = !showAddForm" class="btn-add">
+  <div class="p-6 border-2 border-brown rounded-md mb-6 bg-white/40 shadow-[0_0_0_1px_#d4a574,0_2px_8px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.3)]">
+    <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-300">
+      <h3 class="m-0 text-xl font-cinzel font-semibold text-text-brown text-shadow-dnd tracking-wide uppercase">Actions</h3>
+      <button
+        @click="showAddForm = !showAddForm"
+        class="btn-dnd-primary"
+      >
         {{ showAddForm ? 'Cancel' : '+ Add Action' }}
       </button>
     </div>
-    <div v-if="showAddForm" class="add-action-form">
-      <div class="form-row">
+    <div v-if="showAddForm" class="p-4 bg-white/50 border-2 border-gold rounded-md mb-4 shadow-dnd-inner">
+      <div class="flex gap-2 mb-2">
         <input
           v-model="newAction.name"
           type="text"
           placeholder="Action Name"
-          class="form-input"
+          class="input-dnd flex-1"
         />
         <input
           v-model="newAction.type"
           type="text"
           placeholder="Type"
-          class="form-input"
+          class="input-dnd flex-1"
         />
         <input
           v-model="newAction.range"
           type="text"
           placeholder="Range"
-          class="form-input"
+          class="input-dnd flex-1"
         />
       </div>
-      <div class="form-row">
+      <div class="flex gap-2 mb-2">
         <input
           v-model="newAction.toHit"
           type="text"
           placeholder="To Hit"
-          class="form-input"
+          class="input-dnd flex-1"
         />
         <input
           v-model="newAction.damage"
           type="text"
           placeholder="Damage"
-          class="form-input"
+          class="input-dnd flex-1"
         />
       </div>
       <textarea
         v-model="newAction.description"
         placeholder="Description (optional)"
         rows="2"
-        class="form-textarea"
+        class="input-dnd-textarea w-full mb-2"
       />
-      <button @click="handleAddAction" class="btn-save">Save</button>
+      <button @click="handleAddAction" class="btn-dnd-primary">Save</button>
     </div>
-    <div class="actions-list">
+    <div class="flex flex-col gap-4">
       <div
         v-for="action in character.actions"
         :key="action.id"
-        class="action-item"
+        class="p-4 border-2 border-gold rounded-md bg-gradient-to-b from-white/50 to-parchment/30 shadow-dnd-inner"
       >
-        <div class="action-header">
-          <div class="action-name">{{ action.name }}</div>
-          <button @click="removeAction(action.id)" class="btn-remove">×</button>
+        <div class="flex justify-between items-center mb-3">
+          <div class="text-lg font-bold">{{ action.name }}</div>
+          <button
+            @click="removeAction(action.id)"
+            class="bg-red-600 text-white border-none rounded-full w-6 h-6 cursor-pointer text-xl leading-none flex items-center justify-center hover:bg-red-700"
+          >
+            ×
+          </button>
         </div>
-        <div class="action-details">
-          <div class="detail-item">
-            <span class="detail-label">Type:</span>
+        <div class="grid grid-cols-2 gap-2 mb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold text-gray-700 min-w-[60px]">Type:</span>
             <input
               v-model="action.type"
               type="text"
-              class="detail-input"
+              class="input-dnd flex-1 text-sm py-1 px-2"
             />
           </div>
-          <div class="detail-item">
-            <span class="detail-label">Range:</span>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold text-gray-700 min-w-[60px]">Range:</span>
             <input
               v-model="action.range"
               type="text"
-              class="detail-input"
+              class="input-dnd flex-1 text-sm py-1 px-2"
             />
           </div>
-          <div class="detail-item">
-            <span class="detail-label">To Hit:</span>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold text-gray-700 min-w-[60px]">To Hit:</span>
             <input
               v-model="action.toHit"
               type="text"
-              class="detail-input"
+              class="input-dnd flex-1 text-sm py-1 px-2"
             />
           </div>
-          <div class="detail-item">
-            <span class="detail-label">Damage:</span>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold text-gray-700 min-w-[60px]">Damage:</span>
             <input
               v-model="action.damage"
               type="text"
-              class="detail-input"
+              class="input-dnd flex-1 text-sm py-1 px-2"
             />
           </div>
         </div>
@@ -98,10 +106,10 @@
           v-model="action.description"
           placeholder="Description"
           rows="2"
-          class="action-description"
+          class="input-dnd-textarea w-full text-sm"
         />
       </div>
-      <div v-if="character.actions.length === 0" class="empty-state">
+      <div v-if="character.actions.length === 0" class="text-center py-8 text-gray-500 italic">
         No actions added yet. Click "+ Add Action" to get started.
       </div>
     </div>
@@ -138,194 +146,3 @@ const handleAddAction = () => {
   }
 }
 </script>
-
-<style scoped>
-.actions-section {
-  padding: 1.5rem;
-  border: 2px solid #8b4513;
-  border-radius: 6px;
-  margin-bottom: 1.5rem;
-  background: rgba(255, 255, 255, 0.4);
-  box-shadow: 
-    0 0 0 1px #d4a574,
-    0 2px 8px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 0.5rem;
-}
-
-.section-header h3 {
-  margin: 0;
-  font-size: 1.4rem;
-  font-family: 'Cinzel', serif;
-  font-weight: 600;
-  color: #5c3a21;
-  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.btn-add,
-.btn-save {
-  padding: 0.5rem 1.25rem;
-  background: linear-gradient(180deg, #8b4513 0%, #6b3410 100%);
-  color: #f4e8d0;
-  border: 2px solid #5c3a21;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 600;
-  box-shadow: 
-    0 2px 4px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  transition: all 0.2s ease;
-}
-
-.btn-add:hover,
-.btn-save:hover {
-  background: linear-gradient(180deg, #9d5520 0%, #7b4415 100%);
-  transform: translateY(-1px);
-  box-shadow: 
-    0 3px 6px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-
-.add-action-form {
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.5);
-  border: 2px solid #d4a574;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.form-row {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.form-input,
-.form-textarea {
-  padding: 0.5rem;
-  border: 2px solid #8b4513;
-  border-radius: 4px;
-  font-family: inherit;
-  background: rgba(255, 255, 255, 0.8);
-  color: #2c1810;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.form-input {
-  flex: 1;
-}
-
-.form-textarea {
-  width: 100%;
-  resize: vertical;
-  margin-bottom: 0.5rem;
-}
-
-.actions-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.action-item {
-  padding: 1rem;
-  border: 2px solid #d4a574;
-  border-radius: 6px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(244, 232, 208, 0.3) 100%);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.action-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-}
-
-.action-name {
-  font-size: 1.1rem;
-  font-weight: bold;
-}
-
-.btn-remove {
-  background: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  cursor: pointer;
-  font-size: 1.2rem;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-remove:hover {
-  background: #c0392b;
-}
-
-.action-details {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.detail-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.detail-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #555;
-  min-width: 60px;
-}
-
-.detail-input {
-  flex: 1;
-  padding: 0.25rem 0.5rem;
-  border: 2px solid #8b4513;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  background: rgba(255, 255, 255, 0.8);
-  color: #2c1810;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.action-description {
-  width: 100%;
-  padding: 0.5rem;
-  border: 2px solid #8b4513;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 0.9rem;
-  resize: vertical;
-  background: rgba(255, 255, 255, 0.8);
-  color: #2c1810;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.empty-state {
-  text-align: center;
-  padding: 2rem;
-  color: #999;
-  font-style: italic;
-}
-</style>

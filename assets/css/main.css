@@ -1,0 +1,191 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* CSS Custom Properties for D&D Theme */
+:root {
+  --parchment: #f4e8d0;
+  --parchment-dark: #e8d4b8;
+  --brown: #8b4513;
+  --brown-dark: #6b3410;
+  --brown-light: #9d5520;
+  --brown-border: #5c3a21;
+  --gold: #d4a574;
+  --text-dark: #2c1810;
+  --text-brown: #5c3a21;
+  --green-hp: #2e7d32;
+  --green-hp-dark: #1b5e20;
+  --red-damage: #8b1a1a;
+}
+
+/* Base Styles */
+@layer base {
+  * {
+    @apply box-border m-0 p-0;
+  }
+
+  body {
+    @apply font-cinzel text-sm leading-relaxed text-text-dark;
+    background: linear-gradient(135deg, #d4a574 0%, #b8956a 50%, #9d7f5a 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    @apply font-cinzel text-inherit;
+  }
+}
+
+/* Component Classes */
+@layer components {
+  /* D&D Button Styles */
+  .btn-dnd {
+    @apply px-4 py-2 rounded border-dnd border-brown-border bg-parchment-dark text-text-dark font-medium cursor-pointer transition-all duration-200;
+    @apply hover:bg-parchment hover:shadow-dnd active:shadow-dnd-inner;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-dnd-primary {
+    @apply btn-dnd bg-brown text-parchment;
+    @apply hover:bg-brown-dark;
+  }
+
+  .btn-dnd-secondary {
+    @apply btn-dnd bg-parchment-dark;
+  }
+
+  .btn-dnd-danger {
+    @apply btn-dnd bg-red-damage text-parchment;
+    @apply hover:bg-red-800;
+  }
+
+  .btn-dnd-success {
+    @apply btn-dnd bg-green-hp text-parchment;
+    @apply hover:bg-green-hp-dark;
+  }
+
+  /* D&D Card Styles */
+  .card-dnd {
+    @apply bg-parchment border-dnd border-brown-border rounded-lg p-4 shadow-dnd;
+  }
+
+  .card-dnd-elevated {
+    @apply card-dnd shadow-dnd-lg;
+  }
+
+  .card-dnd-bordered {
+    @apply card-dnd border-2;
+  }
+
+  /* D&D Input Styles */
+  .input-dnd {
+    @apply w-full px-3 py-2 bg-parchment border border-brown-border rounded text-text-dark;
+    @apply focus:outline-none focus:ring-2 focus:ring-gold focus:border-gold;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .input-dnd-text {
+    @apply input-dnd;
+  }
+
+  .input-dnd-number {
+    @apply input-dnd text-center;
+  }
+
+  .input-dnd-textarea {
+    @apply input-dnd resize-y min-h-[100px];
+  }
+
+  .input-dnd-select {
+    @apply input-dnd cursor-pointer;
+  }
+
+  /* Modal Styles */
+  .modal-overlay {
+    @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+  }
+
+  .modal-content {
+    @apply bg-parchment border-dnd border-brown-border rounded-lg shadow-dnd-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto;
+  }
+
+  .modal-header {
+    @apply flex justify-between items-center p-4 border-b border-brown-border;
+  }
+
+  .modal-body {
+    @apply p-4;
+  }
+
+  .modal-footer {
+    @apply flex justify-end gap-2 p-4 border-t border-brown-border;
+  }
+
+  /* Stat Display Styles */
+  .stat-card {
+    @apply bg-parchment-dark border border-brown-border rounded-lg p-3 text-center shadow-dnd;
+  }
+
+  .stat-square {
+    @apply bg-parchment-dark border border-brown-border rounded-lg p-3 flex flex-col items-center justify-center min-w-[80px] shadow-dnd;
+  }
+
+  .stat-label {
+    @apply text-xs font-medium text-text-brown mb-1;
+  }
+
+  .stat-value {
+    @apply text-xl font-bold text-text-dark;
+  }
+
+  /* Section Header Styles */
+  .section-header {
+    @apply text-lg font-bold text-text-dark mb-3 pb-2 border-b-2 border-brown-border;
+  }
+
+  /* Shield Shape (for AC) */
+  .shield-shape {
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  }
+
+  /* Clickable Elements */
+  .clickable {
+    @apply cursor-pointer transition-all duration-200;
+    @apply hover:shadow-dnd active:scale-95;
+  }
+
+  /* Parchment Background */
+  .bg-parchment-pattern {
+    background-image: 
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(92, 58, 33, 0.03) 2px,
+        rgba(92, 58, 33, 0.03) 4px
+      );
+  }
+}
+
+/* Utility Classes */
+@layer utilities {
+  .text-shadow-dnd {
+    text-shadow: 1px 1px 2px rgba(44, 24, 16, 0.3);
+  }
+
+  .border-dnd-double {
+    border-style: double;
+    border-width: 4px;
+  }
+
+  .gradient-parchment {
+    background: linear-gradient(to bottom, #f4e8d0, #e8d4b8);
+  }
+
+  .gradient-parchment-reverse {
+    background: linear-gradient(to top, #f4e8d0, #e8d4b8);
+  }
+}
