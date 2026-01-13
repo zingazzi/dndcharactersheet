@@ -70,13 +70,15 @@ export interface Character {
   // Header
   name: string
   classLevel: string // e.g., "Fighter 5"
-  ac: number
+  ac: number // Calculated: 10 + Dex modifier + armor bonus (for now: 10 + Dex)
   hitPoints: {
     current: number
     maximum: number
+    temporary?: number // Temporary HP
   }
-  initiative: number
-  proficiencyBonus: number
+  initiative: number // Calculated: Dex modifier
+  proficiencyBonus: number // Calculated: based on level
+  level: number // Character level for proficiency calculation
   image?: string
 
   // Abilities

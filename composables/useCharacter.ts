@@ -25,6 +25,18 @@ function calculateModifier(score: number): number {
   return Math.floor((score - 10) / 2)
 }
 
+function calculateProficiencyBonus(level: number): number {
+  return Math.ceil(level / 4) + 1
+}
+
+function calculateAC(dexModifier: number, baseAC: number = 10): number {
+  return baseAC + dexModifier
+}
+
+function calculateInitiative(dexModifier: number): number {
+  return dexModifier
+}
+
 function createAbilityScore(score: number = 10, saveProficient: boolean = false, proficiencyBonus: number = 0, customModifier: number = 0): AbilityScore {
   // Final score is base score + custom modifier
   const finalScore = score + customModifier
@@ -53,10 +65,12 @@ export const useCharacter = () => {
   const character = useState<Character>('character', () => ({
     name: 'Thorin Ironforge',
     classLevel: 'Fighter 5',
+    level: 5,
     ac: 18,
     hitPoints: {
       current: 45,
       maximum: 52,
+      temporary: 0,
     },
     initiative: 2,
     proficiencyBonus,
@@ -329,6 +343,74 @@ export const useCharacter = () => {
     updateSkillModifiers()
   })
 
+  // Computed values for AC, Initiative, Proficiency Bonus
+  const calculatedAC = computed(() => {
+    const dexModifier = character.value.abilities.dexterity.modifier
+    return calculateAC(dexModifier)
+  })
+
+  const calculatedInitiative = computed(() => {
+    const dexModifier = character.value.abilities.dexterity.modifier
+    return calculateInitiative(dexModifier)
+  })
+
+  const calculatedProficiencyBonus = computed(() => {
+    return calculateProficiencyBonus(character.value.level || 1)
+  })
+
+  // Watch for changes and update calculated values
+  watchEffect(() => {
+    character.value.ac = calculatedAC.value
+    character.value.initiative = calculatedInitiative.value
+    character.value.proficiencyBonus = calculatedProficiencyBonus.value
+  })
+
+  // HP Management functions
+  const addHP = (amount: number) => {
+    const newCurrent = Math.min(character.value.hitPoints.current + amount, character.value.hitPoints.maximum)
+    character.value.hitPoints.current = newCurrent
+  }
+
+  const removeHP = (amount: number) => {
+    // First remove from temporary HP if available
+    if (character.value.hitPoints.temporary && character.value.hitPoints.temporary > 0) {
+      const tempReduction = Math.min(character.value.hitPoints.temporary, amount)
+      character.value.hitPoints.temporary -= tempReduction
+      amount -= tempReduction
+    }
+    // Then remove from current HP
+    character.value.hitPoints.current = Math.max(0, character.value.hitPoints.current - amount)
+  }
+
+  const addTemporaryHP = (amount: number) => {
+    character.value.hitPoints.temporary = (character.value.hitPoints.temporary || 0) + amount
+  }
+
+  const setMaximumHP = (amount: number) => {
+    character.value.hitPoints.maximum = amount
+    // Ensure current HP doesn't exceed maximum
+    if (character.value.hitPoints.current > amount) {
+      character.value.hitPoints.current = amount
+    }
+  }
+
+  const updateCharacterName = (name: string) => {
+    character.value.name = name
+  }
+
+  const updateCharacterImage = (image: string) => {
+    character.value.image = image
+  }
+
+  const updateClassLevel = (classLevel: string) => {
+    character.value.classLevel = classLevel
+    // Try to extract level from classLevel string (e.g., "Fighter 5" -> 5)
+    const levelMatch = classLevel.match(/\d+/)
+    if (levelMatch) {
+      character.value.level = parseInt(levelMatch[0], 10)
+    }
+  }
+
   return {
     character,
     updateAbilityScore,
@@ -345,5 +427,12 @@ export const useCharacter = () => {
     removeInventoryItem,
     addFeatureTrait,
     removeFeatureTrait,
+    addHP,
+    removeHP,
+    addTemporaryHP,
+    setMaximumHP,
+    updateCharacterName,
+    updateCharacterImage,
+    updateClassLevel,
   }
 }
