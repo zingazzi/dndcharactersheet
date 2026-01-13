@@ -17,16 +17,6 @@
           />
         </div>
         <div class="form-group">
-          <label for="character-class">Class + Level</label>
-          <input
-            id="character-class"
-            v-model="editingClassLevel"
-            type="text"
-            class="form-input"
-            placeholder="e.g., Fighter 5"
-          />
-        </div>
-        <div class="form-group">
           <label for="character-image">Character Image</label>
           <div class="image-preview">
             <img v-if="previewImage" :src="previewImage" alt="Preview" />
@@ -56,19 +46,17 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
-  save: [name: string, classLevel: string, image: string]
+  save: [name: string, image: string]
 }>()
 
 const { character } = useCharacter()
 
 const editingName = ref(character.value.name)
-const editingClassLevel = ref(character.value.classLevel)
 const previewImage = ref(character.value.image || '')
 
 watch(() => props.isOpen, (newVal) => {
   if (newVal) {
     editingName.value = character.value.name
-    editingClassLevel.value = character.value.classLevel
     previewImage.value = character.value.image || ''
   }
 })
@@ -90,7 +78,7 @@ const close = () => {
 }
 
 const save = () => {
-  emit('save', editingName.value, editingClassLevel.value, previewImage.value)
+  emit('save', editingName.value, previewImage.value)
   close()
 }
 </script>

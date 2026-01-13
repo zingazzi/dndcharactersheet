@@ -70,6 +70,10 @@ export interface Character {
   // Header
   name: string
   classLevel: string // e.g., "Fighter 5"
+  experiencePoints: {
+    current: number
+    nextLevel: number // XP needed for next level
+  }
   ac: number // Calculated: 10 + Dex modifier + armor bonus (for now: 10 + Dex)
   hitPoints: {
     current: number

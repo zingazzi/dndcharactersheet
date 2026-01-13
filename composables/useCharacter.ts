@@ -66,6 +66,10 @@ export const useCharacter = () => {
     name: 'Thorin Ironforge',
     classLevel: 'Fighter 5',
     level: 5,
+    experiencePoints: {
+      current: 14000,
+      nextLevel: 28000, // XP needed for level 6
+    },
     ac: 18,
     hitPoints: {
       current: 45,
@@ -411,6 +415,27 @@ export const useCharacter = () => {
     }
   }
 
+  // XP Management functions
+  const addXP = (amount: number) => {
+    character.value.experiencePoints.current += amount
+    // Ensure current XP doesn't go negative
+    if (character.value.experiencePoints.current < 0) {
+      character.value.experiencePoints.current = 0
+    }
+  }
+
+  const removeXP = (amount: number) => {
+    character.value.experiencePoints.current = Math.max(0, character.value.experiencePoints.current - amount)
+  }
+
+  const setCurrentXP = (amount: number) => {
+    character.value.experiencePoints.current = Math.max(0, amount)
+  }
+
+  const setNextLevelXP = (amount: number) => {
+    character.value.experiencePoints.nextLevel = Math.max(1, amount)
+  }
+
   return {
     character,
     updateAbilityScore,
@@ -434,5 +459,9 @@ export const useCharacter = () => {
     updateCharacterName,
     updateCharacterImage,
     updateClassLevel,
+    addXP,
+    removeXP,
+    setCurrentXP,
+    setNextLevelXP,
   }
 }
