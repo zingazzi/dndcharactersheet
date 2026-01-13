@@ -8,10 +8,10 @@
       </div>
       <div class="character-info">
         <div class="name-row">
-          <h1 class="character-name-display">{{ character.name }}</h1>
+          <h1 class="character-name-display">{{ character.name || 'Unnamed Character' }}</h1>
           <button @click="openEditModal" class="edit-btn-small" title="Edit Character">✎</button>
         </div>
-        <p class="class-level-display">{{ character.classLevel }}</p>
+        <p class="class-level-display">{{ character.classLevel || 'No Class' }}</p>
         <div class="xp-display clickable" @click="openXPModal" title="Click to manage XP">
           <span class="xp-label">XP:</span>
           <span class="xp-current">{{ character.experiencePoints.current.toLocaleString() }}</span>

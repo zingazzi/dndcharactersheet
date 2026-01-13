@@ -51,6 +51,153 @@ function createAbilityScore(score: number = 10, saveProficient: boolean = false,
   }
 }
 
+function createEmptyCharacter(): Character {
+  const level = 1
+  const proficiencyBonus = calculateProficiencyBonus(level)
+  const emptyAbilities = {
+    strength: createAbilityScore(10, false, proficiencyBonus, 0),
+    dexterity: createAbilityScore(10, false, proficiencyBonus, 0),
+    constitution: createAbilityScore(10, false, proficiencyBonus, 0),
+    intelligence: createAbilityScore(10, false, proficiencyBonus, 0),
+    wisdom: createAbilityScore(10, false, proficiencyBonus, 0),
+    charisma: createAbilityScore(10, false, proficiencyBonus, 0),
+  }
+
+  const emptySkills = DND_SKILLS.map(skill => {
+    const abilityKey = skill.ability as keyof typeof emptyAbilities
+    const abilityModifier = calculateModifier(emptyAbilities[abilityKey].score)
+    return {
+      name: skill.name,
+      ability: skill.ability,
+      proficient: false,
+      modifier: abilityModifier,
+    }
+  })
+
+  return {
+    name: '',
+    classLevel: '',
+    level: level,
+    experiencePoints: {
+      current: 0,
+      nextLevel: 300, // XP needed for level 2
+    },
+    ac: 10, // Will be recalculated
+    hitPoints: {
+      current: 0,
+      maximum: 0,
+      temporary: 0,
+    },
+    initiative: 0, // Will be recalculated
+    proficiencyBonus,
+    abilities: emptyAbilities,
+    senses: {
+      passivePerception: 0,
+      passiveInvestigation: 0,
+      passiveInsight: 0,
+    },
+    skills: emptySkills,
+    actions: [],
+    spellSlots: [],
+    spells: [],
+    inventory: [],
+    featuresTraits: [],
+    background: {
+      name: '',
+      personalityTraits: '',
+      ideals: '',
+      bonds: '',
+      flaws: '',
+      backstory: '',
+    },
+  }
+}
+
+function applyFighterLevel1(character: Character, selectedSkills: string[]): void {
+  const level = 1
+  const proficiencyBonus = calculateProficiencyBonus(level)
+
+  // Set hit points (1d10 maximum = 10)
+  character.hitPoints.maximum = 10
+  character.hitPoints.current = 10
+
+  // Set class level
+  character.classLevel = 'Fighter 1'
+  character.level = level
+  character.proficiencyBonus = proficiencyBonus
+
+  // Set saving throw proficiencies: Strength and Constitution
+  character.abilities.strength.saveProficient = true
+  character.abilities.strength.saveModifier = character.abilities.strength.modifier + proficiencyBonus
+  character.abilities.constitution.saveProficient = true
+  character.abilities.constitution.saveModifier = character.abilities.constitution.modifier + proficiencyBonus
+
+  // Apply skill proficiencies (2 selected skills)
+  character.skills.forEach(skill => {
+    if (selectedSkills.includes(skill.name)) {
+      skill.proficient = true
+      skill.modifier = skill.modifier + proficiencyBonus
+    }
+  })
+
+  // Add weapon and armor proficiencies as features/traits
+  const proficiencies: FeatureTrait[] = [
+    {
+      id: crypto.randomUUID(),
+      name: 'Weapon Proficiency: Simple Weapons',
+      description: 'Proficient with all simple weapons.',
+      source: 'Class',
+    },
+    {
+      id: crypto.randomUUID(),
+      name: 'Weapon Proficiency: Martial Weapons',
+      description: 'Proficient with all martial weapons.',
+      source: 'Class',
+    },
+    {
+      id: crypto.randomUUID(),
+      name: 'Armor Proficiency: Light Armor',
+      description: 'Proficient with light armor.',
+      source: 'Class',
+    },
+    {
+      id: crypto.randomUUID(),
+      name: 'Armor Proficiency: Medium Armor',
+      description: 'Proficient with medium armor.',
+      source: 'Class',
+    },
+    {
+      id: crypto.randomUUID(),
+      name: 'Armor Proficiency: Heavy Armor',
+      description: 'Proficient with heavy armor.',
+      source: 'Class',
+    },
+    {
+      id: crypto.randomUUID(),
+      name: 'Armor Proficiency: Shields',
+      description: 'Proficient with shields.',
+      source: 'Class',
+    },
+  ]
+
+  character.featuresTraits = [...character.featuresTraits, ...proficiencies]
+
+  // Recalculate AC and Initiative
+  const dexModifier = character.abilities.dexterity.modifier
+  character.ac = calculateAC(dexModifier)
+  character.initiative = calculateInitiative(dexModifier)
+}
+
+function createNewCharacter(characterClass: string, selectedSkills: string[]): Character {
+  const character = createEmptyCharacter()
+  
+  if (characterClass === 'Fighter') {
+    applyFighterLevel1(character, selectedSkills)
+  }
+  
+  return character
+}
+
 export const useCharacter = () => {
   const proficiencyBonus = 3
   const initialAbilities = {
@@ -436,6 +583,19 @@ export const useCharacter = () => {
     character.value.experiencePoints.nextLevel = Math.max(1, amount)
   }
 
+  const resetCharacter = (newCharacter: Character) => {
+    character.value = newCharacter
+    // Recalculate all computed values
+    updateSkillModifiers()
+    // Update calculated values
+    const dexModifier = character.value.abilities.dexterity.modifier
+    character.value.ac = calculateAC(dexModifier)
+    character.value.initiative = calculateInitiative(dexModifier)
+    character.value.proficiencyBonus = calculateProficiencyBonus(character.value.level || 1)
+    // Update passive senses (they will be recalculated by watchEffect, but we can trigger it)
+    // The watchEffect in AbilitiesSection will handle this automatically
+  }
+
   return {
     character,
     updateAbilityScore,
@@ -463,5 +623,9 @@ export const useCharacter = () => {
     removeXP,
     setCurrentXP,
     setNextLevelXP,
+    createEmptyCharacter,
+    applyFighterLevel1,
+    createNewCharacter,
+    resetCharacter,
   }
 }
