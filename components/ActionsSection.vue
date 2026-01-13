@@ -1,103 +1,103 @@
 <template>
-  <div class="p-6 border-2 border-brown rounded-md mb-6 bg-white/40 shadow-[0_0_0_1px_#d4a574,0_2px_8px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.3)]">
-    <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-300">
-      <h3 class="m-0 text-xl font-cinzel font-semibold text-text-brown text-shadow-dnd tracking-wide uppercase">Actions</h3>
+  <div class="section">
+    <div class="section-header">
+      <h3 class="section-title">Actions</h3>
       <button
         @click="showAddForm = !showAddForm"
-        class="btn-dnd-primary"
+        class="btn btn-primary text-xs"
       >
         {{ showAddForm ? 'Cancel' : '+ Add Action' }}
       </button>
     </div>
-    <div v-if="showAddForm" class="p-4 bg-white/50 border-2 border-gold rounded-md mb-4 shadow-dnd-inner">
-      <div class="flex gap-2 mb-2">
+    <div v-if="showAddForm" class="p-3 bg-[var(--color-bg-secondary)] border border-[var(--color-border-light)] rounded mb-3">
+      <div class="flex gap-1.5 mb-1.5">
         <input
           v-model="newAction.name"
           type="text"
           placeholder="Action Name"
-          class="input-dnd flex-1"
+          class="input flex-1"
         />
         <input
           v-model="newAction.type"
           type="text"
           placeholder="Type"
-          class="input-dnd flex-1"
+          class="input flex-1"
         />
         <input
           v-model="newAction.range"
           type="text"
           placeholder="Range"
-          class="input-dnd flex-1"
+          class="input flex-1"
         />
       </div>
-      <div class="flex gap-2 mb-2">
+      <div class="flex gap-1.5 mb-1.5">
         <input
           v-model="newAction.toHit"
           type="text"
           placeholder="To Hit"
-          class="input-dnd flex-1"
+          class="input flex-1"
         />
         <input
           v-model="newAction.damage"
           type="text"
           placeholder="Damage"
-          class="input-dnd flex-1"
+          class="input flex-1"
         />
       </div>
       <textarea
         v-model="newAction.description"
         placeholder="Description (optional)"
         rows="2"
-        class="input-dnd-textarea w-full mb-2"
+        class="input-textarea w-full mb-1.5"
       />
-      <button @click="handleAddAction" class="btn-dnd-primary">Save</button>
+      <button @click="handleAddAction" class="btn btn-primary text-xs">Save</button>
     </div>
-    <div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-2">
       <div
         v-for="action in character.actions"
         :key="action.id"
-        class="p-4 border-2 border-gold rounded-md bg-gradient-to-b from-white/50 to-parchment/30 shadow-dnd-inner"
+        class="card"
       >
-        <div class="flex justify-between items-center mb-3">
-          <div class="text-lg font-bold">{{ action.name }}</div>
+        <div class="flex justify-between items-center mb-2">
+          <div class="text-base font-bold">{{ action.name }}</div>
           <button
             @click="removeAction(action.id)"
-            class="bg-red-600 text-white border-none rounded-full w-6 h-6 cursor-pointer text-xl leading-none flex items-center justify-center hover:bg-red-700"
+            class="btn btn-danger text-xs px-2 py-1"
           >
             ×
           </button>
         </div>
-        <div class="grid grid-cols-2 gap-2 mb-2">
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-semibold text-gray-700 min-w-[60px]">Type:</span>
+        <div class="grid grid-cols-2 gap-1.5 mb-1.5">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-semibold text-[var(--color-text-tertiary)] min-w-[50px]">Type:</span>
             <input
               v-model="action.type"
               type="text"
-              class="input-dnd flex-1 text-sm py-1 px-2"
+              class="input flex-1 text-xs py-1 px-1.5"
             />
           </div>
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-semibold text-gray-700 min-w-[60px]">Range:</span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-semibold text-[var(--color-text-tertiary)] min-w-[50px]">Range:</span>
             <input
               v-model="action.range"
               type="text"
-              class="input-dnd flex-1 text-sm py-1 px-2"
+              class="input flex-1 text-xs py-1 px-1.5"
             />
           </div>
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-semibold text-gray-700 min-w-[60px]">To Hit:</span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-semibold text-[var(--color-text-tertiary)] min-w-[50px]">To Hit:</span>
             <input
               v-model="action.toHit"
               type="text"
-              class="input-dnd flex-1 text-sm py-1 px-2"
+              class="input flex-1 text-xs py-1 px-1.5"
             />
           </div>
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-semibold text-gray-700 min-w-[60px]">Damage:</span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-semibold text-[var(--color-text-tertiary)] min-w-[50px]">Damage:</span>
             <input
               v-model="action.damage"
               type="text"
-              class="input-dnd flex-1 text-sm py-1 px-2"
+              class="input flex-1 text-xs py-1 px-1.5"
             />
           </div>
         </div>
@@ -106,10 +106,10 @@
           v-model="action.description"
           placeholder="Description"
           rows="2"
-          class="input-dnd-textarea w-full text-sm"
+          class="input-textarea w-full text-xs"
         />
       </div>
-      <div v-if="character.actions.length === 0" class="text-center py-8 text-gray-500 italic">
+      <div v-if="character.actions.length === 0" class="text-center py-6 text-[var(--color-text-muted)] italic text-sm">
         No actions added yet. Click "+ Add Action" to get started.
       </div>
     </div>

@@ -1,37 +1,86 @@
 <template>
-  <div class="section">
-    <div class="section-header">
-      <h3 class="section-title">Abilities & Saves</h3>
-      <button @click="openEditModal" class="btn btn-primary text-xs">Edit</button>
-    </div>
-    <div class="grid grid-cols-3 gap-2 mb-3">
-      <div
-        v-for="(ability, key) in character.abilities"
-        :key="key"
-        class="card text-center"
-      >
-        <div class="text-xs font-semibold font-cinzel mb-0.5 tracking-wide">{{ getAbilityName(key) }}</div>
-        <div class="text-[0.65rem] text-[var(--color-text-tertiary)] mb-1">{{ getAbilityAbbrev(key) }}</div>
-        <div class="mb-1">
-          <span class="text-xl font-bold font-medieval text-[var(--color-text-primary)]">{{ finalScore(key) }}</span>
-        </div>
+  <div class="flex flex-col gap-2">
+    <!-- Ability Scores - Large Vertical Stack -->
+    <div class="section">
+      <div class="section-header">
+        <h3 class="section-title">Abilities</h3>
+        <button @click="openEditModal" class="btn btn-primary text-sm px-2 py-1">Edit</button>
+      </div>
+      <div class="flex flex-col gap-1.5">
         <div
-          class="clickable-text text-base font-bold font-medieval text-[var(--color-text-primary)] mb-1"
-          @click="rollAbilityCheck(key)"
+          v-for="(ability, key) in character.abilities"
+          :key="key"
+          class="card-compact flex items-center gap-2"
         >
-          {{ formatModifier(ability.modifier) }}
+          <div class="flex flex-col items-center justify-center min-w-[60px]">
+            <div class="text-3xl font-bold font-medieval text-[var(--color-text-primary)]">{{ finalScore(key) }}</div>
+            <div class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase">{{ getAbilityAbbrev(key) }}</div>
+          </div>
+          <div class="flex-1">
+            <div class="text-sm font-semibold font-cinzel text-[var(--color-text-secondary)] mb-0.5">{{ getAbilityName(key) }}</div>
+            <div class="flex items-center gap-2">
+              <span
+                class="clickable-text text-base font-bold font-medieval text-[var(--color-text-primary)]"
+                @click="rollAbilityCheck(key)"
+              >
+                {{ formatModifier(ability.modifier) }}
+              </span>
+              <label class="flex items-center gap-1 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  :checked="ability.saveProficient"
+                  @change="updateSaveProficiency(key, ($event.target as HTMLInputElement).checked)"
+                  class="w-4 h-4"
+                />
+                <span class="text-[var(--color-text-tertiary)]">Save</span>
+              </label>
+              <span
+                class="clickable-text text-sm font-bold font-medieval text-[var(--color-text-secondary)]"
+                @click="rollSavingThrow(key)"
+              >
+                {{ formatModifier(ability.saveModifier) }}
+              </span>
+            </div>
+          </div>
         </div>
-        <div class="flex items-center justify-center gap-1.5 text-xs">
-          <label class="flex items-center gap-0.5 cursor-pointer">
+      </div>
+    </div>
+
+    <!-- Inspiration & Proficiency -->
+    <div class="section">
+      <div class="flex items-center gap-2 mb-1.5">
+        <label class="flex items-center gap-1.5 text-sm cursor-pointer">
+          <input type="checkbox" class="w-4 h-4" />
+          <span class="font-semibold text-[var(--color-text-secondary)]">Inspiration</span>
+        </label>
+        <div class="flex-1"></div>
+        <div class="text-sm">
+          <span class="font-semibold text-[var(--color-text-secondary)]">Proficiency:</span>
+          <span class="font-bold text-[var(--color-text-primary)] ml-1">{{ formatModifier(character.proficiencyBonus) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saving Throws -->
+    <div class="section">
+      <h3 class="section-title mb-1.5">Saving Throws</h3>
+      <div class="flex flex-col gap-1">
+        <div
+          v-for="(ability, key) in character.abilities"
+          :key="key"
+          class="flex items-center justify-between text-sm"
+        >
+          <label class="flex items-center gap-1.5 cursor-pointer flex-1">
             <input
               type="checkbox"
               :checked="ability.saveProficient"
               @change="updateSaveProficiency(key, ($event.target as HTMLInputElement).checked)"
+              class="w-4 h-4"
             />
-            <span>Save</span>
+            <span class="text-[var(--color-text-secondary)]">{{ getAbilityAbbrev(key) }}</span>
           </label>
           <span
-            class="clickable-text font-bold font-medieval text-[var(--color-text-secondary)]"
+            class="clickable-text font-bold font-medieval text-[var(--color-text-primary)] min-w-[35px] text-right"
             @click="rollSavingThrow(key)"
           >
             {{ formatModifier(ability.saveModifier) }}
@@ -39,29 +88,25 @@
         </div>
       </div>
     </div>
-    <div class="mt-3 pt-3 border-t-2 border-[var(--color-border-primary)]">
-      <h4 class="m-0 mb-2 text-sm font-cinzel font-semibold text-[var(--color-text-secondary)] tracking-wide">Senses</h4>
-      <div class="grid grid-cols-3 gap-2">
-        <div class="flex flex-col gap-0.5">
-          <label class="text-xs font-semibold text-[var(--color-text-tertiary)]">Passive Perception</label>
-          <div class="text-base font-bold text-[var(--color-text-primary)] p-1.5 bg-[var(--color-bg-primary)] border border-[var(--color-border-primary)] rounded text-center shadow-sm">
-            {{ calculatePassivePerception() }}
-          </div>
+
+    <!-- Passive Senses -->
+    <div class="section">
+      <h3 class="section-title mb-1.5">Passive Perception</h3>
+      <div class="text-center">
+        <div class="text-2xl font-bold font-medieval text-[var(--color-text-primary)]">{{ calculatePassivePerception() }}</div>
+      </div>
+      <div class="mt-1.5 pt-1.5 border-t border-[var(--color-border-divider)] grid grid-cols-2 gap-1 text-sm">
+        <div>
+          <span class="text-[var(--color-text-tertiary)]">Investigation:</span>
+          <span class="font-bold text-[var(--color-text-primary)] ml-1">{{ calculatePassiveInvestigation() }}</span>
         </div>
-        <div class="flex flex-col gap-0.5">
-          <label class="text-xs font-semibold text-[var(--color-text-tertiary)]">Passive Investigation</label>
-          <div class="text-base font-bold text-[var(--color-text-primary)] p-1.5 bg-[var(--color-bg-primary)] border border-[var(--color-border-primary)] rounded text-center shadow-sm">
-            {{ calculatePassiveInvestigation() }}
-          </div>
-        </div>
-        <div class="flex flex-col gap-0.5">
-          <label class="text-xs font-semibold text-[var(--color-text-tertiary)]">Passive Insight</label>
-          <div class="text-base font-bold text-[var(--color-text-primary)] p-1.5 bg-[var(--color-bg-primary)] border border-[var(--color-border-primary)] rounded text-center shadow-sm">
-            {{ calculatePassiveInsight() }}
-          </div>
+        <div>
+          <span class="text-[var(--color-text-tertiary)]">Insight:</span>
+          <span class="font-bold text-[var(--color-text-primary)] ml-1">{{ calculatePassiveInsight() }}</span>
         </div>
       </div>
     </div>
+
     <AbilitiesEditModal
       :is-open="isEditModalOpen"
       @close="closeEditModal"
@@ -81,7 +126,8 @@
 <script setup lang="ts">
 import type { Character } from '~/types/character'
 
-const { character, updateSaveProficiency, setAbilityScores, updateCustomModifier } = useCharacter()
+const { character, updateSaveProficiency, setAbilityScores, updateCustomModifier, updateAbilityScore } = useCharacter()
+const { addRoll } = useDiceHistory()
 
 const isEditModalOpen = ref(false)
 
@@ -94,18 +140,15 @@ const closeEditModal = () => {
 }
 
 const handleSaveAbilities = (newAbilities: Character['abilities']) => {
-  // Update all ability scores and custom modifiers
   Object.keys(newAbilities).forEach(key => {
     const abilityKey = key as keyof Character['abilities']
     const newAbility = newAbilities[abilityKey]
     const oldAbility = character.value.abilities[abilityKey]
     
-    // Update score if changed
     if (newAbility.score !== oldAbility.score) {
       setAbilityScores({ [abilityKey]: newAbility.score })
     }
     
-    // Update custom modifier if changed
     if (newAbility.customModifier !== oldAbility.customModifier) {
       updateCustomModifier(abilityKey, newAbility.customModifier)
     }
@@ -197,8 +240,6 @@ const showToast = (title: string, roll: number, modifier: number) => {
 const closeToast = () => {
   toast.value.isVisible = false
 }
-
-const { addRoll } = useDiceHistory()
 
 const rollAbilityCheck = (key: keyof Character['abilities']) => {
   const ability = character.value.abilities[key]

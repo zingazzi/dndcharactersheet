@@ -1,50 +1,50 @@
 <template>
-  <div class="p-6 border-2 border-brown rounded-md mb-6 bg-white/40 shadow-[0_0_0_1px_#d4a574,0_2px_8px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.3)]">
-    <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-300">
-      <h3 class="m-0 text-xl font-cinzel font-semibold text-text-brown text-shadow-dnd tracking-wide uppercase">Spells</h3>
+  <div class="section">
+    <div class="section-header">
+      <h3 class="section-title">Spells</h3>
       <button
         @click="showAddForm = !showAddForm"
-        class="btn-dnd-primary"
+        class="btn btn-primary text-xs"
       >
         {{ showAddForm ? 'Cancel' : '+ Add Spell' }}
       </button>
     </div>
-    <div class="mb-6 pb-4 border-b border-gray-300">
-      <h4 class="m-0 mb-3 text-base text-gray-700">Spell Slots</h4>
-      <div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3 mb-3">
+    <div class="mb-3 pb-3 border-b border-[var(--color-border-divider)]">
+      <h4 class="m-0 mb-2 text-sm text-[var(--color-text-secondary)]">Spell Slots</h4>
+      <div class="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-2 mb-2">
         <div
           v-for="slot in character.spellSlots"
           :key="slot.level"
-          class="flex flex-col gap-1"
+          class="flex flex-col gap-0.5"
         >
-          <label class="text-sm font-semibold text-gray-700">Level {{ slot.level }}</label>
+          <label class="text-xs font-semibold text-[var(--color-text-secondary)]">Level {{ slot.level }}</label>
           <div class="flex items-center gap-1">
             <input
               v-model.number="slot.used"
               type="number"
               :max="slot.total"
               min="0"
-              class="input-dnd-number w-[50px] text-center py-1"
+              class="input text-center w-12 py-1"
             />
             <span>/</span>
             <input
               v-model.number="slot.total"
               type="number"
               min="0"
-              class="input-dnd-number w-[50px] text-center py-1"
+              class="input text-center w-12 py-1"
             />
           </div>
         </div>
       </div>
-      <button @click="addSpellSlot" class="btn-dnd-secondary text-sm">+ Add Spell Slot Level</button>
+      <button @click="addSpellSlot" class="btn btn-secondary text-xs">+ Add Spell Slot Level</button>
     </div>
-    <div v-if="showAddForm" class="p-4 bg-gray-50 rounded-md mb-4">
-      <div class="flex gap-2 mb-2">
+    <div v-if="showAddForm" class="p-3 bg-[var(--color-bg-secondary)] rounded mb-3">
+      <div class="flex gap-1.5 mb-1.5">
         <input
           v-model="newSpell.name"
           type="text"
           placeholder="Spell Name"
-          class="input-dnd flex-1"
+          class="input flex-1"
         />
         <input
           v-model.number="newSpell.level"
@@ -52,43 +52,43 @@
           placeholder="Level"
           min="0"
           max="9"
-          class="input-dnd w-[100px]"
+          class="input w-20"
         />
         <input
           v-model="newSpell.school"
           type="text"
           placeholder="School"
-          class="input-dnd flex-1"
+          class="input flex-1"
         />
       </div>
-      <div class="flex gap-2 mb-2">
+      <div class="flex gap-1.5 mb-1.5">
         <input
           v-model="newSpell.castingTime"
           type="text"
           placeholder="Casting Time"
-          class="input-dnd flex-1"
+          class="input flex-1"
         />
         <input
           v-model="newSpell.range"
           type="text"
           placeholder="Range"
-          class="input-dnd flex-1"
+          class="input flex-1"
         />
         <input
           v-model="newSpell.components"
           type="text"
           placeholder="Components"
-          class="input-dnd flex-1"
+          class="input flex-1"
         />
       </div>
-      <div class="flex gap-2 mb-2">
+      <div class="flex gap-1.5 mb-1.5">
         <input
           v-model="newSpell.duration"
           type="text"
           placeholder="Duration"
-          class="input-dnd flex-1"
+          class="input flex-1"
         />
-        <label class="flex items-center gap-2 cursor-pointer text-sm">
+        <label class="flex items-center gap-1.5 cursor-pointer text-xs">
           <input
             v-model="newSpell.prepared"
             type="checkbox"
@@ -99,73 +99,73 @@
       <textarea
         v-model="newSpell.description"
         placeholder="Description"
-        rows="4"
-        class="input-dnd-textarea w-full mb-2"
+        rows="3"
+        class="input-textarea w-full mb-1.5"
       />
-      <button @click="handleAddSpell" class="btn-dnd-primary">Save</button>
+      <button @click="handleAddSpell" class="btn btn-primary text-xs">Save</button>
     </div>
-    <div class="flex flex-col gap-4">
-      <h4 class="m-0 mb-1 text-base text-gray-700">Known Spells</h4>
+    <div class="flex flex-col gap-2">
+      <h4 class="m-0 mb-1 text-sm text-[var(--color-text-secondary)]">Known Spells</h4>
       <div
         v-for="spell in character.spells"
         :key="spell.id"
-        class="p-4 border border-gray-300 rounded bg-gray-50"
+        class="card"
       >
-        <div class="flex justify-between items-center mb-3">
-          <div class="flex items-center gap-3">
-            <span class="text-lg font-bold">{{ spell.name }}</span>
-            <span class="text-sm text-gray-600 px-2 py-1 bg-gray-200 rounded">Level {{ spell.level }}</span>
-            <span v-if="spell.prepared" class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded font-semibold">Prepared</span>
+        <div class="flex justify-between items-center mb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-base font-bold">{{ spell.name }}</span>
+            <span class="text-xs text-[var(--color-text-tertiary)] px-1.5 py-0.5 bg-[var(--color-bg-secondary)] rounded">Level {{ spell.level }}</span>
+            <span v-if="spell.prepared" class="text-xs text-[var(--color-success)] bg-[var(--color-success)]/20 px-1.5 py-0.5 rounded font-semibold">Prepared</span>
           </div>
           <button
             @click="removeSpell(spell.id)"
-            class="bg-red-600 text-white border-none rounded-full w-6 h-6 cursor-pointer text-xl leading-none flex items-center justify-center hover:bg-red-700"
+            class="btn btn-danger text-xs px-2 py-1"
           >
             ×
           </button>
         </div>
-        <div class="grid grid-cols-2 gap-2 mb-2">
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-semibold text-gray-700 min-w-[100px]">School:</span>
+        <div class="grid grid-cols-2 gap-1.5 mb-1.5">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-semibold text-[var(--color-text-tertiary)] min-w-[80px]">School:</span>
             <input
               v-model="spell.school"
               type="text"
-              class="input-dnd flex-1 text-sm py-1 px-2"
+              class="input flex-1 text-xs py-1 px-1.5"
             />
           </div>
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-semibold text-gray-700 min-w-[100px]">Casting Time:</span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-semibold text-[var(--color-text-tertiary)] min-w-[80px]">Casting Time:</span>
             <input
               v-model="spell.castingTime"
               type="text"
-              class="input-dnd flex-1 text-sm py-1 px-2"
+              class="input flex-1 text-xs py-1 px-1.5"
             />
           </div>
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-semibold text-gray-700 min-w-[100px]">Range:</span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-semibold text-[var(--color-text-tertiary)] min-w-[80px]">Range:</span>
             <input
               v-model="spell.range"
               type="text"
-              class="input-dnd flex-1 text-sm py-1 px-2"
+              class="input flex-1 text-xs py-1 px-1.5"
             />
           </div>
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-semibold text-gray-700 min-w-[100px]">Components:</span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-semibold text-[var(--color-text-tertiary)] min-w-[80px]">Components:</span>
             <input
               v-model="spell.components"
               type="text"
-              class="input-dnd flex-1 text-sm py-1 px-2"
+              class="input flex-1 text-xs py-1 px-1.5"
             />
           </div>
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-semibold text-gray-700 min-w-[100px]">Duration:</span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-semibold text-[var(--color-text-tertiary)] min-w-[80px]">Duration:</span>
             <input
               v-model="spell.duration"
               type="text"
-              class="input-dnd flex-1 text-sm py-1 px-2"
+              class="input flex-1 text-xs py-1 px-1.5"
             />
           </div>
-          <label class="flex items-center gap-2 cursor-pointer text-sm">
+          <label class="flex items-center gap-1.5 cursor-pointer text-xs">
             <input
               v-model="spell.prepared"
               type="checkbox"
@@ -176,11 +176,11 @@
         <textarea
           v-model="spell.description"
           placeholder="Description"
-          rows="3"
-          class="input-dnd-textarea w-full text-sm"
+          rows="2"
+          class="input-textarea w-full text-xs"
         />
       </div>
-      <div v-if="character.spells.length === 0" class="text-center py-8 text-gray-500 italic">
+      <div v-if="character.spells.length === 0" class="text-center py-6 text-[var(--color-text-muted)] italic text-sm">
         No spells added yet. Click "+ Add Spell" to get started.
       </div>
     </div>

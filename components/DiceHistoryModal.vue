@@ -2,18 +2,18 @@
   <div v-if="isOpen" class="modal-overlay" @click.self="close">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="m-0 text-2xl font-cinzel font-semibold text-text-brown tracking-wide">Dice History</h2>
-        <div class="flex gap-2 items-center">
+        <h2 class="m-0 text-base font-cinzel font-semibold text-[var(--color-text-secondary)]">Dice History</h2>
+        <div class="flex gap-1 items-center">
           <button
             v-if="recentRolls.length > 0"
             @click="clearHistory"
-            class="btn-dnd-danger text-sm"
+            class="btn btn-danger text-sm px-2 py-1"
           >
             Clear
           </button>
           <button
             @click="close"
-            class="btn-dnd-primary w-8 h-8 p-0 text-xl leading-none"
+            class="bg-transparent border-none text-xl text-[var(--color-accent-primary)] cursor-pointer w-6 h-6 flex items-center justify-center rounded transition-all duration-200 hover:bg-[var(--color-accent-primary)]/20 leading-none"
           >
             ×
           </button>
@@ -21,25 +21,25 @@
       </div>
       
       <div class="modal-body">
-        <div v-if="recentRolls.length === 0" class="text-center py-12 px-4 text-gray-500 italic">
+        <div v-if="recentRolls.length === 0" class="text-center py-8 text-[var(--color-text-muted)] italic text-sm">
           No dice rolls yet. Roll some dice to see them here!
         </div>
-        <div v-else class="flex flex-col gap-4">
+        <div v-else class="flex flex-col gap-1.5 max-h-[400px] overflow-y-auto">
           <div
             v-for="roll in recentRolls"
             :key="roll.id"
-            class="p-4 border border-gray-300 rounded bg-gray-50"
+            class="card-compact p-1.5"
           >
-            <div class="flex justify-between items-center mb-2">
-              <span class="font-semibold text-gray-800 text-sm">{{ roll.title }}</span>
-              <span class="text-xs text-gray-500">{{ formatTime(roll.timestamp) }}</span>
+            <div class="flex justify-between items-center mb-1">
+              <span class="font-semibold text-[var(--color-text-primary)] text-sm">{{ roll.title }}</span>
+              <span class="text-xs text-[var(--color-text-muted)]">{{ formatTime(roll.timestamp) }}</span>
             </div>
-            <div class="flex items-center gap-2 text-base">
-              <span class="px-2 py-1 bg-gray-100 rounded">{{ roll.roll }}</span>
-              <span class="font-semibold text-gray-600">+</span>
-              <span class="px-2 py-1 bg-gray-100 rounded">{{ formatModifier(roll.modifier) }}</span>
-              <span class="font-semibold text-gray-600">=</span>
-              <span class="px-3 py-2 bg-blue-500 text-white rounded font-bold text-lg min-w-[50px] text-center">
+            <div class="flex items-center gap-1 text-sm">
+              <span class="px-1.5 py-0.5 bg-[var(--color-bg-secondary)] rounded">{{ roll.roll }}</span>
+              <span class="font-semibold text-[var(--color-text-tertiary)]">+</span>
+              <span class="px-1.5 py-0.5 bg-[var(--color-bg-secondary)] rounded">{{ formatModifier(roll.modifier) }}</span>
+              <span class="font-semibold text-[var(--color-text-tertiary)]">=</span>
+              <span class="px-2 py-1 bg-[var(--color-info)] text-white rounded font-bold text-sm min-w-[40px] text-center">
                 {{ roll.total }}
               </span>
             </div>

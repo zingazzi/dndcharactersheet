@@ -1,28 +1,28 @@
 <template>
-  <div class="p-6 border-2 border-brown rounded-md mb-6 bg-white/40 shadow-[0_0_0_1px_#d4a574,0_2px_8px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.3)]">
-    <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-300">
-      <h3 class="m-0 text-xl font-cinzel font-semibold text-text-brown text-shadow-dnd tracking-wide uppercase">Inventory</h3>
+  <div class="section">
+    <div class="section-header">
+      <h3 class="section-title">Inventory</h3>
       <button
         @click="showAddForm = !showAddForm"
-        class="btn-dnd-primary"
+        class="btn btn-primary text-xs"
       >
         {{ showAddForm ? 'Cancel' : '+ Add Item' }}
       </button>
     </div>
-    <div v-if="showAddForm" class="p-4 bg-gray-50 rounded-md mb-4">
-      <div class="flex gap-2 mb-2">
+    <div v-if="showAddForm" class="p-3 bg-[var(--color-bg-secondary)] rounded mb-3">
+      <div class="flex gap-1.5 mb-1.5">
         <input
           v-model="newItem.name"
           type="text"
           placeholder="Item Name"
-          class="input-dnd flex-1"
+          class="input flex-1"
         />
         <input
           v-model.number="newItem.quantity"
           type="number"
           placeholder="Quantity"
           min="1"
-          class="input-dnd w-[120px]"
+          class="input w-24"
         />
         <input
           v-model.number="newItem.weight"
@@ -30,76 +30,76 @@
           placeholder="Weight (lbs)"
           min="0"
           step="0.1"
-          class="input-dnd w-[120px]"
+          class="input w-24"
         />
       </div>
       <textarea
         v-model="newItem.description"
         placeholder="Description (optional)"
         rows="2"
-        class="input-dnd-textarea w-full mb-2"
+        class="input-textarea w-full mb-1.5"
       />
-      <button @click="handleAddItem" class="btn-dnd-primary">Save</button>
+      <button @click="handleAddItem" class="btn btn-primary text-xs">Save</button>
     </div>
-    <div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-2">
       <div
         v-for="item in character.inventory"
         :key="item.id"
-        class="p-4 border border-gray-300 rounded bg-gray-50"
+        class="card"
       >
-        <div class="flex justify-between items-center mb-2">
-          <div class="flex items-center gap-3">
-            <span class="text-lg font-bold">{{ item.name }}</span>
-            <span class="text-sm text-gray-600">×{{ item.quantity }}</span>
-            <span class="text-xs text-gray-500 px-2 py-1 bg-gray-200 rounded">{{ item.weight }} lbs</span>
+        <div class="flex justify-between items-center mb-1.5">
+          <div class="flex items-center gap-2">
+            <span class="text-base font-bold">{{ item.name }}</span>
+            <span class="text-xs text-[var(--color-text-tertiary)]">×{{ item.quantity }}</span>
+            <span class="text-xs text-[var(--color-text-muted)] px-1.5 py-0.5 bg-[var(--color-bg-secondary)] rounded">{{ item.weight }} lbs</span>
           </div>
           <button
             @click="removeInventoryItem(item.id)"
-            class="bg-red-600 text-white border-none rounded-full w-6 h-6 cursor-pointer text-xl leading-none flex items-center justify-center hover:bg-red-700"
+            class="btn btn-danger text-xs px-2 py-1"
           >
             ×
           </button>
         </div>
-        <div v-if="item.description" class="mb-2 p-2 bg-gray-100 rounded text-sm text-gray-700">
+        <div v-if="item.description" class="mb-1.5 p-1.5 bg-[var(--color-bg-secondary)] rounded text-xs text-[var(--color-text-secondary)]">
           {{ item.description }}
         </div>
-        <div class="mt-2 pt-2 border-t border-gray-300">
-          <div class="flex items-center gap-2 mb-2">
-            <label class="text-xs font-semibold text-gray-700 min-w-[80px]">Name:</label>
+        <div class="pt-1.5 border-t border-[var(--color-border-divider)]">
+          <div class="flex items-center gap-1.5 mb-1.5">
+            <label class="text-xs font-semibold text-[var(--color-text-tertiary)] min-w-[60px]">Name:</label>
             <input
               v-model="item.name"
               type="text"
-              class="input-dnd flex-1 text-sm py-1 px-2"
+              class="input flex-1 text-xs py-1 px-1.5"
             />
           </div>
-          <div class="flex items-center gap-2 mb-2">
-            <label class="text-xs font-semibold text-gray-700 min-w-[80px]">Quantity:</label>
+          <div class="flex items-center gap-1.5 mb-1.5">
+            <label class="text-xs font-semibold text-[var(--color-text-tertiary)] min-w-[60px]">Quantity:</label>
             <input
               v-model.number="item.quantity"
               type="number"
               min="1"
-              class="input-dnd w-[100px] text-sm py-1 px-2"
+              class="input w-20 text-xs py-1 px-1.5"
             />
-            <label class="text-xs font-semibold text-gray-700 min-w-[60px]">Weight:</label>
+            <label class="text-xs font-semibold text-[var(--color-text-tertiary)] min-w-[50px]">Weight:</label>
             <input
               v-model.number="item.weight"
               type="number"
               min="0"
               step="0.1"
-              class="input-dnd w-[100px] text-sm py-1 px-2"
+              class="input w-20 text-xs py-1 px-1.5"
             />
           </div>
-          <div class="flex items-center gap-2">
-            <label class="text-xs font-semibold text-gray-700 min-w-[80px]">Description:</label>
+          <div class="flex items-center gap-1.5">
+            <label class="text-xs font-semibold text-[var(--color-text-tertiary)] min-w-[60px]">Description:</label>
             <textarea
               v-model="item.description"
               rows="2"
-              class="input-dnd-textarea flex-1 text-sm"
+              class="input-textarea flex-1 text-xs"
             />
           </div>
         </div>
       </div>
-      <div v-if="character.inventory.length === 0" class="text-center py-8 text-gray-500 italic">
+      <div v-if="character.inventory.length === 0" class="text-center py-6 text-[var(--color-text-muted)] italic text-sm">
         No items in inventory. Click "+ Add Item" to get started.
       </div>
     </div>

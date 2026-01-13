@@ -2,32 +2,33 @@
   <Transition name="toast">
     <div
       v-if="isVisible"
-      class="fixed top-5 right-5 min-w-[300px] max-w-[400px] z-[10000] bg-gradient-parchment border-dnd border-brown rounded-lg shadow-dnd-lg border-l-4"
+      class="fixed top-5 right-5 min-w-[300px] max-w-[400px] z-[10000] rounded-lg shadow-dnd-lg border-l-4"
+      style="background: var(--gradient-parchment); border: 1px solid var(--color-border-primary);"
       :class="{
-        'border-l-green-600': type === 'success',
-        'border-l-blue-500': type === 'info',
-        'border-l-yellow-500': type === 'warning',
-        'border-l-red-500': type === 'error',
-        'border-l-brown': !type || type === 'info'
+        'border-l-[var(--color-success)]': type === 'success',
+        'border-l-[var(--color-info)]': type === 'info',
+        'border-l-[var(--color-warning)]': type === 'warning',
+        'border-l-[var(--color-danger)]': type === 'error',
+        'border-l-[var(--color-border-primary)]': !type || type === 'info'
       }"
     >
       <div class="p-4">
         <div class="flex justify-between items-center mb-3">
-          <span class="font-semibold text-base text-gray-800">{{ title }}</span>
+          <span class="font-semibold text-lg text-[var(--color-text-primary)]">{{ title }}</span>
           <button
             @click="close"
-            class="bg-gradient-to-b from-brown to-brown-dark border-2 border-brown-border text-parchment text-xl leading-none p-0 w-6 h-6 flex items-center justify-center rounded shadow-dnd transition-all duration-200 hover:from-brown-light hover:to-brown hover:-translate-y-0.5 hover:shadow-dnd-lg"
+            class="bg-gradient-to-b from-brown to-brown-dark border-2 border-brown-border text-parchment text-2xl leading-none p-0 w-7 h-7 flex items-center justify-center rounded shadow-dnd transition-all duration-200 hover:from-brown-light hover:to-brown hover:-translate-y-0.5 hover:shadow-dnd-lg"
           >
             ×
           </button>
         </div>
-        <div class="text-sm">
-          <div class="flex items-center justify-center gap-2 text-lg">
-            <span class="px-2 py-1 bg-gray-100 rounded">{{ roll }}</span>
-            <span class="font-semibold text-gray-600">+</span>
-            <span class="px-2 py-1 bg-gray-100 rounded">{{ formatModifier(modifier) }}</span>
-            <span class="font-semibold text-gray-600">=</span>
-            <span class="px-4 py-2 bg-gradient-to-b from-brown to-brown-dark text-parchment border-2 border-brown-border rounded font-bold text-xl min-w-[60px] text-center shadow-dnd">
+        <div class="text-base">
+          <div class="flex items-center justify-center gap-3 text-xl">
+            <span class="px-3 py-1.5 bg-[var(--color-bg-secondary)] rounded text-lg font-bold">{{ roll }}</span>
+            <span class="font-semibold text-[var(--color-text-secondary)] text-lg">+</span>
+            <span class="px-3 py-1.5 bg-[var(--color-bg-secondary)] rounded text-lg font-bold">{{ formatModifier(modifier) }}</span>
+            <span class="font-semibold text-[var(--color-text-secondary)] text-lg">=</span>
+            <span class="px-5 py-3 bg-gradient-to-b from-brown to-brown-dark text-parchment border-2 border-brown-border rounded font-bold text-2xl min-w-[70px] text-center shadow-dnd">
               {{ total }}
             </span>
           </div>

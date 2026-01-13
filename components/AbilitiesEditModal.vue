@@ -1,15 +1,20 @@
 <template>
   <div v-if="isOpen" class="modal-overlay" @click.self="close">
-    <div class="modal-content">
+    <div class="modal-content-large">
       <div class="modal-header">
-        <h2>Edit Ability Scores</h2>
-        <button @click="close" class="close-btn">×</button>
+        <h2 class="m-0 text-base font-cinzel font-semibold text-[var(--color-text-secondary)]">Edit Ability Scores</h2>
+        <button
+          @click="close"
+          class="bg-transparent border-none text-xl text-[var(--color-accent-primary)] cursor-pointer w-6 h-6 flex items-center justify-center rounded transition-all duration-200 hover:bg-[var(--color-accent-primary)]/20 leading-none"
+        >
+          ×
+        </button>
       </div>
       
       <div class="modal-body">
-        <div class="method-selector">
-          <label>Method:</label>
-          <select v-model="selectedMethod" class="method-select">
+        <div class="mb-2">
+          <label class="text-xs font-semibold text-[var(--color-text-secondary)] mr-2">Method:</label>
+          <select v-model="selectedMethod" class="input-select text-xs w-auto inline-block">
             <option value="pointbuy">Point Buy</option>
             <option value="standard">Standard Array</option>
             <option value="roll">Roll Dice (4d6 drop lowest)</option>

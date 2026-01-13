@@ -1,11 +1,13 @@
 <template>
   <div class="w-full min-h-screen">
     <MenuBar />
-    <div v-if="error" class="p-4 bg-red-100 text-red-800 rounded">
-      <h2>Error loading character sheet</h2>
-      <p>{{ error }}</p>
+    <div class="mt-4">
+      <div v-if="error" class="p-4 bg-red-100 text-red-800 rounded">
+        <h2>Error loading character sheet</h2>
+        <p>{{ error }}</p>
+      </div>
+      <CharacterSheet v-else />
     </div>
-    <CharacterSheet v-else />
   </div>
 </template>
 

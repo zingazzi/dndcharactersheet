@@ -2,20 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
-/* CSS Custom Properties for D&D Theme */
+/* CSS Custom Properties for D&D Theme - All Colors */
 :root {
-  --parchment: #f4e8d0;
-  --parchment-dark: #e8d4b8;
-  --brown: #8b4513;
-  --brown-dark: #6b3410;
-  --brown-light: #9d5520;
-  --brown-border: #5c3a21;
-  --gold: #d4a574;
-  --text-dark: #2c1810;
-  --text-brown: #5c3a21;
-  --green-hp: #2e7d32;
-  --green-hp-dark: #1b5e20;
-  --red-damage: #8b1a1a;
+  /* Background Colors */
+  --color-bg-primary: #f4e8d0;
+  --color-bg-secondary: #e8d4b8;
+  --color-bg-tertiary: #ffffff;
+  --color-bg-overlay: rgba(0, 0, 0, 0.5);
+  
+  /* Border Colors */
+  --color-border-primary: #8b4513;
+  --color-border-secondary: #5c3a21;
+  --color-border-light: #d4a574;
+  --color-border-divider: rgba(139, 69, 19, 0.2);
+  
+  /* Text Colors */
+  --color-text-primary: #2c1810;
+  --color-text-secondary: #5c3a21;
+  --color-text-tertiary: #666666;
+  --color-text-muted: #999999;
+  --color-text-inverse: #f4e8d0;
+  
+  /* Accent Colors */
+  --color-accent-primary: #8b4513;
+  --color-accent-primary-dark: #6b3410;
+  --color-accent-primary-light: #9d5520;
+  --color-accent-gold: #d4a574;
+  
+  /* Status Colors */
+  --color-success: #2e7d32;
+  --color-success-dark: #1b5e20;
+  --color-danger: #e74c3c;
+  --color-danger-dark: #c0392b;
+  --color-info: #4a90e2;
+  --color-info-dark: #357abd;
+  --color-warning: #f39c12;
+  
+  /* Background Gradients */
+  --gradient-bg-main: linear-gradient(135deg, #d4a574 0%, #b8956a 50%, #9d7f5a 100%);
+  --gradient-parchment: linear-gradient(to bottom, #f4e8d0, #e8d4b8);
+  --gradient-button-primary: linear-gradient(180deg, #8b4513 0%, #6b3410 100%);
+  --gradient-button-hover: linear-gradient(180deg, #9d5520 0%, #7b4415 100%);
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 4px rgba(44, 24, 16, 0.1);
+  --shadow-md: 0 4px 6px rgba(44, 24, 16, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  --shadow-lg: 0 8px 12px rgba(44, 24, 16, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.1);
+  --shadow-inner: inset 0 2px 4px rgba(44, 24, 16, 0.2);
+  
+  /* Spacing - Reduced */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 0.75rem;
+  --spacing-lg: 1rem;
+  --spacing-xl: 1.5rem;
+  --spacing-2xl: 2rem;
+  
+  /* Border Radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+
+  /* Text Sizes - Centralized Configuration */
+  --text-size-xs: 0.75rem;    /* 12px */
+  --text-size-sm: 0.875rem;   /* 14px */
+  --text-size-base: 1rem;      /* 16px - default */
+  --text-size-lg: 1.125rem;    /* 18px */
+  --text-size-xl: 1.25rem;     /* 20px */
+  --text-size-2xl: 1.5rem;     /* 24px */
+  --text-size-3xl: 1.875rem;   /* 30px */
+  --text-size-4xl: 2.25rem;    /* 36px */
 }
 
 /* Base Styles */
@@ -25,167 +86,224 @@
   }
 
   body {
-    @apply font-cinzel text-sm leading-relaxed text-text-dark;
-    background: linear-gradient(135deg, #d4a574 0%, #b8956a 50%, #9d7f5a 100%);
+    @apply font-cinzel leading-normal;
+    font-size: var(--text-size-base);
+    color: var(--color-text-primary);
+    background: var(--gradient-bg-main);
     background-attachment: fixed;
     min-height: 100vh;
+  }
+
+  /* Default text sizes - using CSS variables */
+  p, span, div, label {
+    font-size: var(--text-size-base);
+  }
+
+  h1 {
+    font-size: var(--text-size-2xl);
+  }
+
+  h2 {
+    font-size: var(--text-size-xl);
+  }
+
+  h3 {
+    font-size: var(--text-size-lg);
+  }
+
+  h4 {
+    font-size: var(--text-size-base);
   }
 
   input,
   textarea,
   select,
   button {
-    @apply font-cinzel text-inherit;
+    @apply font-cinzel;
+    font-size: var(--text-size-base);
   }
 }
 
 /* Component Classes */
 @layer components {
-  /* D&D Button Styles */
-  .btn-dnd {
-    @apply px-4 py-2 rounded border-dnd border-brown-border bg-parchment-dark text-text-dark font-medium cursor-pointer transition-all duration-200;
-    @apply hover:bg-parchment hover:shadow-dnd active:shadow-dnd-inner;
+  /* Standardized Button Styles */
+  .btn {
+    @apply px-3 py-1.5 rounded-md border font-medium cursor-pointer transition-all duration-200;
     @apply disabled:opacity-50 disabled:cursor-not-allowed;
+    font-size: var(--text-size-base);
+    line-height: 1.5rem;
   }
 
-  .btn-dnd-primary {
-    @apply btn-dnd bg-brown text-parchment;
-    @apply hover:bg-brown-dark;
+  .btn-primary {
+    background: var(--gradient-button-primary);
+    color: var(--color-text-inverse);
+    border-color: var(--color-border-secondary);
+    box-shadow: var(--shadow-sm);
   }
 
-  .btn-dnd-secondary {
-    @apply btn-dnd bg-parchment-dark;
+  .btn-primary:hover {
+    background: var(--gradient-button-hover);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
   }
 
-  .btn-dnd-danger {
-    @apply btn-dnd bg-red-damage text-parchment;
-    @apply hover:bg-red-800;
+  .btn-secondary {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    border-color: var(--color-border-primary);
+    box-shadow: var(--shadow-sm);
   }
 
-  .btn-dnd-success {
-    @apply btn-dnd bg-green-hp text-parchment;
-    @apply hover:bg-green-hp-dark;
+  .btn-secondary:hover {
+    background: var(--color-bg-primary);
+    box-shadow: var(--shadow-md);
   }
 
-  /* D&D Card Styles */
-  .card-dnd {
-    @apply bg-parchment border-dnd border-brown-border rounded-lg p-4 shadow-dnd;
+  .btn-danger {
+    background: var(--color-danger);
+    color: var(--color-text-inverse);
+    border-color: var(--color-border-secondary);
+    box-shadow: var(--shadow-sm);
   }
 
-  .card-dnd-elevated {
-    @apply card-dnd shadow-dnd-lg;
+  .btn-danger:hover {
+    background: var(--color-danger-dark);
+    box-shadow: var(--shadow-md);
   }
 
-  .card-dnd-bordered {
-    @apply card-dnd border-2;
+  .btn-success {
+    background: var(--color-success);
+    color: var(--color-text-inverse);
+    border-color: var(--color-border-secondary);
+    box-shadow: var(--shadow-sm);
   }
 
-  /* D&D Input Styles */
-  .input-dnd {
-    @apply w-full px-3 py-2 bg-parchment border border-brown-border rounded text-text-dark;
-    @apply focus:outline-none focus:ring-2 focus:ring-gold focus:border-gold;
+  .btn-success:hover {
+    background: var(--color-success-dark);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Standardized Clickable Elements */
+  .clickable {
+    @apply cursor-pointer transition-all duration-200;
+    @apply hover:bg-opacity-80 active:scale-[0.98];
+  }
+
+  .clickable-text {
+    @apply clickable px-2 py-1 rounded;
+    @apply hover:bg-[var(--color-accent-gold)] hover:bg-opacity-30;
+  }
+
+  .clickable-card {
+    @apply clickable rounded-md border;
+    @apply hover:shadow-md hover:border-[var(--color-accent-primary)];
+  }
+
+  /* Standardized Input Styles */
+  .input {
+    @apply w-full px-2.5 py-1.5 bg-[var(--color-bg-primary)] border border-[var(--color-border-primary)] rounded text-[var(--color-text-primary)];
+    @apply focus:outline-none focus:ring-2 focus:ring-[var(--color-accent-gold)] focus:border-[var(--color-accent-gold)];
     @apply disabled:opacity-50 disabled:cursor-not-allowed;
+    font-size: var(--text-size-base);
   }
 
-  .input-dnd-text {
-    @apply input-dnd;
+  .input-textarea {
+    @apply input resize-y;
+    min-height: 60px;
   }
 
-  .input-dnd-number {
-    @apply input-dnd text-center;
+  .input-textarea-compact {
+    @apply input resize-y;
+    min-height: 40px;
   }
 
-  .input-dnd-textarea {
-    @apply input-dnd resize-y min-h-[100px];
+  .input-select {
+    @apply input cursor-pointer;
   }
 
-  .input-dnd-select {
-    @apply input-dnd cursor-pointer;
+  /* Section Styles - Reduced Spacing */
+  .section {
+    @apply p-2.5 border border-[var(--color-border-primary)] rounded-md mb-2;
+    background: rgba(255, 255, 255, 0.4);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .section-header {
+    @apply flex justify-between items-center mb-2 pb-1.5 border-b border-[var(--color-border-divider)];
+  }
+
+  .section-title {
+    @apply font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide;
+    font-size: var(--text-size-lg);
+    margin: 0;
+  }
+
+  /* Card Styles */
+  .card {
+    @apply p-2 border border-[var(--color-border-primary)] rounded;
+    background: var(--gradient-parchment);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Compact Card Styles */
+  .card-compact {
+    @apply p-1.5 border border-[var(--color-border-primary)] rounded;
+    background: var(--gradient-parchment);
+    box-shadow: var(--shadow-sm);
+    font-size: var(--text-size-base);
+  }
+
+  /* Table Row Styles */
+  .table-row {
+    @apply p-1.5 border-b border-[var(--color-border-divider)] transition-colors;
+    border-color: var(--color-border-divider);
+    font-size: var(--text-size-base);
+  }
+  
+  .table-row:hover {
+    background-color: rgba(232, 212, 184, 0.5); /* --color-bg-secondary with 50% opacity */
+  }
+
+  .table-row:last-child {
+    @apply border-b-0;
   }
 
   /* Modal Styles */
   .modal-overlay {
-    @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
+    @apply fixed inset-0 flex items-center justify-center z-50;
+    background: var(--color-bg-overlay);
+    backdrop-filter: blur(2px);
   }
 
   .modal-content {
-    @apply bg-parchment border-dnd border-brown-border rounded-lg shadow-dnd-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto;
+    @apply bg-[var(--color-bg-primary)] border border-[var(--color-border-primary)] rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto;
+  }
+
+  .modal-content-large {
+    @apply bg-[var(--color-bg-primary)] border border-[var(--color-border-primary)] rounded-lg shadow-lg max-w-lg w-full max-h-[90vh] overflow-y-auto;
   }
 
   .modal-header {
-    @apply flex justify-between items-center p-4 border-b border-brown-border;
+    @apply flex justify-between items-center p-2 border-b border-[var(--color-border-divider)];
+  }
+
+  .modal-header h2 {
+    font-size: var(--text-size-xl);
   }
 
   .modal-body {
-    @apply p-4;
+    @apply p-2;
+    font-size: var(--text-size-base);
   }
 
   .modal-footer {
-    @apply flex justify-end gap-2 p-4 border-t border-brown-border;
-  }
-
-  /* Stat Display Styles */
-  .stat-card {
-    @apply bg-parchment-dark border border-brown-border rounded-lg p-3 text-center shadow-dnd;
-  }
-
-  .stat-square {
-    @apply bg-parchment-dark border border-brown-border rounded-lg p-3 flex flex-col items-center justify-center min-w-[80px] shadow-dnd;
-  }
-
-  .stat-label {
-    @apply text-xs font-medium text-text-brown mb-1;
-  }
-
-  .stat-value {
-    @apply text-xl font-bold text-text-dark;
-  }
-
-  /* Section Header Styles */
-  .section-header {
-    @apply text-lg font-bold text-text-dark mb-3 pb-2 border-b-2 border-brown-border;
-  }
-
-  /* Shield Shape (for AC) */
-  .shield-shape {
-    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  }
-
-  /* Clickable Elements */
-  .clickable {
-    @apply cursor-pointer transition-all duration-200;
-    @apply hover:shadow-dnd active:scale-95;
-  }
-
-  /* Parchment Background */
-  .bg-parchment-pattern {
-    background-image: 
-      repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(92, 58, 33, 0.03) 2px,
-        rgba(92, 58, 33, 0.03) 4px
-      );
+    @apply flex justify-end gap-2 p-2 border-t border-[var(--color-border-divider)];
   }
 }
 
 /* Utility Classes */
 @layer utilities {
-  .text-shadow-dnd {
-    text-shadow: 1px 1px 2px rgba(44, 24, 16, 0.3);
-  }
-
-  .border-dnd-double {
-    border-style: double;
-    border-width: 4px;
-  }
-
-  .gradient-parchment {
-    background: linear-gradient(to bottom, #f4e8d0, #e8d4b8);
-  }
-
-  .gradient-parchment-reverse {
-    background: linear-gradient(to top, #f4e8d0, #e8d4b8);
+  .text-shadow {
+    text-shadow: 1px 1px 2px rgba(44, 24, 16, 0.2);
   }
 }

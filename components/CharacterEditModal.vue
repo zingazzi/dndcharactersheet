@@ -2,43 +2,43 @@
   <div v-if="isOpen" class="modal-overlay" @click.self="close">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="m-0 text-2xl font-cinzel font-semibold text-text-brown tracking-wide">Edit Character</h2>
+        <h2 class="m-0 text-base font-cinzel font-semibold text-[var(--color-text-secondary)] tracking-wide">Edit Character</h2>
         <button
           @click="close"
-          class="bg-transparent border-none text-3xl text-brown cursor-pointer w-8 h-8 flex items-center justify-center rounded transition-all duration-200 hover:bg-brown/20 hover:scale-110 leading-none"
+          class="bg-transparent border-none text-xl text-[var(--color-accent-primary)] cursor-pointer w-6 h-6 flex items-center justify-center rounded transition-all duration-200 hover:bg-[var(--color-accent-primary)]/20 leading-none"
         >
           ×
         </button>
       </div>
       <div class="modal-body">
-        <div class="mb-6">
-          <label for="character-name" class="block mb-2 font-semibold text-text-brown font-cinzel">Character Name</label>
+        <div class="mb-2">
+          <label for="character-name" class="block mb-1 text-xs font-semibold text-[var(--color-text-secondary)] font-cinzel">Character Name</label>
           <input
             id="character-name"
             v-model="editingName"
             type="text"
-            class="input-dnd"
+            class="input text-sm"
             placeholder="Enter character name"
           />
         </div>
-        <div class="mb-6">
-          <label for="character-image" class="block mb-2 font-semibold text-text-brown font-cinzel">Character Image</label>
-          <div class="w-full h-[200px] border-2 border-brown rounded overflow-hidden mb-2 bg-gray-100 flex items-center justify-center">
+        <div class="mb-2">
+          <label for="character-image" class="block mb-1 text-xs font-semibold text-[var(--color-text-secondary)] font-cinzel">Character Image</label>
+          <div class="w-full h-32 border border-[var(--color-border-primary)] rounded overflow-hidden mb-1 bg-gray-100 flex items-center justify-center">
             <img v-if="previewImage" :src="previewImage" alt="Preview" class="w-full h-full object-cover" />
-            <div v-else class="text-gray-600 italic">No image</div>
+            <div v-else class="text-gray-600 italic text-sm">No image</div>
           </div>
           <input
             id="character-image"
             type="file"
             accept="image/*"
             @change="handleImageChange"
-            class="input-dnd cursor-pointer"
+            class="input text-sm cursor-pointer"
           />
         </div>
       </div>
       <div class="modal-footer">
-        <button @click="close" class="btn-dnd-secondary">Cancel</button>
-        <button @click="save" class="btn-dnd-primary">Save</button>
+        <button @click="close" class="btn btn-secondary text-sm">Cancel</button>
+        <button @click="save" class="btn btn-primary text-sm">Save</button>
       </div>
     </div>
   </div>
