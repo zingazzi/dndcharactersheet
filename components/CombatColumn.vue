@@ -59,36 +59,7 @@
     <!-- Attacks & Spells -->
     <div class="section">
       <div class="section-header">
-        <h3 class="section-title">Attacks & Spells</h3>
-        <button
-          @click="showAddForm = !showAddForm"
-          class="btn btn-primary text-sm px-2 py-1"
-        >
-          {{ showAddForm ? 'Cancel' : '+' }}
-        </button>
-      </div>
-      <div v-if="showAddForm" class="p-2 bg-[var(--color-bg-secondary)] rounded mb-2">
-        <div class="flex gap-1 mb-1">
-          <input
-            v-model="newAction.name"
-            type="text"
-            placeholder="Name"
-            class="input text-sm py-1 px-1.5 flex-1"
-          />
-          <input
-            v-model="newAction.toHit"
-            type="text"
-            placeholder="To Hit"
-            class="input text-sm py-1 px-1.5 w-20"
-          />
-          <input
-            v-model="newAction.damage"
-            type="text"
-            placeholder="Damage"
-            class="input text-sm py-1 px-1.5 flex-1"
-          />
-        </div>
-        <button @click="handleAddAction" class="btn btn-primary text-sm px-2 py-1 w-full">Add</button>
+        <h3 class="section-title">Attacks</h3>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -97,48 +68,39 @@
               <th class="text-left py-1 px-1 font-semibold text-[var(--color-text-secondary)]">Name</th>
               <th class="text-center py-1 px-1 font-semibold text-[var(--color-text-secondary)]">To Hit</th>
               <th class="text-left py-1 px-1 font-semibold text-[var(--color-text-secondary)]">Damage/Type</th>
-              <th class="w-6"></th>
             </tr>
           </thead>
           <tbody>
             <tr
               v-for="action in character.actions"
               :key="action.id"
-              class="table-row"
+              class="border-b border-[var(--color-border-divider)] hover:bg-[var(--color-bg-secondary)]/50"
             >
               <td class="py-1 px-1">
-                <input
-                  v-model="action.name"
-                  type="text"
-                  class="input text-sm py-0.5 px-1 w-full"
-                />
-              </td>
-              <td class="py-1 px-1">
-                <input
-                  v-model="action.toHit"
-                  type="text"
-                  class="input text-sm py-0.5 px-1 w-full text-center"
-                />
-              </td>
-              <td class="py-1 px-1">
-                <input
-                  v-model="action.damage"
-                  type="text"
-                  class="input text-sm py-0.5 px-1 w-full"
-                />
+                <span class="text-sm font-semibold text-[var(--color-text-primary)]">{{ action.name }}</span>
               </td>
               <td class="py-1 px-1 text-center">
                 <button
-                  @click="removeAction(action.id)"
-                  class="btn btn-danger text-sm px-1.5 py-0.5"
+                  @click="rollAttack(action)"
+                  class="clickable-text text-sm font-bold text-[var(--color-accent-primary)] hover:text-[var(--color-accent-primary-dark)] transition-colors"
+                  title="Click to roll attack"
                 >
-                  ×
+                  {{ action.toHit }}
+                </button>
+              </td>
+              <td class="py-1 px-1">
+                <button
+                  @click="rollDamage(action)"
+                  class="clickable-text text-sm text-[var(--color-text-primary)] hover:text-[var(--color-accent-primary)] transition-colors text-left w-full"
+                  title="Click to roll damage"
+                >
+                  {{ action.damage }}
                 </button>
               </td>
             </tr>
             <tr v-if="character.actions.length === 0">
-              <td colspan="4" class="py-2 text-center text-[var(--color-text-muted)] italic text-sm">
-                No attacks added
+              <td colspan="3" class="py-2 text-center text-[var(--color-text-muted)] italic text-sm">
+                No attacks (equip weapons to add attacks)
               </td>
             </tr>
           </tbody>
@@ -244,37 +206,11 @@
       <div class="section-header">
         <h3 class="section-title">Equipment</h3>
         <button
-          @click="showItemForm = !showItemForm"
+          @click="showEquipmentModal = true"
           class="btn btn-primary text-sm px-2 py-1"
         >
-          {{ showItemForm ? 'Cancel' : '+' }}
+          Manage
         </button>
-      </div>
-      <div v-if="showItemForm" class="p-2 bg-[var(--color-bg-secondary)] rounded mb-2">
-        <input
-          v-model="newItem.name"
-          type="text"
-          placeholder="Item Name"
-          class="input text-sm py-1 px-1.5 mb-1 w-full"
-        />
-        <div class="flex gap-1 mb-1">
-          <input
-            v-model.number="newItem.quantity"
-            type="number"
-            placeholder="Qty"
-            min="1"
-            class="input text-sm py-1 px-1.5 w-16"
-          />
-          <input
-            v-model.number="newItem.weight"
-            type="number"
-            placeholder="Weight"
-            min="0"
-            step="0.1"
-            class="input text-sm py-1 px-1.5 w-20"
-          />
-        </div>
-        <button @click="handleAddItem" class="btn btn-primary text-xs px-1.5 py-0.5 w-full">Add</button>
       </div>
       <div class="flex flex-col gap-1 max-h-[200px] overflow-y-auto">
         <div
@@ -315,17 +251,34 @@
         </div>
       </div>
     </div>
+
+    <!-- Equipment Modal -->
+    <EquipmentModal
+      :is-open="showEquipmentModal"
+      @close="showEquipmentModal = false"
+    />
+
+    <!-- Toast for dice rolls -->
+    <Toast
+      :is-visible="isToastVisible"
+      :title="toast.title"
+      :roll="toast.roll"
+      :modifier="toast.modifier"
+      :total="toast.total"
+      @close="isToastVisible = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import type { Action, Spell, InventoryItem } from '~/types/character'
 
-const { character, addAction, removeAction, addSpell, removeSpell, addInventoryItem, removeInventoryItem, toggleEquipItem, getArmorData, activateRage, deactivateRage, extendRage } = useCharacter()
+const { character, addAction, removeAction, convertToManualAttack, addSpell, removeSpell, addInventoryItem, removeInventoryItem, toggleEquipItem, getArmorData, activateRage, deactivateRage, extendRage } = useCharacter()
+const { addRoll } = useDiceHistory()
 
 const showAddForm = ref(false)
 const showSpellForm = ref(false)
-const showItemForm = ref(false)
+const showEquipmentModal = ref(false)
 
 const newAction = ref<Omit<Action, 'id'>>({
   name: '',
@@ -346,13 +299,6 @@ const newSpell = ref<Omit<Spell, 'id'>>({
   duration: '',
   description: '',
   prepared: false,
-})
-
-const newItem = ref<Omit<InventoryItem, 'id'>>({
-  name: '',
-  quantity: 1,
-  weight: 0,
-  description: '',
 })
 
 const handleAddAction = () => {
@@ -388,19 +334,6 @@ const handleAddSpell = () => {
   }
 }
 
-const handleAddItem = () => {
-  if (newItem.value.name.trim()) {
-    addInventoryItem(newItem.value)
-    newItem.value = {
-      name: '',
-      quantity: 1,
-      weight: 0,
-      description: '',
-    }
-    showItemForm.value = false
-  }
-}
-
 const isArmorOrShield = (item: InventoryItem): boolean => {
   // Check if item has armorType set
   if (item.armorType) return true
@@ -419,5 +352,89 @@ const handleDeactivateRage = () => {
 
 const handleExtendRage = () => {
   extendRage()
+}
+
+// Dice rolling functionality
+const isToastVisible = ref(false)
+const toast = ref({
+  title: '',
+  roll: 0,
+  modifier: 0,
+  total: 0,
+})
+
+const rollD20 = (): number => {
+  return Math.floor(Math.random() * 20) + 1
+}
+
+const rollDice = (diceString: string): number => {
+  // Parse dice string like "1d8" or "2d6"
+  const match = diceString.match(/(\d+)d(\d+)/)
+  if (!match) return 0
+  
+  const numDice = parseInt(match[1])
+  const sides = parseInt(match[2])
+  let total = 0
+  
+  for (let i = 0; i < numDice; i++) {
+    total += Math.floor(Math.random() * sides) + 1
+  }
+  
+  return total
+}
+
+const rollAttack = (action: Action) => {
+  const roll = rollD20()
+  
+  // Parse modifier from toHit (e.g., "+7" or "-2")
+  const modifierMatch = action.toHit.match(/([+-]?\d+)/)
+  const modifier = modifierMatch ? parseInt(modifierMatch[1]) : 0
+  
+  const total = roll + modifier
+  const title = `${action.name} - Attack Roll`
+  
+  toast.value = {
+    title,
+    roll,
+    modifier,
+    total,
+  }
+  
+  isToastVisible.value = true
+  addRoll(title, roll, modifier)
+  
+  setTimeout(() => {
+    isToastVisible.value = false
+  }, 3000)
+}
+
+const rollDamage = (action: Action) => {
+  // Parse damage string like "1d8 + 3 slashing"
+  const damageString = action.damage
+  
+  // Extract dice (e.g., "1d8", "2d6")
+  const diceMatch = damageString.match(/(\d+d\d+)/)
+  const diceRoll = diceMatch ? rollDice(diceMatch[1]) : 0
+  
+  // Extract modifier (e.g., "+ 3" or "- 2")
+  const modifierMatch = damageString.match(/([+-]\s*\d+)/)
+  const modifier = modifierMatch ? parseInt(modifierMatch[1].replace(/\s/g, '')) : 0
+  
+  const total = diceRoll + modifier
+  const title = `${action.name} - Damage`
+  
+  toast.value = {
+    title,
+    roll: diceRoll,
+    modifier,
+    total,
+  }
+  
+  isToastVisible.value = true
+  addRoll(title, diceRoll, modifier)
+  
+  setTimeout(() => {
+    isToastVisible.value = false
+  }, 3000)
 }
 </script>

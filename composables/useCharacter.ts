@@ -118,6 +118,25 @@ export interface ArmorData {
   baseAC: number
 }
 
+export interface WeaponData {
+  name: string
+  damage: string // e.g., "1d4", "1d6", "1d8"
+  damageType: string // e.g., "piercing", "slashing", "bludgeoning"
+  range: string // e.g., "5 ft.", "20/60 ft."
+  type: 'melee' | 'ranged'
+  ability: 'strength' | 'dexterity' // Which ability modifier to use
+}
+
+export interface ItemData {
+  name: string
+  category: 'weapon' | 'armor' | 'shield' | 'gear' | 'tool' | 'consumable' | 'other'
+  weight: number
+  cost?: number // in gold pieces
+  description?: string
+  weaponData?: WeaponData
+  armorData?: ArmorData
+}
+
 export const ARMOR_DATABASE: ArmorData[] = [
   // Light Armor
   { name: 'Padded', type: 'light', baseAC: 11 },
@@ -140,6 +159,165 @@ export const ARMOR_DATABASE: ArmorData[] = [
 
   // Shields
   { name: 'Shield', type: 'shield', baseAC: 2 },
+]
+
+export const WEAPON_DATABASE: WeaponData[] = [
+  // Simple Melee Weapons
+  { name: 'Club', damage: '1d4', damageType: 'bludgeoning', range: '5 ft.', type: 'melee', ability: 'strength' },
+  { name: 'Dagger', damage: '1d4', damageType: 'piercing', range: '5 ft. (20/60 ft. thrown)', type: 'melee', ability: 'strength' },
+  { name: 'Greatclub', damage: '1d8', damageType: 'bludgeoning', range: '5 ft.', type: 'melee', ability: 'strength' },
+  { name: 'Handaxe', damage: '1d6', damageType: 'slashing', range: '5 ft. (20/60 ft. thrown)', type: 'melee', ability: 'strength' },
+  { name: 'Javelin', damage: '1d6', damageType: 'piercing', range: '5 ft. (30/120 ft. thrown)', type: 'melee', ability: 'strength' },
+  { name: 'Light Hammer', damage: '1d4', damageType: 'bludgeoning', range: '5 ft. (20/60 ft. thrown)', type: 'melee', ability: 'strength' },
+  { name: 'Mace', damage: '1d6', damageType: 'bludgeoning', range: '5 ft.', type: 'melee', ability: 'strength' },
+  { name: 'Quarterstaff', damage: '1d6', damageType: 'bludgeoning', range: '5 ft.', type: 'melee', ability: 'strength' },
+  { name: 'Sickle', damage: '1d4', damageType: 'slashing', range: '5 ft.', type: 'melee', ability: 'strength' },
+  { name: 'Spear', damage: '1d6', damageType: 'piercing', range: '5 ft. (20/60 ft. thrown)', type: 'melee', ability: 'strength' },
+  { name: 'Unarmed Strike', damage: '1', damageType: 'bludgeoning', range: '5 ft.', type: 'melee', ability: 'strength' },
+
+  // Simple Ranged Weapons
+  { name: 'Crossbow, Light', damage: '1d8', damageType: 'piercing', range: '80/320 ft.', type: 'ranged', ability: 'dexterity' },
+  { name: 'Dart', damage: '1d4', damageType: 'piercing', range: '20/60 ft.', type: 'ranged', ability: 'dexterity' },
+  { name: 'Shortbow', damage: '1d6', damageType: 'piercing', range: '80/320 ft.', type: 'ranged', ability: 'dexterity' },
+  { name: 'Sling', damage: '1d4', damageType: 'bludgeoning', range: '30/120 ft.', type: 'ranged', ability: 'dexterity' },
+
+  // Martial Melee Weapons
+  { name: 'Battleaxe', damage: '1d8', damageType: 'slashing', range: '5 ft.', type: 'melee', ability: 'strength' },
+  { name: 'Flail', damage: '1d8', damageType: 'bludgeoning', range: '5 ft.', type: 'melee', ability: 'strength' },
+  { name: 'Glaive', damage: '1d10', damageType: 'slashing', range: '10 ft.', type: 'melee', ability: 'strength' },
+  { name: 'Greataxe', damage: '1d12', damageType: 'slashing', range: '5 ft.', type: 'melee', ability: 'strength' },
+  { name: 'Greatsword', damage: '2d6', damageType: 'slashing', range: '5 ft.', type: 'melee', ability: 'strength' },
+  { name: 'Halberd', damage: '1d10', damageType: 'slashing', range: '10 ft.', type: 'melee', ability: 'strength' },
+  { name: 'Lance', damage: '1d12', damageType: 'piercing', range: '10 ft.', type: 'melee', ability: 'strength' },
+  { name: 'Longsword', damage: '1d8', damageType: 'slashing', range: '5 ft.', type: 'melee', ability: 'strength' },
+  { name: 'Maul', damage: '2d6', damageType: 'bludgeoning', range: '5 ft.', type: 'melee', ability: 'strength' },
+  { name: 'Morningstar', damage: '1d8', damageType: 'piercing', range: '5 ft.', type: 'melee', ability: 'strength' },
+  { name: 'Pike', damage: '1d10', damageType: 'piercing', range: '10 ft.', type: 'melee', ability: 'strength' },
+  { name: 'Rapier', damage: '1d8', damageType: 'piercing', range: '5 ft.', type: 'melee', ability: 'dexterity' },
+  { name: 'Scimitar', damage: '1d6', damageType: 'slashing', range: '5 ft.', type: 'melee', ability: 'dexterity' },
+  { name: 'Shortsword', damage: '1d6', damageType: 'piercing', range: '5 ft.', type: 'melee', ability: 'dexterity' },
+  { name: 'Trident', damage: '1d6', damageType: 'piercing', range: '5 ft. (20/60 ft. thrown)', type: 'melee', ability: 'strength' },
+  { name: 'War Pick', damage: '1d8', damageType: 'piercing', range: '5 ft.', type: 'melee', ability: 'strength' },
+  { name: 'Warhammer', damage: '1d8', damageType: 'bludgeoning', range: '5 ft.', type: 'melee', ability: 'strength' },
+  { name: 'Whip', damage: '1d4', damageType: 'slashing', range: '10 ft.', type: 'melee', ability: 'dexterity' },
+
+  // Martial Ranged Weapons
+  { name: 'Blowgun', damage: '1', damageType: 'piercing', range: '25/100 ft.', type: 'ranged', ability: 'dexterity' },
+  { name: 'Crossbow, Hand', damage: '1d6', damageType: 'piercing', range: '30/120 ft.', type: 'ranged', ability: 'dexterity' },
+  { name: 'Crossbow, Heavy', damage: '1d10', damageType: 'piercing', range: '100/400 ft.', type: 'ranged', ability: 'dexterity' },
+  { name: 'Longbow', damage: '1d8', damageType: 'piercing', range: '150/600 ft.', type: 'ranged', ability: 'dexterity' },
+  { name: 'Net', damage: '0', damageType: '', range: '5/15 ft.', type: 'ranged', ability: 'dexterity' },
+]
+
+// Weight mappings for weapons and armor (in pounds)
+const WEAPON_WEIGHTS: Record<string, number> = {
+  'Club': 2, 'Dagger': 1, 'Greatclub': 10, 'Handaxe': 2, 'Javelin': 2, 'Light Hammer': 2,
+  'Mace': 4, 'Quarterstaff': 4, 'Sickle': 2, 'Spear': 3, 'Unarmed Strike': 0,
+  'Crossbow, Light': 5, 'Dart': 0.25, 'Shortbow': 2, 'Sling': 0,
+  'Battleaxe': 4, 'Flail': 2, 'Glaive': 6, 'Greataxe': 7, 'Greatsword': 6, 'Halberd': 6,
+  'Lance': 6, 'Longsword': 3, 'Maul': 10, 'Morningstar': 4, 'Pike': 18, 'Rapier': 2,
+  'Scimitar': 3, 'Shortsword': 2, 'Trident': 4, 'War Pick': 2, 'Warhammer': 2, 'Whip': 3,
+  'Blowgun': 1, 'Crossbow, Hand': 3, 'Crossbow, Heavy': 18, 'Longbow': 2, 'Net': 3,
+}
+
+const ARMOR_WEIGHTS: Record<string, number> = {
+  'Padded': 8, 'Leather': 10, 'Studded Leather': 13,
+  'Hide': 12, 'Chain Shirt': 20, 'Scale Mail': 45, 'Breastplate': 20, 'Half Plate': 40, 'Chain Mail': 55,
+  'Ring Mail': 40, 'Splint': 60, 'Plate': 65,
+  'Shield': 6,
+}
+
+// Comprehensive Item Database combining weapons, armor, and common D&D items
+export const ITEM_DATABASE: ItemData[] = [
+  // Weapons (from WEAPON_DATABASE)
+  ...WEAPON_DATABASE.map(weapon => ({
+    name: weapon.name,
+    category: 'weapon' as const,
+    weight: WEAPON_WEIGHTS[weapon.name] || 2,
+    description: `${weapon.type} weapon`,
+    weaponData: weapon,
+  })),
+
+  // Armor (from ARMOR_DATABASE)
+  ...ARMOR_DATABASE.map(armor => ({
+    name: armor.name,
+    category: armor.type === 'shield' ? 'shield' as const : 'armor' as const,
+    weight: ARMOR_WEIGHTS[armor.name] || 10,
+    description: `${armor.type} armor`,
+    armorData: armor,
+  })),
+
+  // Common Adventuring Gear
+  { name: 'Backpack', category: 'gear', weight: 5, cost: 2, description: 'A backpack can hold 1 cubic foot/30 pounds of gear.' },
+  { name: 'Bedroll', category: 'gear', weight: 7, cost: 1, description: 'A bedroll for sleeping outdoors.' },
+  { name: 'Blanket', category: 'gear', weight: 3, cost: 0.5, description: 'A warm blanket.' },
+  { name: 'Candle', category: 'gear', weight: 0, cost: 0.01, description: 'A candle that burns for 1 hour.' },
+  { name: 'Crowbar', category: 'tool', weight: 5, cost: 2, description: 'Using a crowbar grants advantage to Strength checks where the crowbar\'s leverage can be applied.' },
+  { name: 'Grappling Hook', category: 'tool', weight: 4, cost: 2, description: 'A grappling hook attached to rope.' },
+  { name: 'Hammer', category: 'tool', weight: 3, cost: 2, description: 'A hammer for construction and repairs.' },
+  { name: 'Healer\'s Kit', category: 'tool', weight: 3, cost: 5, description: 'A kit containing bandages, salves, and splints. Using it stabilizes a dying creature.' },
+  { name: 'Holy Symbol', category: 'gear', weight: 1, cost: 25, description: 'A holy symbol for spellcasting.' },
+  { name: 'Holy Water (flask)', category: 'consumable', weight: 1, cost: 25, description: 'As an action, you can splash the contents of this flask onto a creature within 5 feet of you.' },
+  { name: 'Ink (1 ounce bottle)', category: 'gear', weight: 0, cost: 10, description: 'Ink for writing.' },
+  { name: 'Ink Pen', category: 'gear', weight: 0, cost: 0.02, description: 'A pen for writing.' },
+  { name: 'Lantern, Bullseye', category: 'gear', weight: 2, cost: 10, description: 'A lantern that casts bright light in a 60-foot cone and dim light for an additional 60 feet.' },
+  { name: 'Lantern, Hooded', category: 'gear', weight: 2, cost: 5, description: 'A lantern that casts bright light in a 30-foot radius and dim light for an additional 30 feet.' },
+  { name: 'Magnifying Glass', category: 'tool', weight: 0, cost: 100, description: 'This lens allows a closer look at small objects.' },
+  { name: 'Manacles', category: 'gear', weight: 6, cost: 2, description: 'Manacles can bind a Small or Medium creature.' },
+  { name: 'Mess Kit', category: 'gear', weight: 1, cost: 0.2, description: 'A tin box containing a cup and simple cutlery.' },
+  { name: 'Oil (flask)', category: 'consumable', weight: 1, cost: 0.1, description: 'Oil usually comes in a clay flask that holds 1 pint.' },
+  { name: 'Parchment (one sheet)', category: 'gear', weight: 0, cost: 0.1, description: 'A sheet of parchment for writing.' },
+  { name: 'Perfume (vial)', category: 'gear', weight: 0, cost: 5, description: 'A vial of perfume.' },
+  { name: 'Piton', category: 'gear', weight: 0.25, cost: 0.05, description: 'A piton for climbing.' },
+  { name: 'Pouch', category: 'gear', weight: 1, cost: 0.5, description: 'A leather pouch that can hold up to 20 sling bullets or 50 blowgun needles.' },
+  { name: 'Rations (1 day)', category: 'consumable', weight: 2, cost: 0.5, description: 'Rations consist of dry foods suitable for extended travel.' },
+  { name: 'Rope, Hempen (50 feet)', category: 'gear', weight: 10, cost: 1, description: 'Rope, whether made of hemp or silk, has 2 hit points and can be burst with a DC 17 Strength check.' },
+  { name: 'Rope, Silk (50 feet)', category: 'gear', weight: 5, cost: 10, description: 'Rope, whether made of hemp or silk, has 2 hit points and can be burst with a DC 17 Strength check.' },
+  { name: 'Sack', category: 'gear', weight: 0.5, cost: 0.1, description: 'A sack can hold 1 cubic foot/30 pounds of gear.' },
+  { name: 'Scale, Merchant\'s', category: 'tool', weight: 3, cost: 5, description: 'A scale includes a small balance, pans, and a suitable assortment of weights.' },
+  { name: 'Sealing Wax', category: 'gear', weight: 0, cost: 0.5, description: 'Wax for sealing letters.' },
+  { name: 'Shovel', category: 'tool', weight: 5, cost: 2, description: 'A shovel for digging.' },
+  { name: 'Signal Whistle', category: 'gear', weight: 0, cost: 0.05, description: 'A whistle that can be heard up to 500 feet away.' },
+  { name: 'Signet Ring', category: 'gear', weight: 0, cost: 5, description: 'A ring bearing a seal or symbol.' },
+  { name: 'Soap', category: 'gear', weight: 0, cost: 0.02, description: 'A bar of soap.' },
+  { name: 'Spellbook', category: 'gear', weight: 3, cost: 50, description: 'Essential for wizards, a spellbook is a leather-bound tome with 100 blank vellum pages suitable for recording spells.' },
+  { name: 'Spyglass', category: 'tool', weight: 1, cost: 1000, description: 'Objects viewed through a spyglass are magnified to twice their size.' },
+  { name: 'Tinderbox', category: 'gear', weight: 1, cost: 0.5, description: 'This small container holds flint, fire steel, and tinder (usually dry cloth soaked in light oil) used to kindle a fire.' },
+  { name: 'Torch', category: 'gear', weight: 1, cost: 0.01, description: 'A torch burns for 1 hour, providing bright light in a 20-foot radius and dim light for an additional 20 feet.' },
+  { name: 'Vial', category: 'gear', weight: 0, cost: 1, description: 'A glass vial that can hold up to 4 ounces of liquid.' },
+  { name: 'Waterskin', category: 'gear', weight: 5, cost: 0.2, description: 'A waterskin can hold up to 4 pints of liquid.' },
+  { name: 'Whetstone', category: 'tool', weight: 1, cost: 0.01, description: 'A stone for sharpening blades.' },
+
+  // Tools
+  { name: 'Alchemist\'s Supplies', category: 'tool', weight: 8, cost: 50, description: 'These special tools include the items needed to pursue a craft or trade.' },
+  { name: 'Brewer\'s Supplies', category: 'tool', weight: 9, cost: 20, description: 'These special tools include the items needed to pursue a craft or trade.' },
+  { name: 'Calligrapher\'s Supplies', category: 'tool', weight: 5, cost: 10, description: 'These special tools include the items needed to pursue a craft or trade.' },
+  { name: 'Carpenter\'s Tools', category: 'tool', weight: 6, cost: 8, description: 'These special tools include the items needed to pursue a craft or trade.' },
+  { name: 'Cartographer\'s Tools', category: 'tool', weight: 6, cost: 15, description: 'These special tools include the items needed to pursue a craft or trade.' },
+  { name: 'Cobbler\'s Tools', category: 'tool', weight: 5, cost: 5, description: 'These special tools include the items needed to pursue a craft or trade.' },
+  { name: 'Cook\'s Utensils', category: 'tool', weight: 8, cost: 1, description: 'These special tools include the items needed to pursue a craft or trade.' },
+  { name: 'Glassblower\'s Tools', category: 'tool', weight: 5, cost: 30, description: 'These special tools include the items needed to pursue a craft or trade.' },
+  { name: 'Jeweler\'s Tools', category: 'tool', weight: 2, cost: 25, description: 'These special tools include the items needed to pursue a craft or trade.' },
+  { name: 'Leatherworker\'s Tools', category: 'tool', weight: 5, cost: 5, description: 'These special tools include the items needed to pursue a craft or trade.' },
+  { name: 'Mason\'s Tools', category: 'tool', weight: 8, cost: 10, description: 'These special tools include the items needed to pursue a craft or trade.' },
+  { name: 'Painter\'s Supplies', category: 'tool', weight: 5, cost: 10, description: 'These special tools include the items needed to pursue a craft or trade.' },
+  { name: 'Potter\'s Tools', category: 'tool', weight: 3, cost: 10, description: 'These special tools include the items needed to pursue a craft or trade.' },
+  { name: 'Smith\'s Tools', category: 'tool', weight: 8, cost: 20, description: 'These special tools include the items needed to pursue a craft or trade.' },
+  { name: 'Tinker\'s Tools', category: 'tool', weight: 10, cost: 50, description: 'These special tools include the items needed to pursue a craft or trade.' },
+  { name: 'Weaver\'s Tools', category: 'tool', weight: 5, cost: 1, description: 'These special tools include the items needed to pursue a craft or trade.' },
+  { name: 'Woodcarver\'s Tools', category: 'tool', weight: 5, cost: 1, description: 'These special tools include the items needed to pursue a craft or trade.' },
+
+  // Musical Instruments
+  { name: 'Bagpipes', category: 'tool', weight: 6, cost: 30, description: 'A musical instrument.' },
+  { name: 'Drum', category: 'tool', weight: 3, cost: 6, description: 'A musical instrument.' },
+  { name: 'Dulcimer', category: 'tool', weight: 10, cost: 25, description: 'A musical instrument.' },
+  { name: 'Flute', category: 'tool', weight: 1, cost: 2, description: 'A musical instrument.' },
+  { name: 'Lute', category: 'tool', weight: 2, cost: 35, description: 'A musical instrument.' },
+  { name: 'Lyre', category: 'tool', weight: 2, cost: 30, description: 'A musical instrument.' },
+  { name: 'Horn', category: 'tool', weight: 2, cost: 3, description: 'A musical instrument.' },
+  { name: 'Pan Flute', category: 'tool', weight: 2, cost: 12, description: 'A musical instrument.' },
+  { name: 'Shawm', category: 'tool', weight: 1, cost: 2, description: 'A musical instrument.' },
+  { name: 'Viol', category: 'tool', weight: 1, cost: 30, description: 'A musical instrument.' },
 ]
 
 const DND_SKILLS: Array<{ name: string; ability: keyof Character['abilities'] }> = [
@@ -245,10 +423,129 @@ function getEquippedArmor(character: Character): InventoryItem | null {
 }
 
 function getEquippedShield(character: Character): InventoryItem | null {
-  return character.inventory.find(item =>
-    item.equipped &&
+  return character.inventory.find(item => 
+    item.equipped && 
     item.armorType === 'shield'
   ) || null
+}
+
+function getWeaponData(weaponName: string): WeaponData | null {
+  return WEAPON_DATABASE.find(weapon => weapon.name.toLowerCase() === weaponName.toLowerCase()) || null
+}
+
+function getEquippedWeapons(character: Character): InventoryItem[] {
+  return character.inventory.filter(item => 
+    item.equipped && 
+    !item.armorType && // Not armor or shield
+    getWeaponData(item.name) !== null // Is a weapon
+  )
+}
+
+function generateAttackFromWeapon(weapon: InventoryItem, character: Character): Action {
+  const weaponData = getWeaponData(weapon.name)
+  if (!weaponData) {
+    // Fallback if weapon not found
+    return {
+      id: crypto.randomUUID(),
+      name: weapon.name,
+      type: 'Melee Weapon Attack',
+      range: '5 ft.',
+      toHit: '+0',
+      damage: '1d4',
+      description: '',
+      isBasicAttack: true,
+    }
+  }
+
+  // Get ability modifier
+  const abilityModifier = character.abilities[weaponData.ability].modifier
+  const proficiencyBonus = character.proficiencyBonus
+  const toHitModifier = abilityModifier + proficiencyBonus
+  const toHitString = toHitModifier >= 0 ? `+${toHitModifier}` : `${toHitModifier}`
+
+  // Calculate damage (weapon damage + ability modifier for melee, or just ability for ranged finesse)
+  let damageString = weaponData.damage
+  if (weaponData.type === 'melee' || (weaponData.type === 'ranged' && weaponData.ability === 'strength')) {
+    // Melee weapons add STR modifier, or DEX for finesse
+    if (abilityModifier !== 0) {
+      damageString += abilityModifier >= 0 ? ` + ${abilityModifier}` : ` ${abilityModifier}`
+    }
+  } else {
+    // Ranged weapons add DEX modifier
+    if (abilityModifier !== 0) {
+      damageString += abilityModifier >= 0 ? ` + ${abilityModifier}` : ` ${abilityModifier}`
+    }
+  }
+  damageString += ` ${weaponData.damageType}`
+
+  // Add rage damage bonus for Barbarian
+  if (character.classType === 'Barbarian' && character.rage?.active && weaponData.ability === 'strength') {
+    damageString += ` + ${character.rage.damageBonus} (rage)`
+  }
+
+  return {
+    id: crypto.randomUUID(),
+    name: weapon.name,
+    type: weaponData.type === 'melee' ? 'Melee Weapon Attack' : 'Ranged Weapon Attack',
+    range: weaponData.range,
+    toHit: toHitString,
+    damage: damageString,
+    description: '',
+    isBasicAttack: true,
+  }
+}
+
+function generateUnarmedStrike(character: Character): Action {
+  const strModifier = character.abilities.strength.modifier
+  const proficiencyBonus = character.proficiencyBonus
+  const toHitModifier = strModifier + proficiencyBonus
+  const toHitString = toHitModifier >= 0 ? `+${toHitModifier}` : `${toHitModifier}`
+
+  let damageString = '1'
+  if (strModifier !== 0) {
+    damageString += strModifier >= 0 ? ` + ${strModifier}` : ` ${strModifier}`
+  }
+  damageString += ' bludgeoning'
+
+  // Add rage damage bonus for Barbarian
+  if (character.classType === 'Barbarian' && character.rage?.active) {
+    damageString += ` + ${character.rage.damageBonus} (rage)`
+  }
+
+  return {
+    id: crypto.randomUUID(),
+    name: 'Unarmed Strike',
+    type: 'Melee Weapon Attack',
+    range: '5 ft.',
+    toHit: toHitString,
+    damage: damageString,
+    description: '',
+    isBasicAttack: true,
+  }
+}
+
+function updateBasicAttacks(character: Character): void {
+  // Remove existing basic attacks (but preserve manually converted ones)
+  // Only remove actions that are still marked as basic attacks
+  character.actions = character.actions.filter(action => !action.isBasicAttack)
+
+  // Add unarmed strike (always available) - but check if it was manually converted
+  const existingUnarmed = character.actions.find(a => a.name === 'Unarmed Strike' && !a.isBasicAttack)
+  if (!existingUnarmed) {
+    character.actions.push(generateUnarmedStrike(character))
+  }
+
+  // Add attacks for equipped weapons (but skip if manually converted)
+  const equippedWeapons = getEquippedWeapons(character)
+  equippedWeapons.forEach(weapon => {
+    // Check if this weapon's attack was manually converted
+    const existingWeaponAttack = character.actions.find(
+      a => a.name === weapon.name && !a.isBasicAttack
+    )
+    if (!existingWeaponAttack) {
+      character.actions.push(generateAttackFromWeapon(weapon, character))
+    }
+  })
 }
 
 function createAbilityScore(score: number = 10, saveProficient: boolean = false, proficiencyBonus: number = 0, customModifier: number = 0): AbilityScore {
@@ -555,6 +852,9 @@ function createNewCharacter(characterClass: string, selectedSkills: string[], se
     applyBarbarianLevel1(character, selectedSkills, selectedWeaponMasteries)
   }
 
+  // Initialize basic attacks (unarmed strike)
+  updateBasicAttacks(character)
+
   return character
 }
 
@@ -717,6 +1017,8 @@ export const useCharacter = () => {
     const customModifier = character.value.abilities[ability].customModifier
     character.value.abilities[ability] = createAbilityScore(score, saveProficient, proficiencyBonus, customModifier)
     updateSkillModifiers()
+    // Update basic attacks since ability scores affect attack bonuses and damage
+    updateBasicAttacks(character.value)
   }
 
   const updateCustomModifier = (ability: keyof Character['abilities'], customModifier: number) => {
@@ -725,6 +1027,8 @@ export const useCharacter = () => {
     const score = character.value.abilities[ability].score
     character.value.abilities[ability] = createAbilityScore(score, saveProficient, proficiencyBonus, customModifier)
     updateSkillModifiers()
+    // Update basic attacks since ability scores affect attack bonuses and damage
+    updateBasicAttacks(character.value)
   }
 
   const setAbilityScores = (scores: Partial<Record<keyof Character['abilities'], number>>) => {
@@ -763,6 +1067,8 @@ export const useCharacter = () => {
     })
     // Update all skill modifiers
     updateSkillModifiers()
+    // Update basic attacks since proficiency bonus affects to-hit
+    updateBasicAttacks(character.value)
   }
 
   const updateSkillModifiers = () => {
@@ -794,6 +1100,13 @@ export const useCharacter = () => {
     }
   }
 
+  const convertToManualAttack = (id: string) => {
+    const action = character.value.actions.find((a: Action) => a.id === id)
+    if (action && action.isBasicAttack) {
+      action.isBasicAttack = false
+    }
+  }
+
   const addSpell = (spell: Omit<Spell, 'id'>) => {
     character.value.spells.push({
       ...spell,
@@ -818,7 +1131,12 @@ export const useCharacter = () => {
   const removeInventoryItem = (id: string) => {
     const index = character.value.inventory.findIndex((i: InventoryItem) => i.id === id)
     if (index !== -1) {
+      const item = character.value.inventory[index]
       character.value.inventory.splice(index, 1)
+      // If a weapon was removed, update basic attacks
+      if (getWeaponData(item.name) !== null) {
+        updateBasicAttacks(character.value)
+      }
     }
   }
 
@@ -868,6 +1186,9 @@ export const useCharacter = () => {
     // Recalculate AC
     const dexModifier = character.value.abilities.dexterity.modifier
     character.value.ac = calculateAC(dexModifier, 10, character.value)
+
+    // Update basic attacks if weapon was equipped/unequipped
+    updateBasicAttacks(character.value)
   }
 
   const addFeatureTrait = (feature: Omit<FeatureTrait, 'id'>) => {
@@ -944,12 +1265,16 @@ export const useCharacter = () => {
 
     character.value.rage.active = true
     character.value.rage.usesAvailable -= 1
+    // Update basic attacks to include rage damage bonus
+    updateBasicAttacks(character.value)
     return true
   }
 
   const deactivateRage = () => {
     if (!character.value.rage) return
     character.value.rage.active = false
+    // Update basic attacks to remove rage damage bonus
+    updateBasicAttacks(character.value)
   }
 
   const extendRage = () => {
@@ -1104,6 +1429,7 @@ export const useCharacter = () => {
     updateProficiencyBonus,
     addAction,
     removeAction,
+    convertToManualAttack,
     addSpell,
     removeSpell,
     addInventoryItem,

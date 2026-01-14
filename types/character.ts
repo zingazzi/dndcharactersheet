@@ -30,6 +30,7 @@ export interface Action {
   toHit: string
   damage: string
   description?: string
+  isBasicAttack?: boolean // True for auto-generated attacks (unarmed strike, equipped weapons)
 }
 
 export interface SpellSlot {
