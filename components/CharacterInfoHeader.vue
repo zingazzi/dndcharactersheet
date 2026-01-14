@@ -24,6 +24,15 @@
           <span class="font-medium text-[var(--color-text-secondary)]">{{ character.classLevel || 'No Class' }}</span>
           <span class="text-[var(--color-text-tertiary)]">•</span>
           <span class="text-[var(--color-text-tertiary)]">Level {{ character.level || 1 }}</span>
+          <span class="text-[var(--color-text-tertiary)]">•</span>
+          <label class="flex items-center gap-1 cursor-pointer">
+            <input
+              type="checkbox"
+              v-model="character.inspiration"
+              class="w-4 h-4 accent-[var(--color-accent-primary)]"
+            />
+            <span class="font-semibold text-[var(--color-text-secondary)]">Inspiration</span>
+          </label>
         </div>
 
         <div

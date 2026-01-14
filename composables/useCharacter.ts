@@ -1,5 +1,91 @@
 import type { Character, AbilityScore, Skill, Action, Spell, InventoryItem, FeatureTrait } from '~/types/character'
 
+export interface FightingStyle {
+  name: string
+  description: string
+}
+
+export interface WeaponMastery {
+  name: string
+  type: 'Simple' | 'Martial'
+  mastery: string
+}
+
+export const FIGHTING_STYLES: FightingStyle[] = [
+  {
+    name: 'Archery',
+    description: 'You gain a +2 bonus to attack rolls you make with ranged weapons.',
+  },
+  {
+    name: 'Defense',
+    description: 'While you are wearing armor, you gain a +1 bonus to AC.',
+  },
+  {
+    name: 'Dueling',
+    description: 'When you are wielding a melee weapon in one hand and no other weapons, you gain a +2 bonus to damage rolls with that weapon.',
+  },
+  {
+    name: 'Great Weapon Fighting',
+    description: 'When you roll a 1 or 2 on a damage die for an attack you make with a melee weapon that you are wielding with two hands, you can reroll the die and must use the new roll, even if the new roll is a 1 or a 2.',
+  },
+  {
+    name: 'Protection',
+    description: 'When a creature you can see attacks a target other than you that is within 5 feet of you, you can use your reaction to impose disadvantage on the attack roll. You must be wielding a shield.',
+  },
+  {
+    name: 'Two-Weapon Fighting',
+    description: 'When you engage in two-weapon fighting, you can add your ability modifier to the damage of the second attack.',
+  },
+]
+
+export const WEAPON_MASTERY_WEAPONS: WeaponMastery[] = [
+  // Simple Melee Weapons
+  { name: 'Club', type: 'Simple', mastery: 'Sap' },
+  { name: 'Dagger', type: 'Simple', mastery: 'Vex' },
+  { name: 'Greatclub', type: 'Simple', mastery: 'Sap' },
+  { name: 'Handaxe', type: 'Simple', mastery: 'Vex' },
+  { name: 'Javelin', type: 'Simple', mastery: 'Vex' },
+  { name: 'Light Hammer', type: 'Simple', mastery: 'Vex' },
+  { name: 'Mace', type: 'Simple', mastery: 'Sap' },
+  { name: 'Quarterstaff', type: 'Simple', mastery: 'Slow' },
+  { name: 'Sickle', type: 'Simple', mastery: 'Vex' },
+  { name: 'Spear', type: 'Simple', mastery: 'Vex' },
+  { name: 'Unarmed Strike', type: 'Simple', mastery: 'Graze' },
+  
+  // Simple Ranged Weapons
+  { name: 'Crossbow, Light', type: 'Simple', mastery: 'Slow' },
+  { name: 'Dart', type: 'Simple', mastery: 'Vex' },
+  { name: 'Shortbow', type: 'Simple', mastery: 'Vex' },
+  { name: 'Sling', type: 'Simple', mastery: 'Vex' },
+  
+  // Martial Melee Weapons
+  { name: 'Battleaxe', type: 'Martial', mastery: 'Graze' },
+  { name: 'Flail', type: 'Martial', mastery: 'Slow' },
+  { name: 'Glaive', type: 'Martial', mastery: 'Cleave' },
+  { name: 'Greataxe', type: 'Martial', mastery: 'Cleave' },
+  { name: 'Greatsword', type: 'Martial', mastery: 'Cleave' },
+  { name: 'Halberd', type: 'Martial', mastery: 'Cleave' },
+  { name: 'Lance', type: 'Martial', mastery: 'Slow' },
+  { name: 'Longsword', type: 'Martial', mastery: 'Vex' },
+  { name: 'Maul', type: 'Martial', mastery: 'Topple' },
+  { name: 'Morningstar', type: 'Martial', mastery: 'Sap' },
+  { name: 'Pike', type: 'Martial', mastery: 'Push' },
+  { name: 'Rapier', type: 'Martial', mastery: 'Vex' },
+  { name: 'Scimitar', type: 'Martial', mastery: 'Vex' },
+  { name: 'Shortsword', type: 'Martial', mastery: 'Vex' },
+  { name: 'Trident', type: 'Martial', mastery: 'Vex' },
+  { name: 'War Pick', type: 'Martial', mastery: 'Graze' },
+  { name: 'Warhammer', type: 'Martial', mastery: 'Topple' },
+  { name: 'Whip', type: 'Martial', mastery: 'Slow' },
+  
+  // Martial Ranged Weapons
+  { name: 'Blowgun', type: 'Martial', mastery: 'Vex' },
+  { name: 'Crossbow, Hand', type: 'Martial', mastery: 'Vex' },
+  { name: 'Crossbow, Heavy', type: 'Martial', mastery: 'Slow' },
+  { name: 'Longbow', type: 'Martial', mastery: 'Graze' },
+  { name: 'Net', type: 'Martial', mastery: 'Slow' },
+]
+
 const DND_SKILLS: Array<{ name: string; ability: keyof Character['abilities'] }> = [
   { name: 'Acrobatics', ability: 'dexterity' },
   { name: 'Animal Handling', ability: 'wisdom' },
@@ -90,6 +176,7 @@ function createEmptyCharacter(): Character {
     },
     initiative: 0, // Will be recalculated
     proficiencyBonus,
+    inspiration: false,
     abilities: emptyAbilities,
     senses: {
       passivePerception: 0,
@@ -102,6 +189,8 @@ function createEmptyCharacter(): Character {
     spells: [],
     inventory: [],
     featuresTraits: [],
+    fightingStyle: undefined,
+    weaponMastery: [],
     background: {
       name: '',
       personalityTraits: '',
@@ -113,7 +202,7 @@ function createEmptyCharacter(): Character {
   }
 }
 
-function applyFighterLevel1(character: Character, selectedSkills: string[]): void {
+function applyFighterLevel1(character: Character, selectedSkills: string[], selectedFightingStyle: string, selectedWeaponMasteries: string[]): void {
   const level = 1
   const proficiencyBonus = calculateProficiencyBonus(level)
 
@@ -138,6 +227,31 @@ function applyFighterLevel1(character: Character, selectedSkills: string[]): voi
       skill.proficient = true
       skill.modifier = skill.modifier + proficiencyBonus
     }
+  })
+
+  // Set Fighting Style
+  character.fightingStyle = selectedFightingStyle
+  const fightingStyleData = FIGHTING_STYLES.find(style => style.name === selectedFightingStyle)
+  if (fightingStyleData) {
+    character.featuresTraits.push({
+      id: crypto.randomUUID(),
+      name: `Fighting Style: ${selectedFightingStyle}`,
+      description: fightingStyleData.description,
+      source: 'Class',
+    })
+  }
+
+  // Set Weapon Mastery
+  character.weaponMastery = selectedWeaponMasteries
+  const weaponMasteryDescriptions = selectedWeaponMasteries.map(weaponName => {
+    const weapon = WEAPON_MASTERY_WEAPONS.find(w => w.name === weaponName)
+    return weapon ? `${weapon.name} (${weapon.mastery})` : weaponName
+  }).join(', ')
+  character.featuresTraits.push({
+    id: crypto.randomUUID(),
+    name: 'Weapon Mastery',
+    description: `You can use the Mastery property of the following weapons: ${weaponMasteryDescriptions}.`,
+    source: 'Class',
   })
 
   // Add weapon and armor proficiencies as features/traits
@@ -188,11 +302,11 @@ function applyFighterLevel1(character: Character, selectedSkills: string[]): voi
   character.initiative = calculateInitiative(dexModifier)
 }
 
-function createNewCharacter(characterClass: string, selectedSkills: string[]): Character {
+function createNewCharacter(characterClass: string, selectedSkills: string[], selectedFightingStyle: string, selectedWeaponMasteries: string[]): Character {
   const character = createEmptyCharacter()
   
   if (characterClass === 'Fighter') {
-    applyFighterLevel1(character, selectedSkills)
+    applyFighterLevel1(character, selectedSkills, selectedFightingStyle, selectedWeaponMasteries)
   }
   
   return character
@@ -225,12 +339,15 @@ export const useCharacter = () => {
     },
     initiative: 2,
     proficiencyBonus,
+    inspiration: false,
     abilities: initialAbilities,
     senses: {
       passivePerception: 0,
       passiveInvestigation: 0,
       passiveInsight: 0,
     },
+    fightingStyle: 'Defense',
+    weaponMastery: ['Longsword', 'Greatsword', 'Warhammer'],
     skills: DND_SKILLS.map(skill => {
       const abilityKey = skill.ability as keyof typeof initialAbilities
       const abilityModifier = calculateModifier(initialAbilities[abilityKey].score)
@@ -473,6 +590,58 @@ export const useCharacter = () => {
     }
   }
 
+  const updateFightingStyle = (fightingStyle: string) => {
+    // Remove old fighting style feature
+    const oldIndex = character.value.featuresTraits.findIndex(f => f.name.startsWith('Fighting Style:'))
+    if (oldIndex !== -1) {
+      character.value.featuresTraits.splice(oldIndex, 1)
+    }
+    
+    // Update character fighting style
+    character.value.fightingStyle = fightingStyle
+    
+    // Add new fighting style feature
+    const fightingStyleData = FIGHTING_STYLES.find(style => style.name === fightingStyle)
+    if (fightingStyleData) {
+      character.value.featuresTraits.push({
+        id: crypto.randomUUID(),
+        name: `Fighting Style: ${fightingStyle}`,
+        description: fightingStyleData.description,
+        source: 'Class',
+      })
+    }
+  }
+
+  const updateWeaponMastery = (weaponMasteries: string[]) => {
+    // Remove old weapon mastery feature
+    const oldIndex = character.value.featuresTraits.findIndex(f => f.name === 'Weapon Mastery')
+    if (oldIndex !== -1) {
+      character.value.featuresTraits.splice(oldIndex, 1)
+    }
+    
+    // Ensure weaponMastery exists
+    if (!character.value.weaponMastery) {
+      character.value.weaponMastery = []
+    }
+    
+    // Update character weapon mastery
+    character.value.weaponMastery = weaponMasteries
+    
+    // Add new weapon mastery feature
+    if (weaponMasteries.length > 0) {
+      const weaponMasteryDescriptions = weaponMasteries.map(weaponName => {
+        const weapon = WEAPON_MASTERY_WEAPONS.find(w => w.name === weaponName)
+        return weapon ? `${weapon.name} (${weapon.mastery})` : weaponName
+      }).join(', ')
+      character.value.featuresTraits.push({
+        id: crypto.randomUUID(),
+        name: 'Weapon Mastery',
+        description: `You can use the Mastery property of the following weapons: ${weaponMasteryDescriptions}.`,
+        source: 'Class',
+      })
+    }
+  }
+
   // Initialize skill modifiers on creation
   updateSkillModifiers()
 
@@ -612,6 +781,8 @@ export const useCharacter = () => {
     removeInventoryItem,
     addFeatureTrait,
     removeFeatureTrait,
+    updateFightingStyle,
+    updateWeaponMastery,
     addHP,
     removeHP,
     addTemporaryHP,
@@ -627,5 +798,7 @@ export const useCharacter = () => {
     applyFighterLevel1,
     createNewCharacter,
     resetCharacter,
+    FIGHTING_STYLES,
+    WEAPON_MASTERY_WEAPONS,
   }
 }

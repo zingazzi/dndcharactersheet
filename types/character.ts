@@ -84,6 +84,7 @@ export interface Character {
   proficiencyBonus: number // Calculated: based on level
   level: number // Character level for proficiency calculation
   image?: string
+  inspiration?: boolean // Inspiration flag
 
   // Abilities
   abilities: AbilityScores
@@ -108,6 +109,10 @@ export interface Character {
 
   // Features & Traits
   featuresTraits: FeatureTrait[]
+
+  // Fighter-specific
+  fightingStyle?: string
+  weaponMastery: string[] // Array of weapon names with mastery
 
   // Background
   background: {

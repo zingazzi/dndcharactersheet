@@ -80,13 +80,117 @@
       />
     </div>
 
+    <!-- Fighting Style -->
+    <div class="section">
+      <div class="section-header">
+        <h3 class="section-title">Fighting Style</h3>
+        <button
+          @click="showFightingStyleForm = !showFightingStyleForm"
+          class="btn btn-primary text-sm px-1.5 py-0.5"
+        >
+          {{ showFightingStyleForm ? 'Cancel' : character.fightingStyle ? 'Edit' : 'Add' }}
+        </button>
+      </div>
+      <div v-if="showFightingStyleForm" class="p-2 bg-[var(--color-bg-secondary)] rounded mb-2">
+        <div class="flex flex-col gap-1 mb-1.5">
+          <label
+            v-for="style in fightingStyles"
+            :key="style.name"
+            class="flex items-start p-1.5 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-primary)] cursor-pointer transition-colors text-sm"
+            :class="{ 'border-[var(--color-accent-primary)]': selectedFightingStyle === style.name }"
+          >
+            <input
+              v-model="selectedFightingStyle"
+              type="radio"
+              :value="style.name"
+              class="mt-0.5 mr-1.5 w-3 h-3"
+            />
+            <div class="flex-1">
+              <div class="font-semibold text-[var(--color-text-primary)]">{{ style.name }}</div>
+              <div class="text-xs text-[var(--color-text-tertiary)] mt-0.5">{{ style.description }}</div>
+            </div>
+          </label>
+        </div>
+        <button @click="handleUpdateFightingStyle" class="btn btn-primary text-sm px-1.5 py-0.5 w-full">Save</button>
+      </div>
+      <div v-else-if="character.fightingStyle" class="card-compact p-1.5">
+        <div class="text-sm font-bold text-[var(--color-text-primary)]">{{ character.fightingStyle }}</div>
+        <div class="text-xs text-[var(--color-text-secondary)] mt-0.5">{{ currentFightingStyleDescription }}</div>
+      </div>
+      <div v-else class="text-center py-2 text-[var(--color-text-muted)] italic text-sm">
+        No fighting style selected
+      </div>
+    </div>
+
+    <!-- Weapon Mastery -->
+    <div class="section">
+      <div class="section-header">
+        <h3 class="section-title">Weapon Mastery</h3>
+        <button
+          @click="showWeaponMasteryForm = !showWeaponMasteryForm"
+          class="btn btn-primary text-sm px-1.5 py-0.5"
+        >
+          {{ showWeaponMasteryForm ? 'Cancel' : 'Edit' }}
+        </button>
+      </div>
+      <div v-if="showWeaponMasteryForm" class="p-2 bg-[var(--color-bg-secondary)] rounded mb-2">
+        <p class="text-xs text-[var(--color-text-tertiary)] mb-1.5">Select weapons (you can change one after a Long Rest):</p>
+        <div class="max-h-[200px] overflow-y-auto border border-[var(--color-border-primary)] rounded p-1.5 mb-1.5">
+          <div class="grid grid-cols-1 gap-1">
+            <label
+              v-for="weapon in weaponMasteryWeapons"
+              :key="weapon.name"
+              class="flex items-center p-1.5 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-primary)] cursor-pointer transition-colors text-sm"
+              :class="{ 'border-[var(--color-accent-primary)]': selectedWeaponMasteries.includes(weapon.name) }"
+            >
+              <input
+                type="checkbox"
+                :value="weapon.name"
+                v-model="selectedWeaponMasteries"
+                class="mr-1.5 w-3 h-3"
+              />
+              <div class="flex-1">
+                <span class="font-semibold text-[var(--color-text-primary)]">{{ weapon.name }}</span>
+                <span class="text-xs text-[var(--color-text-tertiary)] ml-1">({{ weapon.type }}, {{ weapon.mastery }})</span>
+              </div>
+            </label>
+          </div>
+        </div>
+        <div class="text-center text-sm mb-1.5" :class="{ 'text-[var(--color-success)]': selectedWeaponMasteries.length > 0, 'text-[var(--color-danger)]': selectedWeaponMasteries.length === 0 }">
+          Selected: {{ selectedWeaponMasteries.length }} weapon{{ selectedWeaponMasteries.length !== 1 ? 's' : '' }}
+        </div>
+        <button @click="handleUpdateWeaponMastery" class="btn btn-primary text-sm px-1.5 py-0.5 w-full">Save</button>
+      </div>
+      <div v-else class="flex flex-col gap-1">
+        <div
+          v-for="weaponName in weaponMasteryList"
+          :key="weaponName"
+          class="card-compact p-1.5 flex items-center justify-between"
+        >
+          <div class="flex-1">
+            <div class="text-sm font-bold text-[var(--color-text-primary)]">{{ weaponName }}</div>
+            <div class="text-xs text-[var(--color-text-tertiary)]">{{ getWeaponMasteryInfo(weaponName) }}</div>
+          </div>
+          <button
+            @click="handleRemoveWeaponMastery(weaponName)"
+            class="btn btn-danger text-sm px-1 py-0.5 shrink-0"
+          >
+            ×
+          </button>
+        </div>
+        <div v-if="weaponMasteryList.length === 0" class="text-center py-2 text-[var(--color-text-muted)] italic text-sm">
+          No weapons with mastery
+        </div>
+      </div>
+    </div>
+
     <!-- Features & Traits -->
     <div class="section">
       <div class="section-header">
         <h3 class="section-title">Features & Traits</h3>
         <button
           @click="showAddForm = !showAddForm"
-          class="btn btn-primary text-sm px-2 py-1"
+          class="btn btn-primary text-sm px-1.5 py-0.5"
         >
           {{ showAddForm ? 'Cancel' : '+' }}
         </button>
@@ -115,11 +219,11 @@
           <option value="Background">Background</option>
           <option value="Other">Other</option>
         </select>
-        <button @click="handleAddFeature" class="btn btn-primary text-sm px-2 py-1 w-full">Add</button>
+        <button @click="handleAddFeature" class="btn btn-primary text-sm px-1.5 py-0.5 w-full">Add</button>
       </div>
       <div class="flex flex-col gap-1 max-h-[300px] overflow-y-auto">
         <div
-          v-for="feature in character.featuresTraits"
+          v-for="feature in otherFeaturesTraits"
           :key="feature.id"
           class="card-compact p-1.5"
         >
@@ -137,7 +241,7 @@
           </div>
           <div class="text-sm text-[var(--color-text-secondary)]">{{ feature.description }}</div>
         </div>
-        <div v-if="character.featuresTraits.length === 0" class="text-center py-2 text-[var(--color-text-muted)] italic text-sm">
+        <div v-if="otherFeaturesTraits.length === 0" class="text-center py-2 text-[var(--color-text-muted)] italic text-sm">
           No features
         </div>
       </div>
@@ -147,8 +251,9 @@
 
 <script setup lang="ts">
 import type { FeatureTrait, Skill } from '~/types/character'
+import { FIGHTING_STYLES, WEAPON_MASTERY_WEAPONS } from '~/composables/useCharacter'
 
-const { character, addFeatureTrait, removeFeatureTrait, updateSkillProficiency } = useCharacter()
+const { character, addFeatureTrait, removeFeatureTrait, updateSkillProficiency, updateFightingStyle, updateWeaponMastery } = useCharacter()
 const { addRoll } = useDiceHistory()
 
 const toast = ref({
@@ -190,11 +295,75 @@ const closeToast = () => {
 }
 
 const showAddForm = ref(false)
+const showFightingStyleForm = ref(false)
+const showWeaponMasteryForm = ref(false)
+const selectedFightingStyle = ref('')
+const selectedWeaponMasteries = ref<string[]>([])
+
+const fightingStyles = FIGHTING_STYLES
+const weaponMasteryWeapons = WEAPON_MASTERY_WEAPONS
+
 const newFeature = ref<Omit<FeatureTrait, 'id'>>({
   name: '',
   description: '',
   source: '',
 })
+
+// Filter out Fighting Style and Weapon Mastery from featuresTraits
+const otherFeaturesTraits = computed(() => {
+  return character.value.featuresTraits.filter(feature => 
+    !feature.name.startsWith('Fighting Style:') && 
+    feature.name !== 'Weapon Mastery'
+  )
+})
+
+// Get current fighting style description
+const currentFightingStyleDescription = computed(() => {
+  if (!character.value.fightingStyle) return ''
+  const style = FIGHTING_STYLES.find(s => s.name === character.value.fightingStyle)
+  return style?.description || ''
+})
+
+// Get weapon mastery info
+const getWeaponMasteryInfo = (weaponName: string): string => {
+  const weapon = WEAPON_MASTERY_WEAPONS.find(w => w.name === weaponName)
+  return weapon ? `${weapon.type}, ${weapon.mastery}` : ''
+}
+
+// Initialize forms when opening
+watch(showFightingStyleForm, (isOpen) => {
+  if (isOpen) {
+    selectedFightingStyle.value = character.value.fightingStyle || ''
+  }
+})
+
+// Computed property for weapon mastery list with fallback
+const weaponMasteryList = computed(() => {
+  return character.value.weaponMastery || []
+})
+
+watch(showWeaponMasteryForm, (isOpen) => {
+  if (isOpen) {
+    selectedWeaponMasteries.value = [...weaponMasteryList.value]
+  }
+})
+
+const handleUpdateFightingStyle = () => {
+  if (selectedFightingStyle.value) {
+    updateFightingStyle(selectedFightingStyle.value)
+    showFightingStyleForm.value = false
+  }
+}
+
+const handleUpdateWeaponMastery = () => {
+  updateWeaponMastery(selectedWeaponMasteries.value)
+  showWeaponMasteryForm.value = false
+}
+
+const handleRemoveWeaponMastery = (weaponName: string) => {
+  const updated = weaponMasteryList.value.filter(w => w !== weaponName)
+  updateWeaponMastery(updated)
+}
 
 const handleAddFeature = () => {
   if (newFeature.value.name.trim()) {
