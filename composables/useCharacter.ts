@@ -86,6 +86,32 @@ export const WEAPON_MASTERY_WEAPONS: WeaponMastery[] = [
   { name: 'Net', type: 'Martial', mastery: 'Slow' },
 ]
 
+// Ranged weapons to exclude for Barbarian melee-only weapon mastery
+const RANGED_WEAPONS = [
+  'Crossbow, Light',
+  'Dart',
+  'Shortbow',
+  'Sling',
+  'Blowgun',
+  'Crossbow, Hand',
+  'Crossbow, Heavy',
+  'Longbow',
+  'Net',
+]
+
+export const getMeleeWeapons = (): WeaponMastery[] => {
+  return WEAPON_MASTERY_WEAPONS.filter(weapon => !RANGED_WEAPONS.includes(weapon.name))
+}
+
+export const BARBARIAN_SKILLS = [
+  'Animal Handling',
+  'Athletics',
+  'Intimidation',
+  'Nature',
+  'Perception',
+  'Survival',
+]
+
 const DND_SKILLS: Array<{ name: string; ability: keyof Character['abilities'] }> = [
   { name: 'Acrobatics', ability: 'dexterity' },
   { name: 'Animal Handling', ability: 'wisdom' },
@@ -115,7 +141,13 @@ function calculateProficiencyBonus(level: number): number {
   return Math.ceil(level / 4) + 1
 }
 
-function calculateAC(dexModifier: number, baseAC: number = 10): number {
+function calculateAC(dexModifier: number, baseAC: number = 10, character?: Character): number {
+  // Unarmored Defense for Barbarian
+  if (character?.classType === 'Barbarian' && !character.wearingArmor) {
+    const conModifier = character.abilities.constitution.modifier
+    return 10 + dexModifier + conModifier
+  }
+  // Default AC calculation
   return baseAC + dexModifier
 }
 
@@ -189,8 +221,10 @@ function createEmptyCharacter(): Character {
     spells: [],
     inventory: [],
     featuresTraits: [],
+    classType: undefined,
     fightingStyle: undefined,
     weaponMastery: [],
+    wearingArmor: false,
     background: {
       name: '',
       personalityTraits: '',
@@ -210,8 +244,9 @@ function applyFighterLevel1(character: Character, selectedSkills: string[], sele
   character.hitPoints.maximum = 10
   character.hitPoints.current = 10
 
-  // Set class level
+  // Set class level and type
   character.classLevel = 'Fighter 1'
+  character.classType = 'Fighter'
   character.level = level
   character.proficiencyBonus = proficiencyBonus
 
@@ -298,15 +333,130 @@ function applyFighterLevel1(character: Character, selectedSkills: string[], sele
 
   // Recalculate AC and Initiative
   const dexModifier = character.abilities.dexterity.modifier
-  character.ac = calculateAC(dexModifier)
+  character.ac = calculateAC(dexModifier, 10, character)
   character.initiative = calculateInitiative(dexModifier)
 }
 
-function createNewCharacter(characterClass: string, selectedSkills: string[], selectedFightingStyle: string, selectedWeaponMasteries: string[]): Character {
+function applyBarbarianLevel1(character: Character, selectedSkills: string[], selectedWeaponMasteries: string[]): void {
+  const level = 1
+  const proficiencyBonus = calculateProficiencyBonus(level)
+  const conModifier = calculateModifier(character.abilities.constitution.score)
+
+  // Set hit points (1d12 = 12 + CON modifier)
+  character.hitPoints.maximum = 12 + conModifier
+  character.hitPoints.current = 12 + conModifier
+
+  // Set class level and type
+  character.classLevel = 'Barbarian 1'
+  character.classType = 'Barbarian'
+  character.level = level
+  character.proficiencyBonus = proficiencyBonus
+
+  // Set saving throw proficiencies: Strength and Constitution
+  character.abilities.strength.saveProficient = true
+  character.abilities.strength.saveModifier = character.abilities.strength.modifier + proficiencyBonus
+  character.abilities.constitution.saveProficient = true
+  character.abilities.constitution.saveModifier = character.abilities.constitution.modifier + proficiencyBonus
+
+  // Apply skill proficiencies (2 selected skills)
+  character.skills.forEach(skill => {
+    if (selectedSkills.includes(skill.name)) {
+      skill.proficient = true
+      skill.modifier = skill.modifier + proficiencyBonus
+    }
+  })
+
+  // Set Weapon Mastery (2 melee weapons)
+  character.weaponMastery = selectedWeaponMasteries
+  const weaponMasteryDescriptions = selectedWeaponMasteries.map(weaponName => {
+    const weapon = WEAPON_MASTERY_WEAPONS.find(w => w.name === weaponName)
+    return weapon ? `${weapon.name} (${weapon.mastery})` : weaponName
+  }).join(', ')
+  character.featuresTraits.push({
+    id: crypto.randomUUID(),
+    name: 'Weapon Mastery',
+    description: `You can use the Mastery property of the following weapons: ${weaponMasteryDescriptions}.`,
+    source: 'Class',
+  })
+
+  // Add Rage feature
+  character.rage = {
+    active: false,
+    usesAvailable: 2,
+    usesMax: 2,
+    damageBonus: 2,
+  }
+  character.featuresTraits.push({
+    id: crypto.randomUUID(),
+    name: 'Rage',
+    description: 'You can enter a Rage as a Bonus Action. While raging, you have resistance to bludgeoning, piercing, and slashing damage, gain a +2 bonus to damage rolls with Strength-based attacks, and have advantage on Strength checks and saving throws. You cannot maintain Concentration or cast spells while raging. Rage lasts until the end of your next turn and can be extended.',
+    source: 'Class',
+  })
+
+  // Add Unarmored Defense feature
+  character.featuresTraits.push({
+    id: crypto.randomUUID(),
+    name: 'Unarmored Defense',
+    description: 'While you aren\'t wearing any armor, your base Armor Class equals 10 + your Dexterity modifier + your Constitution modifier. You can use a Shield and still gain this benefit.',
+    source: 'Class',
+  })
+
+  // Add weapon and armor proficiencies as features/traits
+  const proficiencies: FeatureTrait[] = [
+    {
+      id: crypto.randomUUID(),
+      name: 'Weapon Proficiency: Simple Weapons',
+      description: 'Proficient with all simple weapons.',
+      source: 'Class',
+    },
+    {
+      id: crypto.randomUUID(),
+      name: 'Weapon Proficiency: Martial Weapons',
+      description: 'Proficient with all martial weapons.',
+      source: 'Class',
+    },
+    {
+      id: crypto.randomUUID(),
+      name: 'Armor Proficiency: Light Armor',
+      description: 'Proficient with light armor.',
+      source: 'Class',
+    },
+    {
+      id: crypto.randomUUID(),
+      name: 'Armor Proficiency: Medium Armor',
+      description: 'Proficient with medium armor.',
+      source: 'Class',
+    },
+    {
+      id: crypto.randomUUID(),
+      name: 'Armor Proficiency: Shields',
+      description: 'Proficient with shields.',
+      source: 'Class',
+    },
+  ]
+
+  character.featuresTraits = [...character.featuresTraits, ...proficiencies]
+
+  // Set wearingArmor to false by default (for Unarmored Defense)
+  character.wearingArmor = false
+
+  // Recalculate AC and Initiative
+  const dexModifier = character.abilities.dexterity.modifier
+  // Unarmored Defense: 10 + DEX + CON
+  character.ac = calculateAC(dexModifier, 10, character)
+  character.initiative = calculateInitiative(dexModifier)
+}
+
+function createNewCharacter(characterClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[]): Character {
   const character = createEmptyCharacter()
   
   if (characterClass === 'Fighter') {
+    if (!selectedFightingStyle) {
+      throw new Error('Fighting Style is required for Fighter')
+    }
     applyFighterLevel1(character, selectedSkills, selectedFightingStyle, selectedWeaponMasteries)
+  } else if (characterClass === 'Barbarian') {
+    applyBarbarianLevel1(character, selectedSkills, selectedWeaponMasteries)
   }
   
   return character
@@ -642,6 +792,41 @@ export const useCharacter = () => {
     }
   }
 
+  // Rage Management Functions
+  const activateRage = () => {
+    if (!character.value.rage) return false
+    if (character.value.rage.usesAvailable <= 0) return false
+    if (character.value.rage.active) return false
+    
+    character.value.rage.active = true
+    character.value.rage.usesAvailable -= 1
+    return true
+  }
+
+  const deactivateRage = () => {
+    if (!character.value.rage) return
+    character.value.rage.active = false
+  }
+
+  const extendRage = () => {
+    if (!character.value.rage) return false
+    if (!character.value.rage.active) return false
+    // Rage is extended by the action itself, just return true
+    return true
+  }
+
+  const resetRageUses = (shortRest: boolean = false) => {
+    if (!character.value.rage) return
+    if (shortRest) {
+      // Regain 1 use on short rest
+      character.value.rage.usesAvailable = Math.min(character.value.rage.usesAvailable + 1, character.value.rage.usesMax)
+    } else {
+      // Regain all uses on long rest
+      character.value.rage.usesAvailable = character.value.rage.usesMax
+      character.value.rage.active = false
+    }
+  }
+
   // Initialize skill modifiers on creation
   updateSkillModifiers()
 
@@ -666,7 +851,7 @@ export const useCharacter = () => {
   // Computed values for AC, Initiative, Proficiency Bonus
   const calculatedAC = computed(() => {
     const dexModifier = character.value.abilities.dexterity.modifier
-    return calculateAC(dexModifier)
+    return calculateAC(dexModifier, 10, character.value)
   })
 
   const calculatedInitiative = computed(() => {
@@ -758,7 +943,7 @@ export const useCharacter = () => {
     updateSkillModifiers()
     // Update calculated values
     const dexModifier = character.value.abilities.dexterity.modifier
-    character.value.ac = calculateAC(dexModifier)
+    character.value.ac = calculateAC(dexModifier, 10, character.value)
     character.value.initiative = calculateInitiative(dexModifier)
     character.value.proficiencyBonus = calculateProficiencyBonus(character.value.level || 1)
     // Update passive senses (they will be recalculated by watchEffect, but we can trigger it)
@@ -796,9 +981,16 @@ export const useCharacter = () => {
     setNextLevelXP,
     createEmptyCharacter,
     applyFighterLevel1,
+    applyBarbarianLevel1,
     createNewCharacter,
     resetCharacter,
+    activateRage,
+    deactivateRage,
+    extendRage,
+    resetRageUses,
     FIGHTING_STYLES,
     WEAPON_MASTERY_WEAPONS,
+    getMeleeWeapons,
+    BARBARIAN_SKILLS,
   }
 }

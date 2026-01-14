@@ -110,9 +110,17 @@ export interface Character {
   // Features & Traits
   featuresTraits: FeatureTrait[]
 
-  // Fighter-specific
-  fightingStyle?: string
+  // Class-specific
+  classType?: 'Fighter' | 'Barbarian'
+  fightingStyle?: string // Fighter-specific
   weaponMastery: string[] // Array of weapon names with mastery
+  rage?: {
+    active: boolean
+    usesAvailable: number
+    usesMax: number
+    damageBonus: number
+  }
+  wearingArmor?: boolean // Track if wearing armor for AC calculation
 
   // Background
   background: {

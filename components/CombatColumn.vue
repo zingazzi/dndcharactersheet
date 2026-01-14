@@ -3,6 +3,59 @@
     <CombatStats />
     <HitPointsCompact />
 
+    <!-- Rage (Barbarian only) -->
+    <div v-if="character.classType === 'Barbarian' && character.rage" class="section">
+      <div class="section-header">
+        <h3 class="section-title">Rage</h3>
+        <div class="flex items-center gap-1">
+          <span
+            v-if="character.rage.active"
+            class="text-xs font-semibold text-[var(--color-danger)] bg-[var(--color-danger)]/20 px-1.5 py-0.5 rounded"
+          >
+            ACTIVE
+          </span>
+          <span class="text-xs text-[var(--color-text-tertiary)]">
+            {{ character.rage.usesAvailable }} / {{ character.rage.usesMax }}
+          </span>
+        </div>
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <div class="card-compact flex items-center justify-between">
+          <div>
+            <div class="text-sm font-semibold text-[var(--color-text-secondary)]">Damage Bonus</div>
+            <div class="text-base font-bold font-medieval text-[var(--color-text-primary)]">+{{ character.rage.damageBonus }}</div>
+          </div>
+          <div class="flex gap-1">
+            <button
+              v-if="!character.rage.active"
+              @click="handleActivateRage"
+              :disabled="character.rage.usesAvailable <= 0"
+              class="btn btn-primary text-sm px-2 py-1"
+            >
+              Activate
+            </button>
+            <button
+              v-else
+              @click="handleDeactivateRage"
+              class="btn btn-danger text-sm px-2 py-1"
+            >
+              End Rage
+            </button>
+            <button
+              v-if="character.rage.active"
+              @click="handleExtendRage"
+              class="btn btn-success text-sm px-2 py-1"
+            >
+              Extend
+            </button>
+          </div>
+        </div>
+        <div v-if="character.rage.active" class="text-xs text-[var(--color-text-tertiary)] italic">
+          Resistance to B/P/S damage • Advantage on STR checks/saves • +{{ character.rage.damageBonus }} damage
+        </div>
+      </div>
+    </div>
+
     <!-- Attacks & Spells -->
     <div class="section">
       <div class="section-header">
@@ -254,7 +307,7 @@
 <script setup lang="ts">
 import type { Action, Spell, InventoryItem } from '~/types/character'
 
-const { character, addAction, removeAction, addSpell, removeSpell, addInventoryItem, removeInventoryItem } = useCharacter()
+const { character, addAction, removeAction, addSpell, removeSpell, addInventoryItem, removeInventoryItem, activateRage, deactivateRage, extendRage } = useCharacter()
 
 const showAddForm = ref(false)
 const showSpellForm = ref(false)
@@ -332,5 +385,17 @@ const handleAddItem = () => {
     }
     showItemForm.value = false
   }
+}
+
+const handleActivateRage = () => {
+  activateRage()
+}
+
+const handleDeactivateRage = () => {
+  deactivateRage()
+}
+
+const handleExtendRage = () => {
+  extendRage()
 }
 </script>

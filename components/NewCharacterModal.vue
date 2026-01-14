@@ -14,30 +14,42 @@
         <!-- Step 1: Class Selection -->
         <div class="mb-2">
           <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Step 1: Choose Your Class</h3>
-          <div class="mb-1.5">
-            <label class="flex items-center p-2 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-secondary)] cursor-pointer hover:bg-[var(--color-bg-primary)] transition-colors">
+          <div class="mb-1.5 flex flex-col gap-1">
+            <label class="flex items-center p-2 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-secondary)] cursor-pointer hover:bg-[var(--color-bg-primary)] transition-colors"
+              :class="{ 'bg-[var(--color-bg-primary)] border-[var(--color-accent-primary)]': selectedClass === 'Fighter' }">
               <input
                 v-model="selectedClass"
                 type="radio"
                 value="Fighter"
-                checked
-                disabled
                 class="mr-2"
               />
-              <span class="text-sm font-cinzel text-[var(--color-text-primary)]">Fighter (Only class available)</span>
+              <div class="flex-1">
+                <span class="text-sm font-cinzel text-[var(--color-text-primary)]">Fighter</span>
+                <p class="text-[0.65rem] text-[var(--color-text-tertiary)] italic mt-0.5">A master of martial combat, skilled with a variety of weapons and armor.</p>
+              </div>
+            </label>
+            <label class="flex items-center p-2 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-secondary)] cursor-pointer hover:bg-[var(--color-bg-primary)] transition-colors"
+              :class="{ 'bg-[var(--color-bg-primary)] border-[var(--color-accent-primary)]': selectedClass === 'Barbarian' }">
+              <input
+                v-model="selectedClass"
+                type="radio"
+                value="Barbarian"
+                class="mr-2"
+              />
+              <div class="flex-1">
+                <span class="text-sm font-cinzel text-[var(--color-text-primary)]">Barbarian</span>
+                <p class="text-[0.65rem] text-[var(--color-text-tertiary)] italic mt-0.5">A fierce warrior of primitive background who can enter a battle rage.</p>
+              </div>
             </label>
           </div>
-          <p class="text-[0.65rem] text-[var(--color-text-tertiary)] italic">
-            A master of martial combat, skilled with a variety of weapons and armor.
-          </p>
         </div>
 
-        <!-- Step 2: Skill Selection (for Fighter) -->
-        <div v-if="selectedClass === 'Fighter'" class="mb-2">
+        <!-- Step 2: Skill Selection -->
+        <div v-if="selectedClass" class="mb-2">
           <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Step 2: Choose 2 Skills</h3>
           <div class="grid grid-cols-2 gap-1 mb-1.5">
             <label
-              v-for="skill in fighterSkills"
+              v-for="skill in (selectedClass === 'Fighter' ? fighterSkills : barbarianSkills)"
               :key="skill"
               class="flex items-center p-1.5 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-secondary)] cursor-pointer transition-colors text-sm"
               :class="{ 'bg-[var(--color-bg-primary)] border-[var(--color-accent-primary)]': selectedSkills.includes(skill), 'opacity-50 cursor-not-allowed': !selectedSkills.includes(skill) && selectedSkills.length >= 2 }"
@@ -78,6 +90,37 @@
                 <div class="text-xs text-[var(--color-text-tertiary)] mt-0.5">{{ style.description }}</div>
               </div>
             </label>
+          </div>
+        </div>
+
+        <!-- Step 3: Weapon Mastery Selection (for Barbarian) -->
+        <div v-if="selectedClass === 'Barbarian'" class="mb-2">
+          <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Step 3: Choose 2 Melee Weapons for Weapon Mastery</h3>
+          <p class="text-xs text-[var(--color-text-tertiary)] mb-1.5">Select 2 melee weapons from Simple or Martial weapons:</p>
+          <div class="max-h-[200px] overflow-y-auto border border-[var(--color-border-primary)] rounded p-1.5 mb-1.5">
+            <div class="grid grid-cols-1 gap-1">
+              <label
+                v-for="weapon in weaponMasteryWeapons"
+                :key="weapon.name"
+                class="flex items-center p-1.5 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-secondary)] cursor-pointer transition-colors text-sm"
+                :class="{ 'bg-[var(--color-bg-primary)] border-[var(--color-accent-primary)]': selectedWeaponMasteries.includes(weapon.name), 'opacity-50 cursor-not-allowed': !selectedWeaponMasteries.includes(weapon.name) && selectedWeaponMasteries.length >= 2 }"
+              >
+                <input
+                  type="checkbox"
+                  :value="weapon.name"
+                  v-model="selectedWeaponMasteries"
+                  :disabled="!selectedWeaponMasteries.includes(weapon.name) && selectedWeaponMasteries.length >= 2"
+                  class="mr-1.5 w-3 h-3"
+                />
+                <div class="flex-1">
+                  <span class="font-semibold text-[var(--color-text-primary)]">{{ weapon.name }}</span>
+                  <span class="text-xs text-[var(--color-text-tertiary)] ml-1">({{ weapon.type }}, {{ weapon.mastery }})</span>
+                </div>
+              </label>
+            </div>
+          </div>
+          <div class="text-center text-sm" :class="{ 'text-[var(--color-success)]': selectedWeaponMasteries.length === 2, 'text-[var(--color-danger)]': selectedWeaponMasteries.length !== 2 }">
+            Selected: {{ selectedWeaponMasteries.length }} / 2 weapons
           </div>
         </div>
 
@@ -127,7 +170,7 @@
 </template>
 
 <script setup lang="ts">
-import { FIGHTING_STYLES, WEAPON_MASTERY_WEAPONS } from '~/composables/useCharacter'
+import { FIGHTING_STYLES, WEAPON_MASTERY_WEAPONS, BARBARIAN_SKILLS, getMeleeWeapons } from '~/composables/useCharacter'
 
 const props = defineProps<{
   isOpen: boolean
@@ -135,10 +178,10 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
-  create: [charClass: string, selectedSkills: string[], selectedFightingStyle: string, selectedWeaponMasteries: string[]]
+  create: [charClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[]]
 }>()
 
-const selectedClass = ref('Fighter')
+const selectedClass = ref<'Fighter' | 'Barbarian'>('Fighter')
 const selectedSkills = ref<string[]>([])
 const selectedFightingStyle = ref('')
 const selectedWeaponMasteries = ref<string[]>([])
@@ -155,14 +198,19 @@ const fighterSkills = [
   'Survival',
 ]
 
+const barbarianSkills = BARBARIAN_SKILLS
 const fightingStyles = FIGHTING_STYLES
-const weaponMasteryWeapons = WEAPON_MASTERY_WEAPONS
+const weaponMasteryWeapons = computed(() => selectedClass.value === 'Barbarian' ? getMeleeWeapons() : WEAPON_MASTERY_WEAPONS)
+const weaponMasteryCount = computed(() => selectedClass.value === 'Fighter' ? 3 : 2)
 
 const canCreate = computed(() => {
-  return selectedClass.value && 
-         selectedSkills.value.length === 2 && 
-         selectedFightingStyle.value !== '' && 
-         selectedWeaponMasteries.value.length === 3
+  if (!selectedClass.value || selectedSkills.value.length !== 2) return false
+  if (selectedClass.value === 'Fighter') {
+    return selectedFightingStyle.value !== '' && selectedWeaponMasteries.value.length === 3
+  } else if (selectedClass.value === 'Barbarian') {
+    return selectedWeaponMasteries.value.length === 2
+  }
+  return false
 })
 
 const toggleSkill = (skill: string) => {
@@ -176,13 +224,21 @@ const toggleSkill = (skill: string) => {
 
 const createCharacter = () => {
   if (canCreate.value) {
-    emit('create', selectedClass.value, selectedSkills.value, selectedFightingStyle.value, selectedWeaponMasteries.value)
+    const fightingStyle = selectedClass.value === 'Fighter' ? selectedFightingStyle.value : undefined
+    emit('create', selectedClass.value, selectedSkills.value, fightingStyle, selectedWeaponMasteries.value)
     selectedClass.value = 'Fighter'
     selectedSkills.value = []
     selectedFightingStyle.value = ''
     selectedWeaponMasteries.value = []
   }
 }
+
+// Reset selections when class changes
+watch(selectedClass, () => {
+  selectedSkills.value = []
+  selectedFightingStyle.value = ''
+  selectedWeaponMasteries.value = []
+})
 
 const close = () => {
   emit('close')
