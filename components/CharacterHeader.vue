@@ -79,7 +79,7 @@
               <circle cx="12" cy="12" r="10"/>
               <polyline points="12 6 12 12 16 14"/>
             </svg>
-          </div>
+      </div>
           <label class="text-[0.65rem] font-semibold text-[var(--color-text-secondary)] font-cinzel uppercase tracking-wide block mb-0.5">Initiative</label>
           <div class="text-xl font-bold font-medieval text-[var(--color-text-primary)]">{{ formatModifier(character.initiative) }}</div>
         </div>
@@ -92,10 +92,10 @@
               <path d="M2 17l10 5 10-5"/>
               <path d="M2 12l10 5 10-5"/>
             </svg>
-          </div>
+      </div>
           <label class="text-[0.65rem] font-semibold text-[var(--color-text-secondary)] font-cinzel uppercase tracking-wide block mb-0.5">Proficiency</label>
           <div class="text-xl font-bold font-medieval text-[var(--color-text-primary)]">{{ formatModifier(character.proficiencyBonus) }}</div>
-        </div>
+      </div>
       </div>
 
       <!-- Utility Button -->

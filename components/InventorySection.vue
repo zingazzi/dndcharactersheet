@@ -49,16 +49,30 @@
       >
         <div class="flex justify-between items-center mb-1.5">
           <div class="flex items-center gap-2">
-            <span class="text-base font-bold">{{ item.name }}</span>
+            <span class="text-base font-bold" :class="{ 'text-[var(--color-accent-primary)]': item.equipped }">{{ item.name }}</span>
+            <span v-if="item.equipped" class="text-xs px-1.5 py-0.5 bg-[var(--color-accent-primary)] text-white rounded font-semibold">EQUIPPED</span>
             <span class="text-xs text-[var(--color-text-tertiary)]">×{{ item.quantity }}</span>
             <span class="text-xs text-[var(--color-text-muted)] px-1.5 py-0.5 bg-[var(--color-bg-secondary)] rounded">{{ item.weight }} lbs</span>
           </div>
-          <button
-            @click="removeInventoryItem(item.id)"
-            class="btn btn-danger text-xs px-2 py-1"
-          >
-            ×
-          </button>
+          <div class="flex items-center gap-1">
+            <button
+              v-if="isArmorOrShield(item)"
+              @click="toggleEquipItem(item.id)"
+              :class="[
+                'btn text-xs px-2 py-1',
+                item.equipped ? 'btn-secondary' : 'btn-primary'
+              ]"
+              :title="item.equipped ? 'Unequip' : 'Equip'"
+            >
+              {{ item.equipped ? 'Unequip' : 'Equip' }}
+            </button>
+            <button
+              @click="removeInventoryItem(item.id)"
+              class="btn btn-danger text-xs px-2 py-1"
+            >
+              ×
+            </button>
+          </div>
         </div>
         <div v-if="item.description" class="mb-1.5 p-1.5 bg-[var(--color-bg-secondary)] rounded text-xs text-[var(--color-text-secondary)]">
           {{ item.description }}
@@ -109,7 +123,7 @@
 <script setup lang="ts">
 import type { InventoryItem } from '~/types/character'
 
-const { character, addInventoryItem, removeInventoryItem } = useCharacter()
+const { character, addInventoryItem, removeInventoryItem, toggleEquipItem, getArmorData } = useCharacter()
 
 const showAddForm = ref(false)
 const newItem = ref<Omit<InventoryItem, 'id'>>({
@@ -130,5 +144,13 @@ const handleAddItem = () => {
     }
     showAddForm.value = false
   }
+}
+
+const isArmorOrShield = (item: InventoryItem): boolean => {
+  // Check if item has armorType set
+  if (item.armorType) return true
+  // Check if item name matches armor database
+  const armorData = getArmorData(item.name)
+  return armorData !== null
 }
 </script>

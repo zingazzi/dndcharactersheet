@@ -284,16 +284,30 @@
         >
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-1 flex-1 min-w-0">
-              <span class="text-sm font-semibold truncate">{{ item.name }}</span>
+              <span class="text-sm font-semibold truncate" :class="{ 'text-[var(--color-accent-primary)]': item.equipped }">{{ item.name }}</span>
+              <span v-if="item.equipped" class="text-xs px-1 py-0.5 bg-[var(--color-accent-primary)] text-white rounded font-semibold shrink-0">EQ</span>
               <span class="text-xs text-[var(--color-text-tertiary)]">×{{ item.quantity }}</span>
               <span class="text-xs text-[var(--color-text-muted)]">{{ item.weight }}lbs</span>
             </div>
-            <button
-              @click="removeInventoryItem(item.id)"
-              class="btn btn-danger text-xs px-1 py-0.5 shrink-0"
-            >
-              ×
-            </button>
+            <div class="flex items-center gap-0.5 shrink-0">
+              <button
+                v-if="isArmorOrShield(item)"
+                @click="toggleEquipItem(item.id)"
+                :class="[
+                  'btn text-xs px-1 py-0.5',
+                  item.equipped ? 'btn-secondary' : 'btn-primary'
+                ]"
+                :title="item.equipped ? 'Unequip' : 'Equip'"
+              >
+                {{ item.equipped ? '✓' : '⚔' }}
+              </button>
+              <button
+                @click="removeInventoryItem(item.id)"
+                class="btn btn-danger text-xs px-1 py-0.5"
+              >
+                ×
+              </button>
+            </div>
           </div>
         </div>
         <div v-if="character.inventory.length === 0" class="text-center py-2 text-[var(--color-text-muted)] italic text-sm">
@@ -307,7 +321,7 @@
 <script setup lang="ts">
 import type { Action, Spell, InventoryItem } from '~/types/character'
 
-const { character, addAction, removeAction, addSpell, removeSpell, addInventoryItem, removeInventoryItem, activateRage, deactivateRage, extendRage } = useCharacter()
+const { character, addAction, removeAction, addSpell, removeSpell, addInventoryItem, removeInventoryItem, toggleEquipItem, getArmorData, activateRage, deactivateRage, extendRage } = useCharacter()
 
 const showAddForm = ref(false)
 const showSpellForm = ref(false)
@@ -385,6 +399,14 @@ const handleAddItem = () => {
     }
     showItemForm.value = false
   }
+}
+
+const isArmorOrShield = (item: InventoryItem): boolean => {
+  // Check if item has armorType set
+  if (item.armorType) return true
+  // Check if item name matches armor database
+  const armorData = getArmorData(item.name)
+  return armorData !== null
 }
 
 const handleActivateRage = () => {

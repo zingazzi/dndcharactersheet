@@ -57,6 +57,9 @@ export interface InventoryItem {
   quantity: number
   weight: number
   description?: string
+  equipped?: boolean
+  armorType?: 'light' | 'medium' | 'heavy' | 'shield'
+  baseAC?: number
 }
 
 export interface FeatureTrait {

@@ -6,6 +6,10 @@
       <div class="card-compact text-center">
         <div class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-0.5">AC</div>
         <div class="text-xl font-bold font-medieval text-[var(--color-text-primary)]">{{ character.ac }}</div>
+        <div v-if="equippedArmor || equippedShield" class="text-xs text-[var(--color-text-tertiary)] mt-0.5">
+          <div v-if="equippedArmor" class="truncate" :title="equippedArmor.name">{{ equippedArmor.name }}</div>
+          <div v-if="equippedShield" class="truncate" :title="equippedShield.name">{{ equippedShield.name }}</div>
+        </div>
       </div>
 
       <!-- Initiative -->
@@ -36,8 +40,11 @@
 </template>
 
 <script setup lang="ts">
-const { character } = useCharacter()
+const { character, getEquippedArmor, getEquippedShield } = useCharacter()
 const { addRoll } = useDiceHistory()
+
+const equippedArmor = computed(() => getEquippedArmor(character.value))
+const equippedShield = computed(() => getEquippedShield(character.value))
 
 const isToastVisible = ref(false)
 const toast = ref({

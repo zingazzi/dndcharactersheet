@@ -51,13 +51,13 @@ export const WEAPON_MASTERY_WEAPONS: WeaponMastery[] = [
   { name: 'Sickle', type: 'Simple', mastery: 'Vex' },
   { name: 'Spear', type: 'Simple', mastery: 'Vex' },
   { name: 'Unarmed Strike', type: 'Simple', mastery: 'Graze' },
-  
+
   // Simple Ranged Weapons
   { name: 'Crossbow, Light', type: 'Simple', mastery: 'Slow' },
   { name: 'Dart', type: 'Simple', mastery: 'Vex' },
   { name: 'Shortbow', type: 'Simple', mastery: 'Vex' },
   { name: 'Sling', type: 'Simple', mastery: 'Vex' },
-  
+
   // Martial Melee Weapons
   { name: 'Battleaxe', type: 'Martial', mastery: 'Graze' },
   { name: 'Flail', type: 'Martial', mastery: 'Slow' },
@@ -77,7 +77,7 @@ export const WEAPON_MASTERY_WEAPONS: WeaponMastery[] = [
   { name: 'War Pick', type: 'Martial', mastery: 'Graze' },
   { name: 'Warhammer', type: 'Martial', mastery: 'Topple' },
   { name: 'Whip', type: 'Martial', mastery: 'Slow' },
-  
+
   // Martial Ranged Weapons
   { name: 'Blowgun', type: 'Martial', mastery: 'Vex' },
   { name: 'Crossbow, Hand', type: 'Martial', mastery: 'Vex' },
@@ -112,6 +112,36 @@ export const BARBARIAN_SKILLS = [
   'Survival',
 ]
 
+export interface ArmorData {
+  name: string
+  type: 'light' | 'medium' | 'heavy' | 'shield'
+  baseAC: number
+}
+
+export const ARMOR_DATABASE: ArmorData[] = [
+  // Light Armor
+  { name: 'Padded', type: 'light', baseAC: 11 },
+  { name: 'Leather', type: 'light', baseAC: 11 },
+  { name: 'Studded Leather', type: 'light', baseAC: 12 },
+
+  // Medium Armor
+  { name: 'Hide', type: 'medium', baseAC: 12 },
+  { name: 'Chain Shirt', type: 'medium', baseAC: 13 },
+  { name: 'Scale Mail', type: 'medium', baseAC: 14 },
+  { name: 'Breastplate', type: 'medium', baseAC: 14 },
+  { name: 'Half Plate', type: 'medium', baseAC: 15 },
+  { name: 'Chain Mail', type: 'medium', baseAC: 16 },
+
+  // Heavy Armor
+  { name: 'Ring Mail', type: 'heavy', baseAC: 14 },
+  { name: 'Chain Mail', type: 'heavy', baseAC: 16 },
+  { name: 'Splint', type: 'heavy', baseAC: 17 },
+  { name: 'Plate', type: 'heavy', baseAC: 18 },
+
+  // Shields
+  { name: 'Shield', type: 'shield', baseAC: 2 },
+]
+
 const DND_SKILLS: Array<{ name: string; ability: keyof Character['abilities'] }> = [
   { name: 'Acrobatics', ability: 'dexterity' },
   { name: 'Animal Handling', ability: 'wisdom' },
@@ -142,17 +172,83 @@ function calculateProficiencyBonus(level: number): number {
 }
 
 function calculateAC(dexModifier: number, baseAC: number = 10, character?: Character): number {
-  // Unarmored Defense for Barbarian
-  if (character?.classType === 'Barbarian' && !character.wearingArmor) {
-    const conModifier = character.abilities.constitution.modifier
-    return 10 + dexModifier + conModifier
+  if (!character) {
+    return baseAC + dexModifier
   }
-  // Default AC calculation
-  return baseAC + dexModifier
+
+  const equippedArmor = getEquippedArmor(character)
+  const equippedShield = getEquippedShield(character)
+  let shieldBonus = 0
+
+  // Calculate shield bonus
+  if (equippedShield) {
+    shieldBonus = equippedShield.baseAC || 2 // Default shield is +2
+  }
+
+  // If no armor equipped
+  if (!equippedArmor) {
+    let unarmoredAC = 10 + dexModifier
+
+    // Barbarian Unarmored Defense: 10 + DEX + CON
+    if (character.classType === 'Barbarian' && !character.wearingArmor) {
+      const conModifier = character.abilities.constitution.modifier
+      unarmoredAC = 10 + dexModifier + conModifier
+    }
+
+    return unarmoredAC + shieldBonus
+  }
+
+  // Get armor data (from database or item's own data)
+  const armorData = equippedArmor.baseAC !== undefined
+    ? { type: equippedArmor.armorType!, baseAC: equippedArmor.baseAC }
+    : getArmorData(equippedArmor.name)
+
+  if (!armorData) {
+    // Fallback: if armor not in database and no baseAC, use default
+    return 10 + dexModifier + shieldBonus
+  }
+
+  let ac = armorData.baseAC
+
+  // Apply DEX modifier based on armor type
+  if (armorData.type === 'light') {
+    // Light Armor: base AC + full DEX modifier
+    ac += dexModifier
+  } else if (armorData.type === 'medium') {
+    // Medium Armor: base AC + DEX modifier (max +2)
+    ac += Math.min(dexModifier, 2)
+  } else if (armorData.type === 'heavy') {
+    // Heavy Armor: base AC only (no DEX bonus)
+    // ac remains as baseAC
+  }
+
+  // Add shield bonus
+  ac += shieldBonus
+
+  return ac
 }
 
 function calculateInitiative(dexModifier: number): number {
   return dexModifier
+}
+
+function getArmorData(armorName: string): ArmorData | null {
+  return ARMOR_DATABASE.find(armor => armor.name.toLowerCase() === armorName.toLowerCase()) || null
+}
+
+function getEquippedArmor(character: Character): InventoryItem | null {
+  return character.inventory.find(item =>
+    item.equipped &&
+    item.armorType &&
+    ['light', 'medium', 'heavy'].includes(item.armorType)
+  ) || null
+}
+
+function getEquippedShield(character: Character): InventoryItem | null {
+  return character.inventory.find(item =>
+    item.equipped &&
+    item.armorType === 'shield'
+  ) || null
 }
 
 function createAbilityScore(score: number = 10, saveProficient: boolean = false, proficiencyBonus: number = 0, customModifier: number = 0): AbilityScore {
@@ -449,7 +545,7 @@ function applyBarbarianLevel1(character: Character, selectedSkills: string[], se
 
 function createNewCharacter(characterClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[]): Character {
   const character = createEmptyCharacter()
-  
+
   if (characterClass === 'Fighter') {
     if (!selectedFightingStyle) {
       throw new Error('Fighting Style is required for Fighter')
@@ -458,7 +554,7 @@ function createNewCharacter(characterClass: string, selectedSkills: string[], se
   } else if (characterClass === 'Barbarian') {
     applyBarbarianLevel1(character, selectedSkills, selectedWeaponMasteries)
   }
-  
+
   return character
 }
 
@@ -726,6 +822,54 @@ export const useCharacter = () => {
     }
   }
 
+  const toggleEquipItem = (id: string) => {
+    const item = character.value.inventory.find((i: InventoryItem) => i.id === id)
+    if (!item) return
+
+    const isEquipping = !item.equipped
+
+    // If equipping armor, unequip other armor of the same type
+    if (isEquipping && item.armorType) {
+      if (item.armorType === 'shield') {
+        // Only one shield can be equipped
+        character.value.inventory.forEach((i: InventoryItem) => {
+          if (i.id !== id && i.armorType === 'shield') {
+            i.equipped = false
+          }
+        })
+      } else {
+        // Only one armor can be equipped (light, medium, or heavy)
+        character.value.inventory.forEach((i: InventoryItem) => {
+          if (i.id !== id && i.armorType && ['light', 'medium', 'heavy'].includes(i.armorType)) {
+            i.equipped = false
+          }
+        })
+      }
+    }
+
+    // Toggle equipped status
+    item.equipped = isEquipping
+
+    // Auto-detect armor type and baseAC from database if not set
+    if (isEquipping && item.armorType === undefined) {
+      const armorData = getArmorData(item.name)
+      if (armorData) {
+        item.armorType = armorData.type
+        item.baseAC = armorData.baseAC
+      }
+    }
+
+    // Update wearingArmor flag for Barbarian
+    if (character.value.classType === 'Barbarian') {
+      const equippedArmor = getEquippedArmor(character.value)
+      character.value.wearingArmor = equippedArmor !== null
+    }
+
+    // Recalculate AC
+    const dexModifier = character.value.abilities.dexterity.modifier
+    character.value.ac = calculateAC(dexModifier, 10, character.value)
+  }
+
   const addFeatureTrait = (feature: Omit<FeatureTrait, 'id'>) => {
     character.value.featuresTraits.push({
       ...feature,
@@ -746,10 +890,10 @@ export const useCharacter = () => {
     if (oldIndex !== -1) {
       character.value.featuresTraits.splice(oldIndex, 1)
     }
-    
+
     // Update character fighting style
     character.value.fightingStyle = fightingStyle
-    
+
     // Add new fighting style feature
     const fightingStyleData = FIGHTING_STYLES.find(style => style.name === fightingStyle)
     if (fightingStyleData) {
@@ -768,15 +912,15 @@ export const useCharacter = () => {
     if (oldIndex !== -1) {
       character.value.featuresTraits.splice(oldIndex, 1)
     }
-    
+
     // Ensure weaponMastery exists
     if (!character.value.weaponMastery) {
       character.value.weaponMastery = []
     }
-    
+
     // Update character weapon mastery
     character.value.weaponMastery = weaponMasteries
-    
+
     // Add new weapon mastery feature
     if (weaponMasteries.length > 0) {
       const weaponMasteryDescriptions = weaponMasteries.map(weaponName => {
@@ -797,7 +941,7 @@ export const useCharacter = () => {
     if (!character.value.rage) return false
     if (character.value.rage.usesAvailable <= 0) return false
     if (character.value.rage.active) return false
-    
+
     character.value.rage.active = true
     character.value.rage.usesAvailable -= 1
     return true
@@ -964,6 +1108,10 @@ export const useCharacter = () => {
     removeSpell,
     addInventoryItem,
     removeInventoryItem,
+    toggleEquipItem,
+    getArmorData,
+    getEquippedArmor,
+    getEquippedShield,
     addFeatureTrait,
     removeFeatureTrait,
     updateFightingStyle,
