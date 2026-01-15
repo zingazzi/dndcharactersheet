@@ -1,4 +1,6 @@
 import type { Character, AbilityScore, Skill, Action, Spell, InventoryItem, FeatureTrait } from '~/types/character'
+import { addMissingClassFeatures, computeHpGainOnLevelUp, getStartingHpBase, type HpChoice } from '~/composables/classProgression'
+import { canLevelUpWithXp, getNextXpMilestoneFromXp, getXpForLevel } from '~/composables/xpProgression'
 
 export interface FightingStyle {
   name: string
@@ -639,9 +641,11 @@ function applyFighterLevel1(character: Character, selectedSkills: string[], sele
   const level = 1
   const proficiencyBonus = calculateProficiencyBonus(level)
 
-  // Set hit points (1d10 maximum = 10)
-  character.hitPoints.maximum = 10
-  character.hitPoints.current = 10
+  // Set hit points (starting HP from class progression spec)
+  const conModifier = character.abilities.constitution.modifier
+  const startingHp = getStartingHpBase('Fighter', conModifier)
+  character.hitPoints.maximum = startingHp
+  character.hitPoints.current = startingHp
 
   // Set class level and type
   character.classLevel = 'Fighter 1'
@@ -730,6 +734,9 @@ function applyFighterLevel1(character: Character, selectedSkills: string[], sele
 
   character.featuresTraits = [...character.featuresTraits, ...proficiencies]
 
+  // Add class features from spec (level 1)
+  character.featuresTraits = addMissingClassFeatures(character.featuresTraits, 'Fighter', 1)
+
   // Recalculate AC and Initiative
   const dexModifier = character.abilities.dexterity.modifier
   character.ac = calculateAC(dexModifier, 10, character)
@@ -739,11 +746,12 @@ function applyFighterLevel1(character: Character, selectedSkills: string[], sele
 function applyBarbarianLevel1(character: Character, selectedSkills: string[], selectedWeaponMasteries: string[]): void {
   const level = 1
   const proficiencyBonus = calculateProficiencyBonus(level)
-  const conModifier = calculateModifier(character.abilities.constitution.score)
+  const conModifier = character.abilities.constitution.modifier
 
-  // Set hit points (1d12 = 12 + CON modifier)
-  character.hitPoints.maximum = 12 + conModifier
-  character.hitPoints.current = 12 + conModifier
+  // Set hit points (starting HP from class progression spec)
+  const startingHp = getStartingHpBase('Barbarian', conModifier)
+  character.hitPoints.maximum = startingHp
+  character.hitPoints.current = startingHp
 
   // Set class level and type
   character.classLevel = 'Barbarian 1'
@@ -778,27 +786,14 @@ function applyBarbarianLevel1(character: Character, selectedSkills: string[], se
     source: 'Class',
   })
 
-  // Add Rage feature
+  // Add Rage resources (class feature text comes from spec)
   character.rage = {
     active: false,
     usesAvailable: 2,
     usesMax: 2,
     damageBonus: 2,
   }
-  character.featuresTraits.push({
-    id: crypto.randomUUID(),
-    name: 'Rage',
-    description: 'You can enter a Rage as a Bonus Action. While raging, you have resistance to bludgeoning, piercing, and slashing damage, gain a +2 bonus to damage rolls with Strength-based attacks, and have advantage on Strength checks and saving throws. You cannot maintain Concentration or cast spells while raging. Rage lasts until the end of your next turn and can be extended.',
-    source: 'Class',
-  })
-
-  // Add Unarmored Defense feature
-  character.featuresTraits.push({
-    id: crypto.randomUUID(),
-    name: 'Unarmored Defense',
-    description: 'While you aren\'t wearing any armor, your base Armor Class equals 10 + your Dexterity modifier + your Constitution modifier. You can use a Shield and still gain this benefit.',
-    source: 'Class',
-  })
+  character.featuresTraits = addMissingClassFeatures(character.featuresTraits, 'Barbarian', 1)
 
   // Add weapon and armor proficiencies as features/traits
   const proficiencies: FeatureTrait[] = [
@@ -865,6 +860,29 @@ function createNewCharacter(characterClass: string, selectedSkills: string[], se
 }
 
 export const useCharacter = () => {
+  const CLASS_TYPES = [
+    'Barbarian',
+    'Bard',
+    'Cleric',
+    'Druid',
+    'Fighter',
+    'Monk',
+    'Paladin',
+    'Ranger',
+    'Rogue',
+    'Sorcerer',
+    'Warlock',
+    'Wizard',
+  ] as const satisfies readonly NonNullable<Character['classType']>[]
+
+  type ClassType = typeof CLASS_TYPES[number]
+
+  const parseClassTypeFromClassLevel = (classLevel: string): ClassType | undefined => {
+    const firstToken = classLevel.trim().split(/\s+/)[0]
+    const isKnown = (CLASS_TYPES as readonly string[]).includes(firstToken)
+    return isKnown ? (firstToken as ClassType) : undefined
+  }
+
   const proficiencyBonus = 3
   const initialAbilities = {
     strength: createAbilityScore(16, true, proficiencyBonus, 0), // Fighter with STR save
@@ -898,6 +916,8 @@ export const useCharacter = () => {
       passiveInvestigation: 0,
       passiveInsight: 0,
     },
+    // Class-specific
+    classType: 'Fighter',
     fightingStyle: 'Defense',
     weaponMastery: ['Longsword', 'Greatsword', 'Warhammer'],
     skills: DND_SKILLS.map(skill => {
@@ -1345,6 +1365,22 @@ export const useCharacter = () => {
     character.value.proficiencyBonus = calculatedProficiencyBonus.value
   })
 
+  // Ensure classType is present when classLevel is set (e.g., sample character data)
+  watchEffect(() => {
+    if (character.value.classType) return
+    const inferred = parseClassTypeFromClassLevel(character.value.classLevel || '')
+    if (!inferred) return
+    character.value.classType = inferred
+  })
+
+  // Keep nextLevel XP synced to the XP table (e.g., 300 -> 900 -> 2700 ...)
+  watchEffect(() => {
+    const currentXp = character.value.experiencePoints.current
+    const nextMilestone = getNextXpMilestoneFromXp(currentXp)
+    if (character.value.experiencePoints.nextLevel === nextMilestone) return
+    character.value.experiencePoints.nextLevel = nextMilestone
+  })
+
   // HP Management functions
   const addHP = (amount: number) => {
     const newCurrent = Math.min(character.value.hitPoints.current + amount, character.value.hitPoints.maximum)
@@ -1384,6 +1420,10 @@ export const useCharacter = () => {
 
   const updateClassLevel = (classLevel: string) => {
     character.value.classLevel = classLevel
+    const inferred = parseClassTypeFromClassLevel(classLevel)
+    if (inferred) {
+      character.value.classType = inferred
+    }
     // Try to extract level from classLevel string (e.g., "Fighter 5" -> 5)
     const levelMatch = classLevel.match(/\d+/)
     if (levelMatch) {
@@ -1409,7 +1449,32 @@ export const useCharacter = () => {
   }
 
   const setNextLevelXP = (amount: number) => {
-    character.value.experiencePoints.nextLevel = Math.max(1, amount)
+    // nextLevel is managed automatically from the XP table
+    character.value.experiencePoints.nextLevel = getNextXpMilestoneFromXp(character.value.experiencePoints.current)
+  }
+
+  const levelUpToNext = (choice: HpChoice): number => {
+    if (!character.value.classType) return 0
+    const currentLevel = character.value.level || 1
+    const targetLevel = currentLevel + 1
+
+    // Gate leveling by XP threshold for the *next level* (based on current level)
+    if (!canLevelUpWithXp(currentLevel, character.value.experiencePoints.current)) return 0
+
+    const conModifier = character.value.abilities.constitution.modifier
+    const hpGain = computeHpGainOnLevelUp(character.value.classType, conModifier, choice)
+
+    character.value.hitPoints.maximum += hpGain
+    character.value.hitPoints.current += hpGain
+
+    character.value.level = targetLevel
+    character.value.classLevel = `${character.value.classType} ${targetLevel}`
+    character.value.featuresTraits = addMissingClassFeatures(character.value.featuresTraits, character.value.classType, targetLevel)
+
+    // Ensure nextLevel XP reflects the next milestone after current XP
+    character.value.experiencePoints.nextLevel = getNextXpMilestoneFromXp(character.value.experiencePoints.current)
+
+    return hpGain
   }
 
   const resetCharacter = (newCharacter: Character) => {
@@ -1460,6 +1525,7 @@ export const useCharacter = () => {
     removeXP,
     setCurrentXP,
     setNextLevelXP,
+    levelUpToNext,
     createEmptyCharacter,
     applyFighterLevel1,
     applyBarbarianLevel1,

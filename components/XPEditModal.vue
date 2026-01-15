@@ -85,20 +85,13 @@
               </div>
             </div>
 
-            <div class="card-compact">
+            <div class="card-compact opacity-75">
               <div class="mb-1">
-                <h4 class="text-sm font-semibold text-[var(--color-text-secondary)] mb-0.5">Set Next Level XP</h4>
-                <span class="text-[0.65rem] text-[var(--color-text-tertiary)] italic">Change requirement</span>
+                <h4 class="text-sm font-semibold text-[var(--color-text-secondary)] mb-0.5">Next Level XP</h4>
+                <span class="text-[0.65rem] text-[var(--color-text-tertiary)] italic">Automatically calculated</span>
               </div>
-              <div class="flex gap-1">
-                <input
-                  v-model.number="nextLevelXP"
-                  type="number"
-                  min="1"
-                  class="input text-sm py-1 px-1.5 flex-1"
-                  placeholder="Next Level XP"
-                />
-                <button @click="handleSetNextLevelXP" class="btn btn-primary text-xs px-2 py-1">Set</button>
+              <div class="text-sm font-bold font-medieval text-[var(--color-text-primary)]">
+                {{ character.experiencePoints.nextLevel.toLocaleString() }}
               </div>
             </div>
           </div>
@@ -120,7 +113,7 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const { character, addXP, removeXP, setCurrentXP, setNextLevelXP } = useCharacter()
+const { character, addXP, removeXP, setCurrentXP } = useCharacter()
 
 const addAmount = ref(100)
 const removeAmount = ref(100)
@@ -159,11 +152,7 @@ const handleSetCurrentXP = () => {
   }
 }
 
-const handleSetNextLevelXP = () => {
-  if (nextLevelXP.value && nextLevelXP.value > 0) {
-    setNextLevelXP(nextLevelXP.value)
-  }
-}
+// nextLevel XP is derived from the XP table and can’t be manually edited
 
 const close = () => {
   emit('close')

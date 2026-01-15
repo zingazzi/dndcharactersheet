@@ -45,6 +45,15 @@
           <span class="font-bold text-[var(--color-text-primary)]">{{ character.experiencePoints.current.toLocaleString() }}</span>
           <span class="text-[var(--color-text-tertiary)]">/</span>
           <span class="font-semibold text-[var(--color-accent-primary-dark)]">{{ character.experiencePoints.nextLevel.toLocaleString() }}</span>
+          <button
+            v-if="canLevelUp"
+            @click.stop="openLevelUpModal"
+            class="bg-transparent border-none p-0 m-0 cursor-pointer text-[var(--color-success-dark)] hover:text-[var(--color-success)] transition-colors"
+            title="Level up available"
+            aria-label="Level up available"
+          >
+            ▲
+          </button>
         </div>
       </div>
 
@@ -72,6 +81,10 @@
       :is-open="isXPModalOpen"
       @close="closeXPModal"
     />
+    <LevelUpModal
+      :is-open="isLevelUpModalOpen"
+      @close="closeLevelUpModal"
+    />
     <DiceHistoryModal
       :is-open="isHistoryModalOpen"
       @close="closeHistoryModal"
@@ -80,11 +93,14 @@
 </template>
 
 <script setup lang="ts">
+import { canLevelUpWithXp } from '~/composables/xpProgression'
+
 const { character, updateCharacterName, updateCharacterImage } = useCharacter()
 
 const isHistoryModalOpen = ref(false)
 const isEditModalOpen = ref(false)
 const isXPModalOpen = ref(false)
+const isLevelUpModalOpen = ref(false)
 
 const openHistoryModal = () => {
   isHistoryModalOpen.value = true
@@ -108,6 +124,19 @@ const openXPModal = () => {
 
 const closeXPModal = () => {
   isXPModalOpen.value = false
+}
+
+const canLevelUp = computed(() => {
+  const currentLevel = character.value.level || 1
+  return canLevelUpWithXp(currentLevel, character.value.experiencePoints.current)
+})
+
+const openLevelUpModal = () => {
+  isLevelUpModalOpen.value = true
+}
+
+const closeLevelUpModal = () => {
+  isLevelUpModalOpen.value = false
 }
 
 const handleSaveCharacter = (name: string, image: string) => {

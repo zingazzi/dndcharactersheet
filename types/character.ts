@@ -115,7 +115,7 @@ export interface Character {
   featuresTraits: FeatureTrait[]
 
   // Class-specific
-  classType?: 'Fighter' | 'Barbarian'
+  classType?: 'Barbarian' | 'Bard' | 'Cleric' | 'Druid' | 'Fighter' | 'Monk' | 'Paladin' | 'Ranger' | 'Rogue' | 'Sorcerer' | 'Warlock' | 'Wizard'
   fightingStyle?: string // Fighter-specific
   weaponMastery: string[] // Array of weapon names with mastery
   rage?: {
