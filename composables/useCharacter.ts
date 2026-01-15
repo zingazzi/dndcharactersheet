@@ -1410,13 +1410,27 @@ export const useCharacter = () => {
     const pool = character.value.resources?.rage
     if (!pool) return
 
-    // Keep old rage object for existing UI/logic (damage bonus, etc.)
-    character.value.rage = {
+    // Keep old rage object for existing logic (damage bonus, etc.)
+    // IMPORTANT: avoid reassigning on every reactive run (infinite loop).
+    const existing = character.value.rage
+    const next = {
       active: !!pool.active,
       usesAvailable: pool.current,
       usesMax: pool.max,
-      damageBonus: character.value.rage?.damageBonus ?? 2,
+      damageBonus: existing?.damageBonus ?? 2,
     }
+
+    if (
+      existing
+      && existing.active === next.active
+      && existing.usesAvailable === next.usesAvailable
+      && existing.usesMax === next.usesMax
+      && existing.damageBonus === next.damageBonus
+    ) {
+      return
+    }
+
+    character.value.rage = next
   }
 
   const spendResource = (resourceId: string): boolean => {
@@ -1500,6 +1514,24 @@ export const useCharacter = () => {
     }
 
     syncLegacyRageFromResources()
+  })
+
+  // Ensure class features from progression exist for the current level (covers cases where
+  // level/class is set directly, or progression data is updated after the fact).
+  watchEffect(() => {
+    const classType = character.value.classType
+    if (!classType) return
+
+    const currentLevel = character.value.level || 1
+    const original = character.value.featuresTraits
+    let updated = original
+
+    for (let lvl = 1; lvl <= currentLevel; lvl += 1) {
+      updated = addMissingClassFeatures(updated, classType, lvl)
+    }
+
+    if (updated.length === original.length) return
+    character.value.featuresTraits = updated
   })
 
   // HP Management functions
