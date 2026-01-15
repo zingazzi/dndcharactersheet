@@ -124,7 +124,7 @@ export interface WeaponData {
   damageType: string // e.g., "piercing", "slashing", "bludgeoning"
   range: string // e.g., "5 ft.", "20/60 ft."
   type: 'melee' | 'ranged'
-  ability: 'strength' | 'dexterity' // Which ability modifier to use
+  ability: 'strength' | 'dexterity' | 'finesse' // Which ability modifier to use (finesse = choice of STR or DEX)
 }
 
 export interface ItemData {
@@ -164,7 +164,7 @@ export const ARMOR_DATABASE: ArmorData[] = [
 export const WEAPON_DATABASE: WeaponData[] = [
   // Simple Melee Weapons
   { name: 'Club', damage: '1d4', damageType: 'bludgeoning', range: '5 ft.', type: 'melee', ability: 'strength' },
-  { name: 'Dagger', damage: '1d4', damageType: 'piercing', range: '5 ft. (20/60 ft. thrown)', type: 'melee', ability: 'strength' },
+  { name: 'Dagger', damage: '1d4', damageType: 'piercing', range: '5 ft. (20/60 ft. thrown)', type: 'melee', ability: 'finesse' },
   { name: 'Greatclub', damage: '1d8', damageType: 'bludgeoning', range: '5 ft.', type: 'melee', ability: 'strength' },
   { name: 'Handaxe', damage: '1d6', damageType: 'slashing', range: '5 ft. (20/60 ft. thrown)', type: 'melee', ability: 'strength' },
   { name: 'Javelin', damage: '1d6', damageType: 'piercing', range: '5 ft. (30/120 ft. thrown)', type: 'melee', ability: 'strength' },
@@ -177,7 +177,7 @@ export const WEAPON_DATABASE: WeaponData[] = [
 
   // Simple Ranged Weapons
   { name: 'Crossbow, Light', damage: '1d8', damageType: 'piercing', range: '80/320 ft.', type: 'ranged', ability: 'dexterity' },
-  { name: 'Dart', damage: '1d4', damageType: 'piercing', range: '20/60 ft.', type: 'ranged', ability: 'dexterity' },
+  { name: 'Dart', damage: '1d4', damageType: 'piercing', range: '20/60 ft.', type: 'ranged', ability: 'finesse' },
   { name: 'Shortbow', damage: '1d6', damageType: 'piercing', range: '80/320 ft.', type: 'ranged', ability: 'dexterity' },
   { name: 'Sling', damage: '1d4', damageType: 'bludgeoning', range: '30/120 ft.', type: 'ranged', ability: 'dexterity' },
 
@@ -193,13 +193,13 @@ export const WEAPON_DATABASE: WeaponData[] = [
   { name: 'Maul', damage: '2d6', damageType: 'bludgeoning', range: '5 ft.', type: 'melee', ability: 'strength' },
   { name: 'Morningstar', damage: '1d8', damageType: 'piercing', range: '5 ft.', type: 'melee', ability: 'strength' },
   { name: 'Pike', damage: '1d10', damageType: 'piercing', range: '10 ft.', type: 'melee', ability: 'strength' },
-  { name: 'Rapier', damage: '1d8', damageType: 'piercing', range: '5 ft.', type: 'melee', ability: 'dexterity' },
-  { name: 'Scimitar', damage: '1d6', damageType: 'slashing', range: '5 ft.', type: 'melee', ability: 'dexterity' },
-  { name: 'Shortsword', damage: '1d6', damageType: 'piercing', range: '5 ft.', type: 'melee', ability: 'dexterity' },
+  { name: 'Rapier', damage: '1d8', damageType: 'piercing', range: '5 ft.', type: 'melee', ability: 'finesse' },
+  { name: 'Scimitar', damage: '1d6', damageType: 'slashing', range: '5 ft.', type: 'melee', ability: 'finesse' },
+  { name: 'Shortsword', damage: '1d6', damageType: 'piercing', range: '5 ft.', type: 'melee', ability: 'finesse' },
   { name: 'Trident', damage: '1d6', damageType: 'piercing', range: '5 ft. (20/60 ft. thrown)', type: 'melee', ability: 'strength' },
   { name: 'War Pick', damage: '1d8', damageType: 'piercing', range: '5 ft.', type: 'melee', ability: 'strength' },
   { name: 'Warhammer', damage: '1d8', damageType: 'bludgeoning', range: '5 ft.', type: 'melee', ability: 'strength' },
-  { name: 'Whip', damage: '1d4', damageType: 'slashing', range: '10 ft.', type: 'melee', ability: 'dexterity' },
+  { name: 'Whip', damage: '1d4', damageType: 'slashing', range: '10 ft.', type: 'melee', ability: 'finesse' },
 
   // Martial Ranged Weapons
   { name: 'Blowgun', damage: '1', damageType: 'piercing', range: '25/100 ft.', type: 'ranged', ability: 'dexterity' },
@@ -423,8 +423,8 @@ function getEquippedArmor(character: Character): InventoryItem | null {
 }
 
 function getEquippedShield(character: Character): InventoryItem | null {
-  return character.inventory.find(item => 
-    item.equipped && 
+  return character.inventory.find(item =>
+    item.equipped &&
     item.armorType === 'shield'
   ) || null
 }
@@ -434,8 +434,8 @@ function getWeaponData(weaponName: string): WeaponData | null {
 }
 
 function getEquippedWeapons(character: Character): InventoryItem[] {
-  return character.inventory.filter(item => 
-    item.equipped && 
+  return character.inventory.filter(item =>
+    item.equipped &&
     !item.armorType && // Not armor or shield
     getWeaponData(item.name) !== null // Is a weapon
   )
@@ -457,29 +457,35 @@ function generateAttackFromWeapon(weapon: InventoryItem, character: Character): 
     }
   }
 
-  // Get ability modifier
-  const abilityModifier = character.abilities[weaponData.ability].modifier
+  // Get ability modifier based on weapon type
+  const strModifier = character.abilities.strength.modifier
+  const dexModifier = character.abilities.dexterity.modifier
+  let abilityModifier = 0
+
+  if (weaponData.ability === 'strength') {
+    abilityModifier = strModifier
+  } else if (weaponData.ability === 'dexterity') {
+    abilityModifier = dexModifier
+  } else if (weaponData.ability === 'finesse') {
+    // For finesse weapons, use the higher of STR or DEX
+    abilityModifier = Math.max(strModifier, dexModifier)
+  }
+
   const proficiencyBonus = character.proficiencyBonus
   const toHitModifier = abilityModifier + proficiencyBonus
   const toHitString = toHitModifier >= 0 ? `+${toHitModifier}` : `${toHitModifier}`
 
-  // Calculate damage (weapon damage + ability modifier for melee, or just ability for ranged finesse)
+  // Calculate damage (weapon damage + ability modifier)
   let damageString = weaponData.damage
-  if (weaponData.type === 'melee' || (weaponData.type === 'ranged' && weaponData.ability === 'strength')) {
-    // Melee weapons add STR modifier, or DEX for finesse
-    if (abilityModifier !== 0) {
-      damageString += abilityModifier >= 0 ? ` + ${abilityModifier}` : ` ${abilityModifier}`
-    }
-  } else {
-    // Ranged weapons add DEX modifier
-    if (abilityModifier !== 0) {
-      damageString += abilityModifier >= 0 ? ` + ${abilityModifier}` : ` ${abilityModifier}`
-    }
+  if (abilityModifier !== 0) {
+    damageString += abilityModifier >= 0 ? ` + ${abilityModifier}` : ` ${abilityModifier}`
   }
   damageString += ` ${weaponData.damageType}`
 
-  // Add rage damage bonus for Barbarian
-  if (character.classType === 'Barbarian' && character.rage?.active && weaponData.ability === 'strength') {
+  // Add rage damage bonus for Barbarian (only for STR-based attacks)
+  const usingStrength = weaponData.ability === 'strength' ||
+    (weaponData.ability === 'finesse' && strModifier >= dexModifier)
+  if (character.classType === 'Barbarian' && character.rage?.active && usingStrength) {
     damageString += ` + ${character.rage.damageBonus} (rage)`
   }
 
@@ -1436,6 +1442,7 @@ export const useCharacter = () => {
     removeInventoryItem,
     toggleEquipItem,
     getArmorData,
+    getWeaponData,
     getEquippedArmor,
     getEquippedShield,
     addFeatureTrait,

@@ -59,16 +59,17 @@
             >
               <label>{{ getAbilityName(key) }}</label>
               <select
-                v-model="editingAbilities[key].score"
+                v-model.number="editingAbilities[key].score"
                 class="score-select"
+                @change="handleStandardArrayChange(key)"
               >
+                <option :value="null" disabled>Select value...</option>
                 <option
                   v-for="value in standardArrayValues"
                   :key="value"
                   :value="value"
-                  :disabled="isStandardValueUsed(value, key)"
                 >
-                  {{ value }} {{ isStandardValueUsed(value, key) ? '(used)' : '' }}
+                  {{ value }}
                 </option>
               </select>
             </div>
@@ -199,20 +200,19 @@ const availablePoints = computed(() => {
   return 27 - total
 })
 
-const isStandardValueUsed = (value: number, currentKey: keyof Character['abilities']): boolean => {
-  // Count how many abilities are using this value (excluding the current one)
-  let count = 0
-  Object.keys(editingAbilities.value).forEach(key => {
-    if (key !== currentKey && editingAbilities.value[key as keyof Character['abilities']].score === value) {
-      count++
-    }
-  })
+const handleStandardArrayChange = (changedKey: keyof Character['abilities']) => {
+  const newValue = editingAbilities.value[changedKey].score
   
-  // Check how many times this value appears in standard array
-  const availableCount = standardArrayValues.filter(v => v === value).length
-  
-  // Value is used if we've used all available instances
-  return count >= availableCount
+  // If a value was selected, check if it's already assigned to another ability
+  if (newValue) {
+    Object.keys(editingAbilities.value).forEach(key => {
+      const abilityKey = key as keyof Character['abilities']
+      // If this is a different ability with the same value, unassign it
+      if (abilityKey !== changedKey && editingAbilities.value[abilityKey].score === newValue) {
+        editingAbilities.value[abilityKey].score = null as any
+      }
+    })
+  }
 }
 
 const updatePointBuyCost = (key: keyof Character['abilities']) => {
@@ -249,20 +249,58 @@ const initializeEditing = () => {
     }
     pointBuyCosts.value[abilityKey] = calculatePointBuyCost(abilities[abilityKey].score)
   })
+  
+  // If opening in standard array mode, reset to empty values
+  if (selectedMethod.value === 'standard') {
+    Object.keys(editingAbilities.value).forEach(key => {
+      const abilityKey = key as keyof Character['abilities']
+      editingAbilities.value[abilityKey].score = null as any
+    })
+  }
 }
+
+// Re-initialize when method changes
+watch(selectedMethod, (newMethod) => {
+  if (newMethod === 'standard') {
+    // Reset to empty values for standard array
+    Object.keys(editingAbilities.value).forEach(key => {
+      const abilityKey = key as keyof Character['abilities']
+      editingAbilities.value[abilityKey].score = null as any
+    })
+  } else {
+    // Load current values for other methods
+    const abilities = character.value.abilities
+    Object.keys(abilities).forEach(key => {
+      const abilityKey = key as keyof Character['abilities']
+      editingAbilities.value[abilityKey].score = abilities[abilityKey].score
+      if (newMethod === 'pointbuy') {
+        pointBuyCosts.value[abilityKey] = calculatePointBuyCost(abilities[abilityKey].score)
+      }
+    })
+  }
+})
 
 const close = () => {
   emit('close')
 }
 
 const save = () => {
+  // Validate that all abilities have values assigned in standard array mode
+  if (selectedMethod.value === 'standard') {
+    const hasUnassigned = Object.values(editingAbilities.value).some(ability => !ability.score)
+    if (hasUnassigned) {
+      alert('Please assign a value to all abilities before saving.')
+      return
+    }
+  }
+  
   const newAbilities = {} as Character['abilities']
   Object.keys(editingAbilities.value).forEach(key => {
     const abilityKey = key as keyof Character['abilities']
     const editing = editingAbilities.value[abilityKey]
     newAbilities[abilityKey] = {
       ...character.value.abilities[abilityKey],
-      score: editing.score,
+      score: editing.score || 10, // Default to 10 if somehow null
       customModifier: editing.customModifier,
     }
   })

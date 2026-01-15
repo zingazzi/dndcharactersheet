@@ -72,18 +72,6 @@
                     class="input text-xs w-16 py-1 px-1 text-center"
                     placeholder="Qty"
                   />
-                  <label
-                    v-if="isEquippable(item)"
-                    class="flex items-center gap-0.5 text-xs cursor-pointer"
-                    title="Equip when adding"
-                  >
-                    <input
-                      v-model="itemEquipStatus[item.name]"
-                      type="checkbox"
-                      class="w-3 h-3"
-                    />
-                    <span class="text-[var(--color-text-secondary)]">Equip</span>
-                  </label>
                   <button
                     @click="addItemToInventory(item)"
                     class="btn btn-primary text-xs px-2 py-1"
@@ -99,6 +87,14 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div
+      v-if="showToast"
+      class="fixed bottom-4 right-4 bg-[var(--color-accent-primary)] text-white px-4 py-2 rounded shadow-lg z-[1001] animate-fade-in"
+    >
+      {{ toastMessage }}
     </div>
   </div>
 </template>
@@ -118,12 +114,13 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const { character, addInventoryItem, toggleEquipItem } = useCharacter()
+const { character, addInventoryItem } = useCharacter()
 
 const searchQuery = ref('')
 const selectedCategory = ref<'all' | ItemData['category']>('all')
 const itemQuantities = ref<Record<string, number>>({})
-const itemEquipStatus = ref<Record<string, boolean>>({})
+const showToast = ref(false)
+const toastMessage = ref('')
 
 const categories: Array<'all' | ItemData['category']> = [
   'all',
@@ -157,20 +154,15 @@ const filteredItems = computed(() => {
   return items
 })
 
-const isEquippable = (item: ItemData): boolean => {
-  return item.category === 'weapon' || item.category === 'armor' || item.category === 'shield'
-}
-
 const addItemToInventory = (itemData: ItemData) => {
   const quantity = itemQuantities.value[itemData.name] || 1
-  const shouldEquip = itemEquipStatus.value[itemData.name] || false
   
   const inventoryItem: Omit<InventoryItem, 'id'> = {
     name: itemData.name,
     quantity,
     weight: itemData.weight,
     description: itemData.description,
-    equipped: shouldEquip,
+    equipped: false,
   }
 
   // Auto-detect armor/weapon properties
@@ -183,29 +175,27 @@ const addItemToInventory = (itemData: ItemData) => {
 
   addInventoryItem(inventoryItem)
   
-  // If equipped, trigger the equip logic (for AC/attack updates)
-  if (shouldEquip && isEquippable(itemData)) {
-    // Find the newly added item and equip it
-    const addedItem = character.value.inventory.find(i => i.name === itemData.name)
-    if (addedItem) {
-      toggleEquipItem(addedItem.id)
-    }
-  }
+  // Show toast notification
+  toastMessage.value = `Added ${quantity}x ${itemData.name} to inventory`
+  showToast.value = true
   
-  // Reset quantity and equip status for this item
+  // Auto-hide toast after 3 seconds
+  setTimeout(() => {
+    showToast.value = false
+  }, 3000)
+  
+  // Reset quantity for this item
   itemQuantities.value[itemData.name] = 1
-  itemEquipStatus.value[itemData.name] = false
 }
 
 const close = () => {
   emit('close')
 }
 
-// Initialize quantities and equip status
+// Initialize quantities
 onMounted(() => {
   ITEM_DATABASE.forEach(item => {
     itemQuantities.value[item.name] = 1
-    itemEquipStatus.value[item.name] = false
   })
 })
 </script>

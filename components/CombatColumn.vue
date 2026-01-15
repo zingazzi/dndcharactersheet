@@ -227,7 +227,7 @@
             </div>
             <div class="flex items-center gap-0.5 shrink-0">
               <button
-                v-if="isArmorOrShield(item)"
+                v-if="isEquippable(item)"
                 @click="toggleEquipItem(item.id)"
                 :class="[
                   'btn text-xs px-1 py-0.5',
@@ -273,7 +273,7 @@
 <script setup lang="ts">
 import type { Action, Spell, InventoryItem } from '~/types/character'
 
-const { character, addAction, removeAction, convertToManualAttack, addSpell, removeSpell, addInventoryItem, removeInventoryItem, toggleEquipItem, getArmorData, activateRage, deactivateRage, extendRage } = useCharacter()
+const { character, addAction, removeAction, convertToManualAttack, addSpell, removeSpell, addInventoryItem, removeInventoryItem, toggleEquipItem, getArmorData, getWeaponData, activateRage, deactivateRage, extendRage } = useCharacter()
 const { addRoll } = useDiceHistory()
 
 const showAddForm = ref(false)
@@ -334,7 +334,9 @@ const handleAddSpell = () => {
   }
 }
 
-const isArmorOrShield = (item: InventoryItem): boolean => {
+const isEquippable = (item: InventoryItem): boolean => {
+  // Check if item is a weapon
+  if (getWeaponData(item.name)) return true
   // Check if item has armorType set
   if (item.armorType) return true
   // Check if item name matches armor database
@@ -386,9 +388,38 @@ const rollDice = (diceString: string): number => {
 const rollAttack = (action: Action) => {
   const roll = rollD20()
   
-  // Parse modifier from toHit (e.g., "+7" or "-2")
-  const modifierMatch = action.toHit.match(/([+-]?\d+)/)
-  const modifier = modifierMatch ? parseInt(modifierMatch[1]) : 0
+  // Recalculate to-hit modifier based on weapon type
+  let modifier = 0
+  
+  // Check if this is a weapon from the database
+  const weaponData = getWeaponData(action.name)
+  
+  if (weaponData) {
+    // Get the appropriate ability modifier
+    const strModifier = character.value.abilities.strength.modifier
+    const dexModifier = character.value.abilities.dexterity.modifier
+    const proficiencyBonus = character.value.proficiencyBonus
+    
+    // Determine which modifier to use based on weapon ability
+    let abilityModifier = 0
+    if (weaponData.ability === 'strength') {
+      abilityModifier = strModifier
+    } else if (weaponData.ability === 'dexterity') {
+      abilityModifier = dexModifier
+    } else if (weaponData.ability === 'finesse') {
+      // For finesse weapons, use the higher of STR or DEX
+      abilityModifier = Math.max(strModifier, dexModifier)
+    }
+    
+    modifier = abilityModifier + proficiencyBonus
+  } else if (action.name === 'Unarmed Strike') {
+    // Unarmed Strike uses STR + proficiency
+    modifier = character.value.abilities.strength.modifier + character.value.proficiencyBonus
+  } else {
+    // For custom/manual attacks, parse modifier from toHit string
+    const modifierMatch = action.toHit.match(/([+-]?\d+)/)
+    modifier = modifierMatch ? parseInt(modifierMatch[1]) : 0
+  }
   
   const total = roll + modifier
   const title = `${action.name} - Attack Roll`
@@ -409,29 +440,75 @@ const rollAttack = (action: Action) => {
 }
 
 const rollDamage = (action: Action) => {
-  // Parse damage string like "1d8 + 3 slashing"
+  // Parse damage string like "1d8 + 3 slashing" or "1d8 + 3 slashing + 2 (rage)"
   const damageString = action.damage
   
   // Extract dice (e.g., "1d8", "2d6")
   const diceMatch = damageString.match(/(\d+d\d+)/)
   const diceRoll = diceMatch ? rollDice(diceMatch[1]) : 0
   
-  // Extract modifier (e.g., "+ 3" or "- 2")
-  const modifierMatch = damageString.match(/([+-]\s*\d+)/)
-  const modifier = modifierMatch ? parseInt(modifierMatch[1].replace(/\s/g, '')) : 0
+  // Recalculate modifier based on weapon type
+  let modifier = 0
+  let rageBonus = 0
   
-  const total = diceRoll + modifier
+  // Check if this is a weapon from the database
+  const weaponData = getWeaponData(action.name)
+  
+  if (weaponData) {
+    // Get the appropriate ability modifier
+    const strModifier = character.value.abilities.strength.modifier
+    const dexModifier = character.value.abilities.dexterity.modifier
+    
+    // Determine which modifier to use based on weapon ability
+    if (weaponData.ability === 'strength') {
+      modifier = strModifier
+    } else if (weaponData.ability === 'dexterity') {
+      modifier = dexModifier
+    } else if (weaponData.ability === 'finesse') {
+      // For finesse weapons, use the higher of STR or DEX
+      modifier = Math.max(strModifier, dexModifier)
+    }
+    
+    // Add rage bonus if Barbarian is raging and using STR
+    if (character.value.classType === 'Barbarian' && 
+        character.value.rage?.active && 
+        (weaponData.ability === 'strength' || 
+         (weaponData.ability === 'finesse' && strModifier >= dexModifier))) {
+      rageBonus = character.value.rage.damageBonus
+    }
+  } else if (action.name === 'Unarmed Strike') {
+    // Unarmed Strike uses STR
+    modifier = character.value.abilities.strength.modifier
+    
+    // Add rage bonus for Barbarian
+    if (character.value.classType === 'Barbarian' && character.value.rage?.active) {
+      rageBonus = character.value.rage.damageBonus
+    }
+  } else {
+    // For custom/manual attacks, try to extract modifier from the damage string
+    const modifierMatch = damageString.match(/([+-]\s*\d+)/)
+    modifier = modifierMatch ? parseInt(modifierMatch[1].replace(/\s/g, '')) : 0
+    
+    // Try to extract rage bonus if present
+    const rageMatch = damageString.match(/\+\s*(\d+)\s*\(rage\)/)
+    if (rageMatch) {
+      rageBonus = parseInt(rageMatch[1])
+    }
+  }
+  
+  const totalModifier = modifier + rageBonus
+  const total = diceRoll + totalModifier
   const title = `${action.name} - Damage`
   
   toast.value = {
     title,
     roll: diceRoll,
-    modifier,
+    modifier: totalModifier,
     total,
   }
   
   isToastVisible.value = true
-  addRoll(title, diceRoll, modifier)
+  addRoll(title, diceRoll, totalModifier)
   
   setTimeout(() => {
     isToastVisible.value = false
