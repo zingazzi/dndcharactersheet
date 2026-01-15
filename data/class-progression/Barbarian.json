@@ -7,6 +7,7 @@
   "resources": {
     "rage": {
       "label": "Rage",
+      "description": "Uses per Long Rest. You can enter a Rage as a Bonus Action (spending 1 use). While raging, you gain damage and durability benefits; see the Rage feature description.",
       "reset": "longRest",
       "trackActive": true,
       "maxByLevel": { "1": 2 }

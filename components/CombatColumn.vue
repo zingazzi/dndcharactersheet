@@ -24,11 +24,28 @@
           class="card-compact flex items-center justify-between gap-2"
         >
           <div class="min-w-0">
-            <div class="text-sm font-semibold text-[var(--color-text-secondary)] truncate">{{ pool.label }}</div>
+            <div class="flex items-center gap-1 min-w-0">
+              <div class="text-sm font-semibold text-[var(--color-text-secondary)] truncate">{{ pool.label }}</div>
+              <button
+                v-if="pool.description"
+                @click="toggleResourceHelp(pool.id)"
+                class="bg-transparent border border-[var(--color-border-primary)] rounded px-1 text-[0.7rem] leading-none text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)] transition-colors shrink-0"
+                title="Show description"
+                aria-label="Show resource description"
+              >
+                ?
+              </button>
+            </div>
             <div class="text-xs text-[var(--color-text-tertiary)]">
               {{ pool.current }} / {{ pool.max }}
               <span class="text-[var(--color-text-tertiary)]">•</span>
               <span class="italic">{{ formatReset(pool.reset) }}</span>
+            </div>
+            <div
+              v-if="isHelpOpen(pool.id) && pool.description"
+              class="text-xs text-[var(--color-text-tertiary)] italic mt-1"
+            >
+              {{ pool.description }}
             </div>
           </div>
 
@@ -358,6 +375,22 @@ const resourceList = computed(() => {
   if (!pools) return [] as ResourcePool[]
   return Object.values(pools).sort((a, b) => a.label.localeCompare(b.label))
 })
+
+const openHelpFor = ref<Set<string>>(new Set())
+
+const isHelpOpen = (resourceId: string): boolean => {
+  return openHelpFor.value.has(resourceId)
+}
+
+const toggleResourceHelp = (resourceId: string): void => {
+  const next = new Set(openHelpFor.value)
+  if (next.has(resourceId)) {
+    next.delete(resourceId)
+  } else {
+    next.add(resourceId)
+  }
+  openHelpFor.value = next
+}
 
 const formatReset = (reset: ResourcePool['reset']): string => {
   if (reset === 'shortRest') return 'Short Rest'

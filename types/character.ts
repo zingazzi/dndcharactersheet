@@ -75,6 +75,7 @@ export type ResourceReset = 'shortRest' | 'longRest' | 'daily'
 export interface ResourcePool {
   id: string
   label: string
+  description?: string
   reset: ResourceReset
   current: number
   max: number

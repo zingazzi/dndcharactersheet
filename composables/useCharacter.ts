@@ -1,44 +1,34 @@
 import type { Character, AbilityScore, Skill, Action, Spell, InventoryItem, FeatureTrait, ResourcePool } from '~/types/character'
 import { addMissingClassFeatures, computeHpGainOnLevelUp, getResourcesForClassAtLevel, getStartingHpBase, type ClassType, type HpChoice } from '~/composables/classProgression'
 import { canLevelUpWithXp, getNextXpMilestoneFromXp } from '~/composables/xpProgression'
+import fightingStylesJson from '~/data/fighting-styles.json'
 
 export interface FightingStyle {
   name: string
   description: string
 }
 
+function assertFightingStyles(value: unknown): asserts value is readonly FightingStyle[] {
+  if (!Array.isArray(value)) throw new Error('Invalid fighting styles: expected array')
+  value.forEach((item, idx) => {
+    if (typeof item !== 'object' || item === null) throw new Error(`Invalid fighting styles: item[${idx}] not object`)
+    const rec = item as Record<string, unknown>
+    if (typeof rec.name !== 'string') throw new Error(`Invalid fighting styles: item[${idx}] missing name`)
+    if (typeof rec.description !== 'string') throw new Error(`Invalid fighting styles: item[${idx}] missing description`)
+  })
+}
+
+export const FIGHTING_STYLES: readonly FightingStyle[] = (() => {
+  const raw: unknown = fightingStylesJson
+  assertFightingStyles(raw)
+  return raw
+})()
+
 export interface WeaponMastery {
   name: string
   type: 'Simple' | 'Martial'
   mastery: string
 }
-
-export const FIGHTING_STYLES: FightingStyle[] = [
-  {
-    name: 'Archery',
-    description: 'You gain a +2 bonus to attack rolls you make with ranged weapons.',
-  },
-  {
-    name: 'Defense',
-    description: 'While you are wearing armor, you gain a +1 bonus to AC.',
-  },
-  {
-    name: 'Dueling',
-    description: 'When you are wielding a melee weapon in one hand and no other weapons, you gain a +2 bonus to damage rolls with that weapon.',
-  },
-  {
-    name: 'Great Weapon Fighting',
-    description: 'When you roll a 1 or 2 on a damage die for an attack you make with a melee weapon that you are wielding with two hands, you can reroll the die and must use the new roll, even if the new roll is a 1 or a 2.',
-  },
-  {
-    name: 'Protection',
-    description: 'When a creature you can see attacks a target other than you that is within 5 feet of you, you can use your reaction to impose disadvantage on the attack roll. You must be wielding a shield.',
-  },
-  {
-    name: 'Two-Weapon Fighting',
-    description: 'When you engage in two-weapon fighting, you can add your ability modifier to the damage of the second attack.',
-  },
-]
 
 export const WEAPON_MASTERY_WEAPONS: WeaponMastery[] = [
   // Simple Melee Weapons
@@ -404,6 +394,11 @@ function calculateAC(dexModifier: number, baseAC: number = 10, character?: Chara
 
   // Add shield bonus
   ac += shieldBonus
+
+  // Fighter Fighting Style: Defense (+1 AC while wearing armor)
+  if (character.fightingStyle === 'Defense') {
+    ac += 1
+  }
 
   return ac
 }
@@ -1384,6 +1379,7 @@ export const useCharacter = () => {
         character.value.resources![pool.id] = {
           id: pool.id,
           label: pool.label,
+          description: pool.description,
           reset: pool.reset,
           current: pool.max,
           max: pool.max,
@@ -1397,6 +1393,7 @@ export const useCharacter = () => {
       const gained = Math.max(0, newMax - oldMax)
 
       existing.label = pool.label
+      existing.description = pool.description
       existing.reset = pool.reset
       existing.max = newMax
       existing.current = Math.min(newMax, existing.current + gained)

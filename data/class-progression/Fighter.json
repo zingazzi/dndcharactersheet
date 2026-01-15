@@ -7,12 +7,14 @@
   "resources": {
     "secondWind": {
       "label": "Second Wind",
+      "description": "Uses per Short Rest (also restored on Long Rest). You can spend 1 use to regain Hit Points as described by the Second Wind feature. Tactical Mind can also spend this use.",
       "reset": "shortRest",
       "trackActive": false,
       "maxByLevel": { "1": 1 }
     },
     "actionSurge": {
       "label": "Action Surge",
+      "description": "Uses per Short Rest (also restored on Long Rest). Spend 1 use to take one additional action on your turn (except the Magic action). At level 17, you gain a second use.",
       "reset": "shortRest",
       "trackActive": false,
       "maxByLevel": { "2": 1, "17": 2 }

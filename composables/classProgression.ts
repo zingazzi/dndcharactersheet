@@ -13,6 +13,7 @@ export type ResourceReset = 'shortRest' | 'longRest' | 'daily'
 
 export interface ResourceSpec {
   readonly label: string
+  readonly description: string
   readonly reset: ResourceReset
   readonly trackActive: boolean
   readonly maxByLevel: Readonly<Record<string, number>>
@@ -90,6 +91,7 @@ function assertProgressionFile(value: unknown): asserts value is ClassProgressio
       Object.entries(classValue.resources).forEach(([resourceId, resourceValue]) => {
         if (!isRecord(resourceValue)) throw new Error(`Invalid class progression: class ${className} resource ${resourceId} not object`)
         if (!isString(resourceValue.label)) throw new Error(`Invalid class progression: class ${className} resource ${resourceId} missing label`)
+        if (!isString(resourceValue.description)) throw new Error(`Invalid class progression: class ${className} resource ${resourceId} missing description`)
         if (resourceValue.reset !== 'shortRest' && resourceValue.reset !== 'longRest' && resourceValue.reset !== 'daily') {
           throw new Error(`Invalid class progression: class ${className} resource ${resourceId} invalid reset`)
         }
@@ -201,6 +203,7 @@ function rollDie(sides: number): number {
 export interface ResourcePoolSpec {
   readonly id: string
   readonly label: string
+  readonly description: string
   readonly reset: ResourceReset
   readonly trackActive: boolean
   readonly max: number
@@ -221,6 +224,7 @@ export function getResourcesForClassAtLevel(classType: ClassType, level: number)
     .map(([id, res]) => ({
       id,
       label: res.label,
+      description: res.description,
       reset: res.reset,
       trackActive: res.trackActive,
       max: getMaxForLevel(res.maxByLevel, level),
