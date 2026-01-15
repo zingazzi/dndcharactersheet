@@ -7,7 +7,7 @@
   "resources": {
     "secondWind": {
       "label": "Second Wind",
-      "description": "Uses per Short Rest (also restored on Long Rest). You can spend 1 use to regain Hit Points as described by the Second Wind feature. Tactical Mind can also spend this use.",
+      "description": "On your turn, you can use a Bonus Action to regain Hit Points equal to 1d10 + your fighter level. Once you use this feature, you can’t use it again until you finish a Short Rest or Long Rest.",
       "reset": "shortRest",
       "trackActive": false,
       "maxByLevel": { "1": 1 }
