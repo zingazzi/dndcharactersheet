@@ -1,0 +1,46 @@
+{
+  "hitDie": 10,
+  "hp": {
+    "starting": { "base": "maxHitDie", "addCon": true },
+    "levelUp": { "average": "halfHitDieFloor", "addCon": true, "minGain": 1 }
+  },
+  "resources": {
+    "secondWind": {
+      "label": "Second Wind",
+      "reset": "shortRest",
+      "trackActive": false,
+      "maxByLevel": { "1": 1 }
+    },
+    "actionSurge": {
+      "label": "Action Surge",
+      "reset": "shortRest",
+      "trackActive": false,
+      "maxByLevel": { "2": 1, "17": 2 }
+    }
+  },
+  "levels": {
+    "1": {
+      "features": [
+        {
+          "name": "Second Wind",
+          "description": "On your turn, you can use a Bonus Action to regain Hit Points equal to 1d10 + your fighter level. Once you use this feature, you can’t use it again until you finish a Short Rest or Long Rest.",
+          "resourceRef": "secondWind"
+        }
+      ]
+    },
+    "2": {
+      "features": [
+        {
+          "name": "Action Surge",
+          "description": "You can push yourself beyond your normal limits for a moment. On your turn, you can take one additional action, except the Magic action. Once you use this feature, you can't do so again until you finish a Short Rest or Long Rest. Starting at level 17, you can use it twice before a Rest but only once on a turn.",
+          "resourceRef": "actionSurge"
+        },
+        {
+          "name": "Tactical Mind",
+          "description": "You have a mind for tactics on and off the battlefield. When you fail an ability check, you can expend a use of your Second Wind to push yourself toward success. Rather than regaining Hit Points, you roll 1d10 and add the number rolled to the ability check, potentially turning it into a success. If the check still fails, this use of Second Wind isn’t expended.",
+          "resourceRef": "secondWind"
+        }
+      ]
+    }
+  }
+}

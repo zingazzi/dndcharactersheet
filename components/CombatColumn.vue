@@ -3,55 +3,64 @@
     <CombatStats />
     <HitPointsCompact />
 
-    <!-- Rage (Barbarian only) -->
-    <div v-if="character.classType === 'Barbarian' && character.rage" class="section">
+    <!-- Resources (limited-use features) -->
+    <div v-if="resourceList.length > 0" class="section">
       <div class="section-header">
-        <h3 class="section-title">Rage</h3>
-        <div class="flex items-center gap-1">
-          <span
-            v-if="character.rage.active"
-            class="text-xs font-semibold text-[var(--color-danger)] bg-[var(--color-danger)]/20 px-1.5 py-0.5 rounded"
-          >
-            ACTIVE
-          </span>
-          <span class="text-xs text-[var(--color-text-tertiary)]">
-            {{ character.rage.usesAvailable }} / {{ character.rage.usesMax }}
-          </span>
+        <h3 class="section-title">Resources</h3>
+        <div class="flex gap-1">
+          <button @click="shortRest" class="btn btn-secondary text-xs px-2 py-1" title="Reset short-rest resources">
+            Short Rest
+          </button>
+          <button @click="longRest" class="btn btn-primary text-xs px-2 py-1" title="Reset all resources">
+            Long Rest
+          </button>
         </div>
       </div>
+
       <div class="flex flex-col gap-1.5">
-        <div class="card-compact flex items-center justify-between">
-          <div>
-            <div class="text-sm font-semibold text-[var(--color-text-secondary)]">Damage Bonus</div>
-            <div class="text-base font-bold font-medieval text-[var(--color-text-primary)]">+{{ character.rage.damageBonus }}</div>
+        <div
+          v-for="pool in resourceList"
+          :key="pool.id"
+          class="card-compact flex items-center justify-between gap-2"
+        >
+          <div class="min-w-0">
+            <div class="text-sm font-semibold text-[var(--color-text-secondary)] truncate">{{ pool.label }}</div>
+            <div class="text-xs text-[var(--color-text-tertiary)]">
+              {{ pool.current }} / {{ pool.max }}
+              <span class="text-[var(--color-text-tertiary)]">•</span>
+              <span class="italic">{{ formatReset(pool.reset) }}</span>
+            </div>
           </div>
-          <div class="flex gap-1">
+
+          <div class="flex items-center gap-1 shrink-0">
+            <label v-if="pool.active !== undefined" class="flex items-center gap-1 text-xs cursor-pointer select-none">
+              <input
+                type="checkbox"
+                :checked="pool.active"
+                :disabled="!pool.active && pool.current <= 0"
+                @change="toggleResourceActive(pool.id)"
+              />
+              <span :class="pool.active ? 'text-[var(--color-danger)] font-semibold' : 'text-[var(--color-text-tertiary)]'">
+                Active
+              </span>
+            </label>
             <button
-              v-if="!character.rage.active"
-              @click="handleActivateRage"
-              :disabled="character.rage.usesAvailable <= 0"
-              class="btn btn-primary text-sm px-2 py-1"
+              @click="spendResource(pool.id)"
+              class="btn btn-danger text-xs px-2 py-1"
+              :disabled="pool.current <= 0"
+              title="Spend use"
             >
-              Activate
+              -
             </button>
             <button
-              v-else
-              @click="handleDeactivateRage"
-              class="btn btn-danger text-sm px-2 py-1"
+              @click="restoreResource(pool.id)"
+              class="btn btn-success text-xs px-2 py-1"
+              :disabled="pool.current >= pool.max"
+              title="Restore use"
             >
-              End Rage
-            </button>
-            <button
-              v-if="character.rage.active"
-              @click="handleExtendRage"
-              class="btn btn-success text-sm px-2 py-1"
-            >
-              Extend
+              +
             </button>
           </div>
-        </div>
-        <div v-if="character.rage.active" class="text-xs text-[var(--color-text-tertiary)] italic">
-          Resistance to B/P/S damage • Advantage on STR checks/saves • +{{ character.rage.damageBonus }} damage
         </div>
       </div>
     </div>
@@ -271,9 +280,9 @@
 </template>
 
 <script setup lang="ts">
-import type { Action, Spell, InventoryItem } from '~/types/character'
+import type { Action, Spell, InventoryItem, ResourcePool } from '~/types/character'
 
-const { character, addAction, removeAction, convertToManualAttack, addSpell, removeSpell, addInventoryItem, removeInventoryItem, toggleEquipItem, getArmorData, getWeaponData, activateRage, deactivateRage, extendRage } = useCharacter()
+const { character, addAction, removeAction, convertToManualAttack, addSpell, removeSpell, addInventoryItem, removeInventoryItem, toggleEquipItem, getArmorData, getWeaponData, spendResource, restoreResource, toggleResourceActive, shortRest, longRest } = useCharacter()
 const { addRoll } = useDiceHistory()
 
 const showAddForm = ref(false)
@@ -344,16 +353,16 @@ const isEquippable = (item: InventoryItem): boolean => {
   return armorData !== null
 }
 
-const handleActivateRage = () => {
-  activateRage()
-}
+const resourceList = computed(() => {
+  const pools = character.value.resources
+  if (!pools) return [] as ResourcePool[]
+  return Object.values(pools).sort((a, b) => a.label.localeCompare(b.label))
+})
 
-const handleDeactivateRage = () => {
-  deactivateRage()
-}
-
-const handleExtendRage = () => {
-  extendRage()
+const formatReset = (reset: ResourcePool['reset']): string => {
+  if (reset === 'shortRest') return 'Short Rest'
+  if (reset === 'longRest') return 'Long Rest'
+  return 'Daily'
 }
 
 // Dice rolling functionality

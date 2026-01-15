@@ -1,0 +1,8 @@
+{
+  "hitDie": 8,
+  "hp": {
+    "starting": { "base": "maxHitDie", "addCon": true },
+    "levelUp": { "average": "halfHitDieFloor", "addCon": true, "minGain": 1 }
+  },
+  "levels": {}
+}

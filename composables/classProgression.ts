@@ -1,11 +1,21 @@
 import type { Character, FeatureTrait } from '~/types/character'
-import progressionJson from '~/data/class-progression.json'
+import progressionData from '~/data/class-progression'
 
 export type ClassType = NonNullable<Character['classType']>
 
 export interface FeatureSpec {
   readonly name: string
   readonly description: string
+  readonly resourceRef?: string
+}
+
+export type ResourceReset = 'shortRest' | 'longRest' | 'daily'
+
+export interface ResourceSpec {
+  readonly label: string
+  readonly reset: ResourceReset
+  readonly trackActive: boolean
+  readonly maxByLevel: Readonly<Record<string, number>>
 }
 
 export interface StartingHpRule {
@@ -31,6 +41,7 @@ export interface ClassLevelSpec {
 export interface ClassProgressionSpec {
   readonly hitDie: number
   readonly hp: ClassHpRules
+  readonly resources?: Readonly<Record<string, ResourceSpec>>
   readonly levels: Readonly<Record<string, ClassLevelSpec>>
 }
 
@@ -73,6 +84,24 @@ function assertProgressionFile(value: unknown): asserts value is ClassProgressio
     if (!isNumber(hp.levelUp.minGain)) throw new Error(`Invalid class progression: class ${className} hp.levelUp.minGain`)
 
     if (!isRecord(classValue.levels)) throw new Error(`Invalid class progression: class ${className} levels is not an object`)
+
+    if (classValue.resources !== undefined) {
+      if (!isRecord(classValue.resources)) throw new Error(`Invalid class progression: class ${className} resources is not an object`)
+      Object.entries(classValue.resources).forEach(([resourceId, resourceValue]) => {
+        if (!isRecord(resourceValue)) throw new Error(`Invalid class progression: class ${className} resource ${resourceId} not object`)
+        if (!isString(resourceValue.label)) throw new Error(`Invalid class progression: class ${className} resource ${resourceId} missing label`)
+        if (resourceValue.reset !== 'shortRest' && resourceValue.reset !== 'longRest' && resourceValue.reset !== 'daily') {
+          throw new Error(`Invalid class progression: class ${className} resource ${resourceId} invalid reset`)
+        }
+        if (typeof resourceValue.trackActive !== 'boolean') throw new Error(`Invalid class progression: class ${className} resource ${resourceId} missing trackActive`)
+        if (!isRecord(resourceValue.maxByLevel)) throw new Error(`Invalid class progression: class ${className} resource ${resourceId} missing maxByLevel`)
+        Object.entries(resourceValue.maxByLevel).forEach(([lvl, max]) => {
+          if (!isString(lvl)) throw new Error(`Invalid class progression: class ${className} resource ${resourceId} invalid level key`)
+          if (!isNumber(max)) throw new Error(`Invalid class progression: class ${className} resource ${resourceId} invalid max at level ${lvl}`)
+        })
+      })
+    }
+
     Object.entries(classValue.levels).forEach(([levelKey, levelValue]) => {
       if (!isRecord(levelValue)) throw new Error(`Invalid class progression: class ${className} level ${levelKey} is not an object`)
       if (levelValue.features === undefined) return
@@ -81,13 +110,16 @@ function assertProgressionFile(value: unknown): asserts value is ClassProgressio
         if (!isRecord(feature)) throw new Error(`Invalid class progression: class ${className} level ${levelKey} feature[${idx}] not object`)
         if (!isString(feature.name)) throw new Error(`Invalid class progression: class ${className} level ${levelKey} feature[${idx}] missing name`)
         if (!isString(feature.description)) throw new Error(`Invalid class progression: class ${className} level ${levelKey} feature[${idx}] missing description`)
+        if (feature.resourceRef !== undefined && !isString(feature.resourceRef)) {
+          throw new Error(`Invalid class progression: class ${className} level ${levelKey} feature[${idx}] invalid resourceRef`)
+        }
       })
     })
   })
 }
 
 const progression: ClassProgressionFile = (() => {
-  const raw: unknown = progressionJson
+  const raw: unknown = progressionData
   assertProgressionFile(raw)
   return raw
 })()
@@ -164,5 +196,42 @@ export function addMissingClassFeatures(
 
 function rollDie(sides: number): number {
   return Math.floor(Math.random() * sides) + 1
+}
+
+export interface ResourcePoolSpec {
+  readonly id: string
+  readonly label: string
+  readonly reset: ResourceReset
+  readonly trackActive: boolean
+  readonly max: number
+}
+
+function getMaxForLevel(maxByLevel: Readonly<Record<string, number>>, level: number): number {
+  const candidates = Object.entries(maxByLevel)
+    .map(([lvl, max]) => ({ lvl: Number.parseInt(lvl, 10), max }))
+    .filter(pair => Number.isFinite(pair.lvl) && pair.lvl <= level)
+    .sort((a, b) => b.lvl - a.lvl)
+  return candidates.length > 0 ? candidates[0].max : 0
+}
+
+export function getResourcesForClassAtLevel(classType: ClassType, level: number): readonly ResourcePoolSpec[] {
+  const spec = getClassSpec(classType)
+  const resources = spec.resources ?? {}
+  return Object.entries(resources)
+    .map(([id, res]) => ({
+      id,
+      label: res.label,
+      reset: res.reset,
+      trackActive: res.trackActive,
+      max: getMaxForLevel(res.maxByLevel, level),
+    }))
+    .filter(r => r.max > 0)
+}
+
+export function getMaxUses(resourceId: string, classType: ClassType, level: number): number {
+  const spec = getClassSpec(classType)
+  const res = spec.resources?.[resourceId]
+  if (!res) return 0
+  return getMaxForLevel(res.maxByLevel, level)
 }
 

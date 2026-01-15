@@ -1,0 +1,30 @@
+{
+  "hitDie": 12,
+  "hp": {
+    "starting": { "base": "maxHitDie", "addCon": true },
+    "levelUp": { "average": "halfHitDieFloor", "addCon": true, "minGain": 1 }
+  },
+  "resources": {
+    "rage": {
+      "label": "Rage",
+      "reset": "longRest",
+      "trackActive": true,
+      "maxByLevel": { "1": 2 }
+    }
+  },
+  "levels": {
+    "1": {
+      "features": [
+        {
+          "name": "Rage",
+          "description": "You can enter a Rage as a Bonus Action. While raging, you have resistance to bludgeoning, piercing, and slashing damage, gain a bonus to damage rolls with Strength-based attacks, and have advantage on Strength checks and saving throws. You can’t cast spells or maintain Concentration while raging. Rage lasts until the end of your next turn and can be extended. You can use Rage a limited number of times and regain expended uses when you finish a Long Rest.",
+          "resourceRef": "rage"
+        },
+        {
+          "name": "Unarmored Defense",
+          "description": "While you aren’t wearing any armor, your base Armor Class equals 10 + your Dexterity modifier + your Constitution modifier. You can use a Shield and still gain this benefit."
+        }
+      ]
+    }
+  }
+}

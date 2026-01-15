@@ -70,6 +70,17 @@ export interface FeatureTrait {
   source?: string // e.g., "Class", "Race", "Feat"
 }
 
+export type ResourceReset = 'shortRest' | 'longRest' | 'daily'
+
+export interface ResourcePool {
+  id: string
+  label: string
+  reset: ResourceReset
+  current: number
+  max: number
+  active?: boolean
+}
+
 export interface Character {
   // Header
   name: string
@@ -116,6 +127,7 @@ export interface Character {
 
   // Class-specific
   classType?: 'Barbarian' | 'Bard' | 'Cleric' | 'Druid' | 'Fighter' | 'Monk' | 'Paladin' | 'Ranger' | 'Rogue' | 'Sorcerer' | 'Warlock' | 'Wizard'
+  resources?: Record<string, ResourcePool>
   fightingStyle?: string // Fighter-specific
   weaponMastery: string[] // Array of weapon names with mastery
   rage?: {

@@ -1,6 +1,6 @@
-import type { Character, AbilityScore, Skill, Action, Spell, InventoryItem, FeatureTrait } from '~/types/character'
-import { addMissingClassFeatures, computeHpGainOnLevelUp, getStartingHpBase, type HpChoice } from '~/composables/classProgression'
-import { canLevelUpWithXp, getNextXpMilestoneFromXp, getXpForLevel } from '~/composables/xpProgression'
+import type { Character, AbilityScore, Skill, Action, Spell, InventoryItem, FeatureTrait, ResourcePool } from '~/types/character'
+import { addMissingClassFeatures, computeHpGainOnLevelUp, getResourcesForClassAtLevel, getStartingHpBase, type ClassType, type HpChoice } from '~/composables/classProgression'
+import { canLevelUpWithXp, getNextXpMilestoneFromXp } from '~/composables/xpProgression'
 
 export interface FightingStyle {
   name: string
@@ -1285,41 +1285,34 @@ export const useCharacter = () => {
 
   // Rage Management Functions
   const activateRage = () => {
-    if (!character.value.rage) return false
-    if (character.value.rage.usesAvailable <= 0) return false
-    if (character.value.rage.active) return false
-
-    character.value.rage.active = true
-    character.value.rage.usesAvailable -= 1
-    // Update basic attacks to include rage damage bonus
-    updateBasicAttacks(character.value)
-    return true
+    const pool = character.value.resources?.rage
+    if (!pool) return false
+    if (pool.active) return false
+    return toggleResourceActive('rage')
   }
 
   const deactivateRage = () => {
-    if (!character.value.rage) return
-    character.value.rage.active = false
-    // Update basic attacks to remove rage damage bonus
+    const pool = character.value.resources?.rage
+    if (!pool) return
+    if (!pool.active) return
+    pool.active = false
+    syncLegacyRageFromResources()
     updateBasicAttacks(character.value)
   }
 
   const extendRage = () => {
-    if (!character.value.rage) return false
-    if (!character.value.rage.active) return false
-    // Rage is extended by the action itself, just return true
-    return true
+    const pool = character.value.resources?.rage
+    if (!pool) return false
+    return !!pool.active
   }
 
   const resetRageUses = (shortRest: boolean = false) => {
-    if (!character.value.rage) return
-    if (shortRest) {
-      // Regain 1 use on short rest
-      character.value.rage.usesAvailable = Math.min(character.value.rage.usesAvailable + 1, character.value.rage.usesMax)
-    } else {
-      // Regain all uses on long rest
-      character.value.rage.usesAvailable = character.value.rage.usesMax
-      character.value.rage.active = false
-    }
+    const pool = character.value.resources?.rage
+    if (!pool) return
+    if (shortRest) return
+    pool.current = pool.max
+    pool.active = false
+    syncLegacyRageFromResources()
   }
 
   // Initialize skill modifiers on creation
@@ -1379,6 +1372,137 @@ export const useCharacter = () => {
     const nextMilestone = getNextXpMilestoneFromXp(currentXp)
     if (character.value.experiencePoints.nextLevel === nextMilestone) return
     character.value.experiencePoints.nextLevel = nextMilestone
+  })
+
+  function ensureResourcesForLevel(classType: ClassType, level: number): void {
+    if (!character.value.resources) character.value.resources = {}
+
+    const pools = getResourcesForClassAtLevel(classType, level)
+    pools.forEach(pool => {
+      const existing = character.value.resources?.[pool.id]
+      if (!existing) {
+        character.value.resources![pool.id] = {
+          id: pool.id,
+          label: pool.label,
+          reset: pool.reset,
+          current: pool.max,
+          max: pool.max,
+          active: pool.trackActive ? false : undefined,
+        }
+        return
+      }
+
+      const newMax = pool.max
+      const oldMax = existing.max
+      const gained = Math.max(0, newMax - oldMax)
+
+      existing.label = pool.label
+      existing.reset = pool.reset
+      existing.max = newMax
+      existing.current = Math.min(newMax, existing.current + gained)
+      if (pool.trackActive && existing.active === undefined) {
+        existing.active = false
+      }
+      if (!pool.trackActive && existing.active !== undefined) {
+        delete existing.active
+      }
+    })
+  }
+
+  function syncLegacyRageFromResources(): void {
+    const pool = character.value.resources?.rage
+    if (!pool) return
+
+    // Keep old rage object for existing UI/logic (damage bonus, etc.)
+    character.value.rage = {
+      active: !!pool.active,
+      usesAvailable: pool.current,
+      usesMax: pool.max,
+      damageBonus: character.value.rage?.damageBonus ?? 2,
+    }
+  }
+
+  const spendResource = (resourceId: string): boolean => {
+    const pool = character.value.resources?.[resourceId]
+    if (!pool) return false
+    if (pool.current <= 0) return false
+    pool.current -= 1
+    syncLegacyRageFromResources()
+    return true
+  }
+
+  const restoreResource = (resourceId: string): boolean => {
+    const pool = character.value.resources?.[resourceId]
+    if (!pool) return false
+    if (pool.current >= pool.max) return false
+    pool.current += 1
+    syncLegacyRageFromResources()
+    return true
+  }
+
+  const toggleResourceActive = (resourceId: string): boolean => {
+    const pool = character.value.resources?.[resourceId]
+    if (!pool) return false
+    if (pool.active === undefined) return false
+
+    if (pool.active) {
+      pool.active = false
+      syncLegacyRageFromResources()
+      updateBasicAttacks(character.value)
+      return true
+    }
+
+    if (pool.current <= 0) return false
+    pool.active = true
+    pool.current -= 1
+    syncLegacyRageFromResources()
+    updateBasicAttacks(character.value)
+    return true
+  }
+
+  const shortRest = (): void => {
+    const pools = character.value.resources
+    if (!pools) return
+    Object.values(pools).forEach(pool => {
+      if (pool.reset !== 'shortRest') return
+      pool.current = pool.max
+      if (pool.active !== undefined) pool.active = false
+    })
+    syncLegacyRageFromResources()
+    updateBasicAttacks(character.value)
+  }
+
+  const longRest = (): void => {
+    const pools = character.value.resources
+    if (!pools) return
+    Object.values(pools).forEach(pool => {
+      // Long Rest resets everything (including short-rest and daily resources)
+      pool.current = pool.max
+      if (pool.active !== undefined) pool.active = false
+    })
+    syncLegacyRageFromResources()
+    updateBasicAttacks(character.value)
+  }
+
+  // Initialize resources for current class/level and migrate legacy rage if needed
+  watchEffect(() => {
+    if (!character.value.classType) return
+    ensureResourcesForLevel(character.value.classType, character.value.level || 1)
+
+    // One-way migration: if legacy rage exists but resource pool doesn't, initialize it
+    if (character.value.rage && !character.value.resources?.rage) {
+      if (!character.value.resources) character.value.resources = {}
+      character.value.resources.rage = {
+        id: 'rage',
+        label: 'Rage',
+        reset: 'longRest',
+        current: character.value.rage.usesAvailable,
+        max: character.value.rage.usesMax,
+        active: character.value.rage.active,
+      }
+    }
+
+    syncLegacyRageFromResources()
   })
 
   // HP Management functions
@@ -1526,6 +1650,11 @@ export const useCharacter = () => {
     setCurrentXP,
     setNextLevelXP,
     levelUpToNext,
+    spendResource,
+    restoreResource,
+    toggleResourceActive,
+    shortRest,
+    longRest,
     createEmptyCharacter,
     applyFighterLevel1,
     applyBarbarianLevel1,
