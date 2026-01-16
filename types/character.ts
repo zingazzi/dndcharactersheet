@@ -32,6 +32,7 @@ export interface Action {
   damage: string
   description?: string
   isBasicAttack?: boolean // True for auto-generated attacks (unarmed strike, equipped weapons)
+  isBonusAction?: boolean // True for bonus actions (e.g., Cunning Action: Dash, Disengage, Hide)
 }
 
 export interface SpellSlot {

@@ -82,10 +82,10 @@
       </div>
     </div>
 
-    <!-- Attacks & Spells -->
+    <!-- Actions -->
     <div class="section">
       <div class="section-header">
-        <h3 class="section-title">Attacks</h3>
+        <h3 class="section-title">Action</h3>
       </div>
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -98,7 +98,7 @@
           </thead>
           <tbody>
             <tr
-              v-for="action in character.actions"
+              v-for="action in regularActions"
               :key="action.id"
               class="border-b border-[var(--color-border-divider)] hover:bg-[var(--color-bg-secondary)]/50"
             >
@@ -126,13 +126,89 @@
                 </button>
               </td>
             </tr>
-            <tr v-if="character.actions.length === 0">
+            <tr v-if="regularActions.length === 0">
               <td colspan="3" class="py-2 text-center text-[var(--color-text-muted)] italic text-sm">
                 No attacks (equip weapons to add attacks)
               </td>
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- Bonus Actions -->
+    <div v-if="bonusActions.length > 0" class="section">
+      <div class="section-header">
+        <h3 class="section-title">Bonus Actions</h3>
+      </div>
+      <div class="flex flex-col gap-1.5">
+        <div
+          v-for="action in bonusActions"
+          :key="action.id"
+          class="card-compact p-2"
+        >
+          <div class="flex items-center justify-between gap-2 mb-1">
+            <span class="text-sm font-semibold text-[var(--color-text-primary)]">{{ action.name }}</span>
+            <div class="flex items-center gap-2 shrink-0">
+              <span v-if="action.toHit !== '-'" class="text-xs text-[var(--color-text-tertiary)]">
+                To Hit: 
+                <button
+                  @click="rollAttack(action)"
+                  class="clickable-text text-sm font-bold text-[var(--color-accent-primary)] hover:text-[var(--color-accent-primary-dark)] transition-colors"
+                  title="Click to roll attack"
+                >
+                  {{ action.toHit }}
+                </button>
+              </span>
+              <button
+                v-if="action.damage !== '-'"
+                @click="rollDamage(action)"
+                class="clickable-text text-xs text-[var(--color-text-primary)] hover:text-[var(--color-accent-primary)] transition-colors"
+                title="Click to roll damage"
+              >
+                {{ action.damage }}
+              </button>
+            </div>
+          </div>
+          <div v-if="action.description" class="text-xs text-[var(--color-text-tertiary)] italic">
+            {{ action.description }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bonus Actions -->
+    <div  class="section">
+      <div class="section-header">
+        <h3 class="section-title">Bonus action</h3>
+      </div>
+      <div class="flex flex-col gap-1">
+        <div
+          v-for="action in bonusActions"
+          :key="action.id"
+          class="flex items-center justify-between py-1 px-1 border-b border-[var(--color-border-divider)] last:border-b-0 hover:bg-[var(--color-bg-secondary)]/50"
+        >
+          <span class="text-sm font-semibold text-[var(--color-text-primary)]">{{ action.name }}</span>
+          <div class="flex items-center gap-2 shrink-0">
+            <span v-if="action.toHit !== '-'" class="text-xs text-[var(--color-text-tertiary)]">
+              <button
+                @click="rollAttack(action)"
+                class="clickable-text text-sm font-bold text-[var(--color-accent-primary)] hover:text-[var(--color-accent-primary-dark)] transition-colors"
+                title="Click to roll attack"
+              >
+                {{ action.toHit }}
+              </button>
+            </span>
+            <button
+              v-if="action.damage !== '-'"
+              @click="rollDamage(action)"
+              class="clickable-text text-xs text-[var(--color-text-primary)] hover:text-[var(--color-accent-primary)] transition-colors"
+              title="Click to roll damage"
+            >
+              {{ action.damage }}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -376,6 +452,14 @@ const resourceList = computed(() => {
   const pools = character.value.resources
   if (!pools) return [] as ResourcePool[]
   return Object.values(pools).sort((a, b) => a.label.localeCompare(b.label))
+})
+
+const regularActions = computed(() => {
+  return character.value.actions.filter(action => !action.isBonusAction)
+})
+
+const bonusActions = computed(() => {
+  return character.value.actions.filter(action => action.isBonusAction)
 })
 
 const openHelpFor = ref<Set<string>>(new Set())

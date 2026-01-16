@@ -567,6 +567,45 @@ function generateSneakAttack(character: Character): Action | null {
   }
 }
 
+function generateDashBonusAction(character: Character): Action {
+  return {
+    id: crypto.randomUUID(),
+    name: 'Dash (Bonus)',
+    type: 'Bonus Action',
+    range: 'Self',
+    toHit: '-',
+    damage: '-',
+    description: 'When you take the Dash action, you gain extra movement for the current turn. The increase equals your speed, after applying any modifiers. With a speed of 30 feet, for example, you can move up to 60 feet on your turn if you dash.',
+    isBonusAction: true,
+  }
+}
+
+function generateDisengageBonusAction(character: Character): Action {
+  return {
+    id: crypto.randomUUID(),
+    name: 'Disengage (Bonus)',
+    type: 'Bonus Action',
+    range: 'Self',
+    toHit: '-',
+    damage: '-',
+    description: 'If you take the Disengage action, your movement doesn\'t provoke opportunity attacks for the rest of the turn.',
+    isBonusAction: true,
+  }
+}
+
+function generateHideBonusAction(character: Character): Action {
+  return {
+    id: crypto.randomUUID(),
+    name: 'Hide (Bonus)',
+    type: 'Bonus Action',
+    range: 'Self',
+    toHit: '-',
+    damage: '-',
+    description: 'When you take the Hide action, you make a Dexterity (Stealth) check in an attempt to hide, following the rules for hiding. If you succeed, you gain certain benefits, as described in the "Unseen Attackers and Targets" section later in this chapter.',
+    isBonusAction: true,
+  }
+}
+
 let isUpdatingBasicAttacks = false
 
 function updateBasicAttacks(character: Character): void {
@@ -612,32 +651,60 @@ function updateBasicAttacks(character: Character): void {
           actionsToAdd.push(sneakAttack)
         }
       }
+
+      // Generate Cunning Action bonus actions for Rogue level 2+ (but skip if manually converted)
+      if (rogueClass.level >= 2) {
+        const bonusActionNames = ['Dash (Bonus)', 'Disengage (Bonus)', 'Hide (Bonus)']
+        bonusActionNames.forEach(actionName => {
+          const existingBonusAction = character.actions.find(
+            a => a.name === actionName && !a.isBonusAction
+          )
+          if (!existingBonusAction) {
+            if (actionName === 'Dash (Bonus)') {
+              actionsToAdd.push(generateDashBonusAction(character))
+            } else if (actionName === 'Disengage (Bonus)') {
+              actionsToAdd.push(generateDisengageBonusAction(character))
+            } else if (actionName === 'Hide (Bonus)') {
+              actionsToAdd.push(generateHideBonusAction(character))
+            }
+          }
+        })
+      }
     }
 
     // Check if we need to remove Sneak Attack when Rogue is removed
     const hasSneakAttack = character.actions.some(a => a.name === 'Sneak Attack' && a.isBasicAttack)
     const needsSneakAttackRemoval = !rogueClass && hasSneakAttack
 
+    // Check if we need to remove bonus actions when Rogue level < 2 or Rogue is removed
+    const hasBonusActions = character.actions.some(a => a.isBonusAction)
+    const needsBonusActionRemoval = (!rogueClass || (rogueClass && rogueClass.level < 2)) && hasBonusActions
+
     // Check if there are any changes needed
     const basicAttackNames = new Set(actionsToAdd.map(a => a.name))
     const hasChanges = character.actions.some(action => {
-      if (!action.isBasicAttack) return false
+      if (!action.isBasicAttack && !action.isBonusAction) return false
       // Check if we need to update this basic attack
       if (action.name === 'Sneak Attack') {
         if (!rogueClass) return true // Should be removed
         const expectedDice = getSneakAttackDice(rogueClass.level)
         return action.damage !== `${expectedDice}d6`
       }
+      // Check bonus actions
+      if (action.isBonusAction) {
+        if (!rogueClass || rogueClass.level < 2) return true // Should be removed
+        return !basicAttackNames.has(action.name) // Should be removed if not in our list
+      }
       return !basicAttackNames.has(action.name) // Should be removed if not in our list
     })
 
-    if (!hasChanges && actionsToAdd.length === 0 && !needsSneakAttackRemoval) {
+    if (!hasChanges && actionsToAdd.length === 0 && !needsSneakAttackRemoval && !needsBonusActionRemoval) {
       return // No changes needed
     }
 
-    // Remove existing basic attacks (but preserve manually converted ones)
-    // Only remove actions that are still marked as basic attacks
-    character.actions = character.actions.filter(action => !action.isBasicAttack)
+    // Remove existing basic attacks and bonus actions (but preserve manually converted ones)
+    // Only remove actions that are still marked as basic attacks or bonus actions
+    character.actions = character.actions.filter(action => !action.isBasicAttack && !action.isBonusAction)
 
     // Add all new basic attacks
     character.actions.push(...actionsToAdd)
@@ -1979,6 +2046,9 @@ export const useCharacter = () => {
 
     // Ensure nextLevel XP reflects the next milestone after current XP
     character.value.experiencePoints.nextLevel = getNextXpMilestoneFromXp(character.value.experiencePoints.current)
+
+    // Update basic attacks (this will add/update bonus actions for Rogues at level 2+)
+    updateBasicAttacks(character.value)
 
     return hpGain
   }
