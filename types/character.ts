@@ -19,6 +19,7 @@ export interface Skill {
   name: string
   ability: keyof AbilityScores
   proficient: boolean
+  expertise?: boolean
   modifier: number
 }
 

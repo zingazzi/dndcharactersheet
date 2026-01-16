@@ -4,5 +4,42 @@
     "starting": { "base": "maxHitDie", "addCon": true },
     "levelUp": { "average": "halfHitDieFloor", "addCon": true, "minGain": 1 }
   },
-  "levels": {}
+  "multiclassRequirements": {
+    "primaryAbility": "dexterity",
+    "minScore": 13
+  },
+  "multiclassProficiencies": {
+    "proficiencies": ["Thieves' Tools"],
+    "armorTraining": ["Light Armor"]
+  },
+  "levels": {
+    "1": {
+      "features": [
+        {
+          "name": "Expertise",
+          "description": "You gain Expertise in two of your skill proficiencies of your choice. At Rogue level 6, you gain Expertise in two more of your skill proficiencies of your choice."
+        },
+        {
+          "name": "Sneak Attack",
+          "description": "Once per turn, you can deal an extra 1d6 damage to one creature you hit with an attack roll if you have Advantage on the roll and the attack uses a Finesse or Ranged weapon. The extra damage's type is the same as the weapon's type. You don't need Advantage on the attack roll if at least one of your allies is within 5 feet of the target, the ally doesn't have the Incapacitated condition, and you don't have Disadvantage on the attack roll. The extra damage increases as you gain Rogue levels: 1d6 at levels 1-2, 2d6 at levels 3-4, 3d6 at levels 5-6, 4d6 at levels 7-8, 5d6 at levels 9-10, 6d6 at levels 11-12, 7d6 at levels 13-14, 8d6 at levels 15-16, 9d6 at levels 17-18, and 10d6 at levels 19-20."
+        },
+        {
+          "name": "Thieves' Cant",
+          "description": "You picked up various languages in the communities where you plied your roguish talents. You know Thieves' Cant and one other language of your choice, which you choose from the Language tables."
+        },
+        {
+          "name": "Weapon Mastery",
+          "description": "Your training with weapons allows you to use the Mastery property of two kinds of weapons of your choice with which you have proficiency, such as Daggers and Shortbows. Whenever you finish a Long Rest, you can change the kinds of weapons you chose."
+        }
+      ]
+    },
+    "6": {
+      "features": [
+        {
+          "name": "Expertise",
+          "description": "You gain Expertise in two more of your skill proficiencies of your choice."
+        }
+      ]
+    }
+  }
 }

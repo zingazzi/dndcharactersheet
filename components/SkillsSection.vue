@@ -15,6 +15,7 @@
             class="cursor-pointer"
           />
           <span class="text-xs font-cinzel tracking-wide">{{ skill.name }}</span>
+          <span v-if="skill.expertise" class="text-xs text-[var(--color-accent-primary)]" title="Expertise (double proficiency bonus)">★</span>
         </label>
         <span
           class="clickable-text font-bold font-medieval min-w-[35px] text-right text-[var(--color-text-primary)]"

@@ -107,12 +107,14 @@
               </td>
               <td class="py-1 px-1 text-center">
                 <button
+                  v-if="action.toHit !== '-'"
                   @click="rollAttack(action)"
                   class="clickable-text text-sm font-bold text-[var(--color-accent-primary)] hover:text-[var(--color-accent-primary-dark)] transition-colors"
                   title="Click to roll attack"
                 >
                   {{ action.toHit }}
                 </button>
+                <span v-else class="text-sm text-[var(--color-text-tertiary)]">-</span>
               </td>
               <td class="py-1 px-1">
                 <button
@@ -482,12 +484,33 @@ const rollAttack = (action: Action) => {
 }
 
 const rollDamage = (action: Action) => {
-  // Parse damage string like "1d8 + 3 slashing" or "1d8 + 3 slashing + 2 (rage)"
+  // Parse damage string like "1d8 + 3 slashing" or "1d8 + 3 slashing + 2 (rage)" or "1d8 + 3 slashing + 1d6 (sneak attack)"
   const damageString = action.damage
   
-  // Extract dice (e.g., "1d8", "2d6")
+  // Extract main weapon dice (e.g., "1d8", "2d6")
   const diceMatch = damageString.match(/(\d+d\d+)/)
   const diceRoll = diceMatch ? rollDice(diceMatch[1]) : 0
+  
+  // Handle Sneak Attack separately (it's its own action)
+  if (action.name === 'Sneak Attack') {
+    const diceRoll = rollDice(damageString)
+    const title = `${action.name} - Damage`
+    
+    toast.value = {
+      title,
+      roll: diceRoll,
+      modifier: 0,
+      total: diceRoll,
+    }
+    
+    isToastVisible.value = true
+    addRoll(title, diceRoll, 0)
+    
+    setTimeout(() => {
+      isToastVisible.value = false
+    }, 3000)
+    return
+  }
   
   // Recalculate modifier based on weapon type
   let modifier = 0

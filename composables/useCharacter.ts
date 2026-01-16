@@ -104,6 +104,19 @@ export const BARBARIAN_SKILLS = [
   'Survival',
 ]
 
+export const ROGUE_SKILLS = [
+  'Acrobatics',
+  'Athletics',
+  'Deception',
+  'Insight',
+  'Intimidation',
+  'Investigation',
+  'Perception',
+  'Persuasion',
+  'Sleight of Hand',
+  'Stealth',
+]
+
 export interface ArmorData {
   name: string
   type: 'light' | 'medium' | 'heavy' | 'shield'
@@ -341,6 +354,11 @@ function calculateProficiencyBonus(level: number): number {
   return Math.ceil(level / 4) + 1
 }
 
+function getSneakAttackDice(rogueLevel: number): number {
+  // Sneak Attack dice progression: 1-2 → 1d6, 3-4 → 2d6, 5-6 → 3d6, etc.
+  return Math.ceil(rogueLevel / 2)
+}
+
 function calculateAC(dexModifier: number, baseAC: number = 10, character?: Character): number {
   if (!character) {
     return baseAC + dexModifier
@@ -530,28 +548,102 @@ function generateUnarmedStrike(character: Character): Action {
   }
 }
 
-function updateBasicAttacks(character: Character): void {
-  // Remove existing basic attacks (but preserve manually converted ones)
-  // Only remove actions that are still marked as basic attacks
-  character.actions = character.actions.filter(action => !action.isBasicAttack)
+function generateSneakAttack(character: Character): Action | null {
+  const rogueClass = (character.classes ?? []).find(c => c.classType === 'Rogue')
+  if (!rogueClass) return null
 
-  // Add unarmed strike (always available) - but check if it was manually converted
-  const existingUnarmed = character.actions.find(a => a.name === 'Unarmed Strike' && !a.isBasicAttack)
-  if (!existingUnarmed) {
-    character.actions.push(generateUnarmedStrike(character))
+  const sneakAttackDice = getSneakAttackDice(rogueClass.level)
+  const damageString = `${sneakAttackDice}d6`
+
+  return {
+    id: crypto.randomUUID(),
+    name: 'Sneak Attack',
+    type: 'Special',
+    range: '-',
+    toHit: '-',
+    damage: damageString,
+    description: 'Once per turn, when you hit with a Finesse or Ranged weapon, you can add this damage if you have Advantage or an ally is within 5 feet of the target.',
+    isBasicAttack: true,
   }
+}
 
-  // Add attacks for equipped weapons (but skip if manually converted)
-  const equippedWeapons = getEquippedWeapons(character)
-  equippedWeapons.forEach(weapon => {
-    // Check if this weapon's attack was manually converted
-    const existingWeaponAttack = character.actions.find(
-      a => a.name === weapon.name && !a.isBasicAttack
-    )
-    if (!existingWeaponAttack) {
-      character.actions.push(generateAttackFromWeapon(weapon, character))
+let isUpdatingBasicAttacks = false
+
+function updateBasicAttacks(character: Character): void {
+  // Guard against recursive calls
+  if (isUpdatingBasicAttacks) return
+  isUpdatingBasicAttacks = true
+
+  try {
+    // Collect what we need to add
+    const actionsToAdd: Action[] = []
+    
+    // Generate unarmed strike (always available) - but check if it was manually converted
+    const existingUnarmed = character.actions.find(a => a.name === 'Unarmed Strike' && !a.isBasicAttack)
+    if (!existingUnarmed) {
+      actionsToAdd.push(generateUnarmedStrike(character))
     }
-  })
+
+    // Generate attacks for equipped weapons (but skip if manually converted)
+    const equippedWeapons = getEquippedWeapons(character)
+    equippedWeapons.forEach(weapon => {
+      // Check if this weapon's attack was manually converted
+      const existingWeaponAttack = character.actions.find(
+        a => a.name === weapon.name && !a.isBasicAttack
+      )
+      if (!existingWeaponAttack) {
+        actionsToAdd.push(generateAttackFromWeapon(weapon, character))
+      }
+    })
+
+    // Generate Sneak Attack for Rogues (but skip if manually converted)
+    const existingSneakAttack = character.actions.find(a => a.name === 'Sneak Attack' && !a.isBasicAttack)
+    const rogueClass = (character.classes ?? []).find(c => c.classType === 'Rogue')
+    if (rogueClass) {
+      const expectedDice = getSneakAttackDice(rogueClass.level)
+      const expectedDamage = `${expectedDice}d6`
+      
+      // Check if Sneak Attack exists and has correct dice count
+      const existingBasicSneakAttack = character.actions.find(a => a.name === 'Sneak Attack' && a.isBasicAttack)
+      if (!existingBasicSneakAttack || existingBasicSneakAttack.damage !== expectedDamage) {
+        // Will remove old one below, then add new one
+        const sneakAttack = generateSneakAttack(character)
+        if (sneakAttack) {
+          actionsToAdd.push(sneakAttack)
+        }
+      }
+    }
+
+    // Check if we need to remove Sneak Attack when Rogue is removed
+    const hasSneakAttack = character.actions.some(a => a.name === 'Sneak Attack' && a.isBasicAttack)
+    const needsSneakAttackRemoval = !rogueClass && hasSneakAttack
+
+    // Check if there are any changes needed
+    const basicAttackNames = new Set(actionsToAdd.map(a => a.name))
+    const hasChanges = character.actions.some(action => {
+      if (!action.isBasicAttack) return false
+      // Check if we need to update this basic attack
+      if (action.name === 'Sneak Attack') {
+        if (!rogueClass) return true // Should be removed
+        const expectedDice = getSneakAttackDice(rogueClass.level)
+        return action.damage !== `${expectedDice}d6`
+      }
+      return !basicAttackNames.has(action.name) // Should be removed if not in our list
+    })
+
+    if (!hasChanges && actionsToAdd.length === 0 && !needsSneakAttackRemoval) {
+      return // No changes needed
+    }
+
+    // Remove existing basic attacks (but preserve manually converted ones)
+    // Only remove actions that are still marked as basic attacks
+    character.actions = character.actions.filter(action => !action.isBasicAttack)
+
+    // Add all new basic attacks
+    character.actions.push(...actionsToAdd)
+  } finally {
+    isUpdatingBasicAttacks = false
+  }
 }
 
 function createAbilityScore(score: number = 10, saveProficient: boolean = false, proficiencyBonus: number = 0, customModifier: number = 0): AbilityScore {
@@ -842,7 +934,7 @@ function applyBarbarianLevel1(character: Character, selectedSkills: string[], se
   character.initiative = calculateInitiative(dexModifier)
 }
 
-function createNewCharacter(characterClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[]): Character {
+function createNewCharacter(characterClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[], selectedExpertise?: string[]): Character {
   const character = createEmptyCharacter()
 
   if (characterClass === 'Fighter') {
@@ -852,12 +944,115 @@ function createNewCharacter(characterClass: string, selectedSkills: string[], se
     applyFighterLevel1(character, selectedSkills, selectedFightingStyle, selectedWeaponMasteries)
   } else if (characterClass === 'Barbarian') {
     applyBarbarianLevel1(character, selectedSkills, selectedWeaponMasteries)
+  } else if (characterClass === 'Rogue') {
+    if (!selectedExpertise || selectedExpertise.length !== 2) {
+      throw new Error('Expertise selection is required for Rogue (2 skills)')
+    }
+    applyRogueLevel1(character, selectedSkills, selectedExpertise, selectedWeaponMasteries)
   }
 
   // Initialize basic attacks (unarmed strike)
   updateBasicAttacks(character)
 
   return character
+}
+
+function applyRogueLevel1(character: Character, selectedSkills: string[], selectedExpertise: string[], selectedWeaponMasteries: string[]): void {
+  const level = 1
+  const proficiencyBonus = calculateProficiencyBonus(level)
+  const conModifier = character.abilities.constitution.modifier
+
+  // Set hit points (starting HP from class progression spec)
+  const startingHp = getStartingHpBase('Rogue', conModifier)
+  character.hitPoints.maximum = startingHp
+  character.hitPoints.current = startingHp
+
+  // Set classes array (multiclass support)
+  character.classes = [{ classType: 'Rogue', level: 1 }]
+  character.classLevel = 'Rogue 1'
+  character.classType = 'Rogue' // Keep for migration compatibility
+  character.level = level
+  character.proficiencyBonus = proficiencyBonus
+
+  // Set saving throw proficiencies: Dexterity and Intelligence
+  character.abilities.dexterity.saveProficient = true
+  character.abilities.dexterity.saveModifier = character.abilities.dexterity.modifier + proficiencyBonus
+  character.abilities.intelligence.saveProficient = true
+  character.abilities.intelligence.saveModifier = character.abilities.intelligence.modifier + proficiencyBonus
+
+  // Apply skill proficiencies (4 selected skills)
+  character.skills.forEach(skill => {
+    if (selectedSkills.includes(skill.name)) {
+      skill.proficient = true
+    }
+  })
+
+  // Apply Expertise to 2 selected skills
+  character.skills.forEach(skill => {
+    if (selectedExpertise.includes(skill.name)) {
+      skill.expertise = true
+    }
+  })
+
+  // Recalculate skill modifiers to include proficiency and expertise bonuses
+  character.skills.forEach(skill => {
+    const ability = character.abilities[skill.ability]
+    const finalScore = ability.score + (ability.customModifier || 0)
+    const abilityModifier = calculateModifier(finalScore)
+    const expertiseBonus = skill.expertise ? proficiencyBonus : 0
+    skill.modifier = abilityModifier + (skill.proficient ? proficiencyBonus : 0) + expertiseBonus
+  })
+
+  // Set Weapon Mastery (2 weapons)
+  character.weaponMastery = selectedWeaponMasteries
+  const weaponMasteryDescriptions = selectedWeaponMasteries.map(weaponName => {
+    const weapon = WEAPON_MASTERY_WEAPONS.find(w => w.name === weaponName)
+    return weapon ? `${weapon.name} (${weapon.mastery})` : weaponName
+  }).join(', ')
+  character.featuresTraits.push({
+    id: crypto.randomUUID(),
+    name: 'Weapon Mastery',
+    description: `You can use the Mastery property of the following weapons: ${weaponMasteryDescriptions}.`,
+    source: 'Class',
+  })
+
+  // Add class features from spec (level 1)
+  character.featuresTraits = addMissingClassFeatures(character.featuresTraits, 'Rogue', 1)
+
+  // Add weapon and armor proficiencies as features/traits
+  const proficiencies: FeatureTrait[] = [
+    {
+      id: crypto.randomUUID(),
+      name: 'Weapon Proficiency: Simple Weapons',
+      description: 'Proficient with all simple weapons.',
+      source: 'Class',
+    },
+    {
+      id: crypto.randomUUID(),
+      name: 'Weapon Proficiency: Martial Weapons (Finesse)',
+      description: 'Proficient with martial weapons that have the Finesse property.',
+      source: 'Class',
+    },
+    {
+      id: crypto.randomUUID(),
+      name: 'Tool Proficiency: Thieves\' Tools',
+      description: 'Proficient with Thieves\' Tools.',
+      source: 'Class',
+    },
+    {
+      id: crypto.randomUUID(),
+      name: 'Armor Proficiency: Light Armor',
+      description: 'Proficient with light armor.',
+      source: 'Class',
+    },
+  ]
+
+  character.featuresTraits = [...character.featuresTraits, ...proficiencies]
+
+  // Recalculate AC and Initiative
+  const dexModifier = character.abilities.dexterity.modifier
+  character.ac = calculateAC(dexModifier, 10, character)
+  character.initiative = calculateInitiative(dexModifier)
 }
 
 export const useCharacter = () => {
@@ -1127,7 +1322,9 @@ export const useCharacter = () => {
     const finalScore = ability.score + (ability.customModifier || 0)
     const abilityModifier = calculateModifier(finalScore)
     const proficiencyBonus = character.value.proficiencyBonus
-    skill.modifier = abilityModifier + (skill.proficient ? proficiencyBonus : 0)
+    // Expertise doubles the proficiency bonus
+    const expertiseBonus = skill.expertise ? proficiencyBonus : 0
+    skill.modifier = abilityModifier + (skill.proficient ? proficiencyBonus : 0) + expertiseBonus
   }
 
   const addAction = (action: Omit<Action, 'id'>) => {
@@ -1425,11 +1622,14 @@ export const useCharacter = () => {
         const oldMax = existing.max
         const gained = Math.max(0, newMax - oldMax)
 
-        existing.label = pool.label
-        existing.description = pool.description
-        existing.reset = pool.reset
-        existing.max = Math.max(existing.max, newMax)
-        existing.current = Math.min(existing.max, existing.current + gained)
+        // Only update if values actually changed to prevent unnecessary reactive triggers
+        if (existing.label !== pool.label) existing.label = pool.label
+        if (existing.description !== pool.description) existing.description = pool.description
+        if (existing.reset !== pool.reset) existing.reset = pool.reset
+        if (existing.max !== Math.max(existing.max, newMax)) {
+          existing.max = Math.max(existing.max, newMax)
+          existing.current = Math.min(existing.max, existing.current + gained)
+        }
         if (pool.trackActive && existing.active === undefined) {
           existing.active = false
         }
@@ -1646,6 +1846,7 @@ export const useCharacter = () => {
       selectedSkills?: string[]
       selectedFightingStyle?: string
       selectedWeaponMasteries?: string[]
+      selectedExpertise?: string[]
     },
   ): number => {
     const classes = character.value.classes ?? []
@@ -1693,6 +1894,17 @@ export const useCharacter = () => {
           }
         })
         // Recalculate skill modifiers to include proficiency bonus
+        updateSkillModifiers()
+      }
+
+      // Apply Expertise (Rogue only)
+      if (selectedClass === 'Rogue' && classChoices.selectedExpertise && classChoices.selectedExpertise.length > 0) {
+        character.value.skills.forEach(skill => {
+          if (classChoices.selectedExpertise!.includes(skill.name)) {
+            skill.expertise = true
+          }
+        })
+        // Recalculate skill modifiers to include expertise bonus
         updateSkillModifiers()
       }
 
@@ -1828,6 +2040,7 @@ export const useCharacter = () => {
     createEmptyCharacter,
     applyFighterLevel1,
     applyBarbarianLevel1,
+    applyRogueLevel1,
     createNewCharacter,
     resetCharacter,
     activateRage,
@@ -1843,5 +2056,7 @@ export const useCharacter = () => {
     WEAPON_MASTERY_WEAPONS,
     getMeleeWeapons,
     BARBARIAN_SKILLS,
+    ROGUE_SKILLS,
+    getSneakAttackDice,
   }
 }

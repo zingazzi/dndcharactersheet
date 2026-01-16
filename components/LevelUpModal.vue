@@ -66,7 +66,7 @@
           
           <!-- Skill Selection -->
           <div class="mb-2">
-            <h4 class="text-xs font-semibold text-[var(--color-text-secondary)] mb-1">Choose 2 Skills</h4>
+            <h4 class="text-xs font-semibold text-[var(--color-text-secondary)] mb-1">Choose {{ skillCount }} Skills</h4>
             <div v-if="availableSkills.length === 0" class="text-xs text-[var(--color-text-tertiary)] italic mb-1">
               All available skills are already proficient.
             </div>
@@ -77,21 +77,55 @@
                 class="flex items-center p-1 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-secondary)] cursor-pointer transition-colors text-xs"
                 :class="{ 
                   'bg-[var(--color-bg-primary)] border-[var(--color-accent-primary)]': selectedSkills.includes(skill), 
-                  'opacity-50 cursor-not-allowed': !selectedSkills.includes(skill) && selectedSkills.length >= 2 
+                  'opacity-50 cursor-not-allowed': !selectedSkills.includes(skill) && selectedSkills.length >= skillCount 
                 }"
               >
                 <input
                   type="checkbox"
                   :value="skill"
                   v-model="selectedSkills"
-                  :disabled="!selectedSkills.includes(skill) && selectedSkills.length >= 2"
+                  :disabled="!selectedSkills.includes(skill) && selectedSkills.length >= skillCount"
                   class="mr-1 w-3 h-3"
                 />
                 <span class="text-[var(--color-text-primary)]">{{ skill }}</span>
               </label>
             </div>
-            <div class="text-center text-xs" :class="{ 'text-[var(--color-success)]': selectedSkills.length === 2, 'text-[var(--color-danger)]': selectedSkills.length !== 2 }">
-              Selected: {{ selectedSkills.length }} / 2 skills
+            <div class="text-center text-xs" :class="{ 'text-[var(--color-success)]': selectedSkills.length === skillCount, 'text-[var(--color-danger)]': selectedSkills.length !== skillCount }">
+              Selected: {{ selectedSkills.length }} / {{ skillCount }} skills
+            </div>
+          </div>
+
+          <!-- Expertise Selection (Rogue only) -->
+          <div v-if="selectedClass === 'Rogue'" class="mb-2">
+            <h4 class="text-xs font-semibold text-[var(--color-text-secondary)] mb-1">Choose 2 Skills for Expertise</h4>
+            <div v-if="selectedSkills.length < skillCount" class="text-xs text-[var(--color-text-tertiary)] italic mb-1">
+              Select {{ skillCount }} skills first.
+            </div>
+            <div v-else-if="availableExpertiseSkills.length === 0" class="text-xs text-[var(--color-text-tertiary)] italic mb-1">
+              No skills available for Expertise.
+            </div>
+            <div v-else class="grid grid-cols-2 gap-1 mb-1">
+              <label
+                v-for="skill in availableExpertiseSkills"
+                :key="skill"
+                class="flex items-center p-1 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-secondary)] cursor-pointer transition-colors text-xs"
+                :class="{ 
+                  'bg-[var(--color-bg-primary)] border-[var(--color-accent-primary)]': selectedExpertise.includes(skill), 
+                  'opacity-50 cursor-not-allowed': !selectedExpertise.includes(skill) && selectedExpertise.length >= 2 
+                }"
+              >
+                <input
+                  type="checkbox"
+                  :value="skill"
+                  v-model="selectedExpertise"
+                  :disabled="!selectedExpertise.includes(skill) && selectedExpertise.length >= 2"
+                  class="mr-1 w-3 h-3"
+                />
+                <span class="text-[var(--color-text-primary)]">{{ skill }}</span>
+              </label>
+            </div>
+            <div class="text-center text-xs" :class="{ 'text-[var(--color-success)]': selectedExpertise.length === 2, 'text-[var(--color-danger)]': selectedExpertise.length !== 2 }">
+              Selected: {{ selectedExpertise.length }} / 2 expertise skills
             </div>
           </div>
 
@@ -211,7 +245,7 @@
 <script setup lang="ts">
 import { canMulticlassInto, computeHpGainOnLevelUp, getAllClassTypes, getAverageHpGainOnLevelUp, getHitDie, getMulticlassRequirements, type ClassType } from '~/composables/classProgression'
 import { canLevelUpWithXp, getXpForLevel } from '~/composables/xpProgression'
-import { BARBARIAN_SKILLS, FIGHTING_STYLES, WEAPON_MASTERY_WEAPONS, getMeleeWeapons } from '~/composables/useCharacter'
+import { BARBARIAN_SKILLS, FIGHTING_STYLES, ROGUE_SKILLS, WEAPON_MASTERY_WEAPONS, getMeleeWeapons } from '~/composables/useCharacter'
 
 const props = defineProps<{
   isOpen: boolean
@@ -285,14 +319,35 @@ const manualRoll = ref<number | null>(null)
 const selectedSkills = ref<string[]>([])
 const selectedFightingStyle = ref<string>('')
 const selectedWeaponMasteries = ref<string[]>([])
+const selectedExpertise = ref<string[]>([])
 
 const availableSkills = computed(() => {
   if (!selectedClass.value) return []
-  const allSkills = selectedClass.value === 'Fighter' ? fighterSkills : BARBARIAN_SKILLS
+  let allSkills: string[] = []
+  if (selectedClass.value === 'Fighter') {
+    allSkills = fighterSkills
+  } else if (selectedClass.value === 'Barbarian') {
+    allSkills = BARBARIAN_SKILLS
+  } else if (selectedClass.value === 'Rogue') {
+    allSkills = ROGUE_SKILLS
+  }
   // Filter out skills that are already proficient
   return allSkills.filter(skillName => {
     const skill = character.value.skills.find(s => s.name === skillName)
     return !skill || !skill.proficient
+  })
+})
+
+const skillCount = computed(() => {
+  if (selectedClass.value === 'Rogue') return 4
+  return 2
+})
+
+const availableExpertiseSkills = computed(() => {
+  // Expertise can only be applied to skills that are selected and proficient
+  return selectedSkills.value.filter(skillName => {
+    const skill = character.value.skills.find(s => s.name === skillName)
+    return skill && skill.proficient
   })
 })
 
@@ -312,6 +367,7 @@ const weaponMasteryWeapons = computed(() => {
 const weaponMasteryCount = computed(() => {
   if (selectedClass.value === 'Fighter') return 3
   if (selectedClass.value === 'Barbarian') return 2
+  if (selectedClass.value === 'Rogue') return 2
   return 0
 })
 
@@ -324,6 +380,7 @@ watch(() => props.isOpen, (open) => {
   selectedSkills.value = []
   selectedFightingStyle.value = ''
   selectedWeaponMasteries.value = []
+  selectedExpertise.value = []
 })
 
 watch(selectedClass, (newClass) => {
@@ -331,6 +388,7 @@ watch(selectedClass, (newClass) => {
   selectedSkills.value = []
   selectedFightingStyle.value = ''
   selectedWeaponMasteries.value = []
+  selectedExpertise.value = []
   
   // If switching to a class that doesn't meet requirements, clear selection
   if (newClass) {
@@ -376,8 +434,8 @@ const canApply = computed(() => {
   // If taking first level of new class, check class choices
   if (option.currentLevel === 0) {
     // Check if there are enough available skills
-    if (availableSkills.value.length < 2) return false
-    if (selectedSkills.value.length !== 2) return false
+    if (availableSkills.value.length < skillCount.value) return false
+    if (selectedSkills.value.length !== skillCount.value) return false
     
     if (selectedClass.value === 'Fighter') {
       // Check if there are available fighting styles
@@ -387,6 +445,12 @@ const canApply = computed(() => {
       if (weaponMasteryWeapons.value.length < 3) return false
       if (selectedWeaponMasteries.value.length !== 3) return false
     } else if (selectedClass.value === 'Barbarian') {
+      // Check if there are enough available weapons
+      if (weaponMasteryWeapons.value.length < 2) return false
+      if (selectedWeaponMasteries.value.length !== 2) return false
+    } else if (selectedClass.value === 'Rogue') {
+      // Check Expertise selection
+      if (selectedExpertise.value.length !== 2) return false
       // Check if there are enough available weapons
       if (weaponMasteryWeapons.value.length < 2) return false
       if (selectedWeaponMasteries.value.length !== 2) return false
@@ -411,6 +475,7 @@ const applyLevelUp = (): void => {
     selectedSkills: selectedSkills.value,
     selectedFightingStyle: selectedClass.value === 'Fighter' ? selectedFightingStyle.value : undefined,
     selectedWeaponMasteries: selectedWeaponMasteries.value,
+    selectedExpertise: selectedClass.value === 'Rogue' ? selectedExpertise.value : undefined,
   } : undefined
 
   if (hpMethod.value === 'average') {

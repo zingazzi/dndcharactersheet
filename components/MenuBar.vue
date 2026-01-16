@@ -53,9 +53,9 @@ const closeNewCharacterModal = () => {
   isNewCharacterModalOpen.value = false
 }
 
-const handleCreateCharacter = (characterClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[]) => {
+const handleCreateCharacter = (characterClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[], selectedExpertise?: string[]) => {
   const { createNewCharacter, resetCharacter } = useCharacter()
-  const newCharacter = createNewCharacter(characterClass, selectedSkills, selectedFightingStyle, selectedWeaponMasteries)
+  const newCharacter = createNewCharacter(characterClass, selectedSkills, selectedFightingStyle, selectedWeaponMasteries, selectedExpertise)
   resetCharacter(newCharacter)
   closeNewCharacterModal()
 }
