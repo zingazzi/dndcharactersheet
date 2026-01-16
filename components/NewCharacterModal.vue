@@ -54,6 +54,19 @@
                 <p class="text-[0.65rem] text-[var(--color-text-tertiary)] italic mt-0.5">A scoundrel who uses stealth and trickery to overcome obstacles and enemies.</p>
               </div>
             </label>
+            <label class="flex items-center p-2 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-secondary)] cursor-pointer hover:bg-[var(--color-bg-primary)] transition-colors"
+              :class="{ 'bg-[var(--color-bg-primary)] border-[var(--color-accent-primary)]': selectedClass === 'Paladin' }">
+              <input
+                v-model="selectedClass"
+                type="radio"
+                value="Paladin"
+                class="mr-2"
+              />
+              <div class="flex-1">
+                <span class="text-sm font-cinzel text-[var(--color-text-primary)]">Paladin</span>
+                <p class="text-[0.65rem] text-[var(--color-text-tertiary)] italic mt-0.5">A holy warrior bound to a sacred oath who wields divine magic.</p>
+              </div>
+            </label>
           </div>
         </div>
 
@@ -110,7 +123,7 @@
           </div>
         </div>
 
-        <!-- Step 3: Fighting Style Selection (for Fighter) -->
+        <!-- Step 3: Fighting Style Selection (for Fighter only) -->
         <div v-if="selectedClass === 'Fighter'" class="mb-2">
           <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Step 3: Choose Fighting Style</h3>
           <div class="flex flex-col gap-1 mb-1.5">
@@ -134,10 +147,34 @@
           </div>
         </div>
 
-        <!-- Step 3: Weapon Mastery Selection (for Barbarian and Rogue) -->
-        <div v-if="selectedClass === 'Barbarian' || selectedClass === 'Rogue'" class="mb-2">
+        <!-- Step 3: Fighting Style Selection (for Fighter and Paladin) -->
+        <div v-if="selectedClass === 'Fighter' || selectedClass === 'Paladin'" class="mb-2">
+          <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Step 3: Choose a Fighting Style</h3>
+          <div class="flex flex-col gap-1 mb-1.5">
+            <label
+              v-for="style in fightingStyles"
+              :key="style.name"
+              class="flex items-start p-1.5 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-secondary)] cursor-pointer transition-colors text-sm"
+              :class="{ 'bg-[var(--color-bg-primary)] border-[var(--color-accent-primary)]': selectedFightingStyle === style.name }"
+            >
+              <input
+                v-model="selectedFightingStyle"
+                type="radio"
+                :value="style.name"
+                class="mt-0.5 mr-1.5 w-3 h-3"
+              />
+              <div class="flex-1">
+                <div class="font-semibold text-[var(--color-text-primary)]">{{ style.name }}</div>
+                <div class="text-xs text-[var(--color-text-tertiary)] mt-0.5">{{ style.description }}</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Step 4: Weapon Mastery Selection (for Barbarian, Rogue, and Paladin) -->
+        <div v-if="selectedClass === 'Barbarian' || selectedClass === 'Rogue' || selectedClass === 'Paladin'" class="mb-2">
           <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">
-            Step {{ selectedClass === 'Rogue' ? '3' : '3' }}: Choose 2 {{ selectedClass === 'Barbarian' ? 'Melee ' : '' }}Weapons for Weapon Mastery
+            Step {{ selectedClass === 'Rogue' ? '3' : selectedClass === 'Paladin' ? '4' : '3' }}: Choose 2 {{ selectedClass === 'Barbarian' ? 'Melee ' : '' }}Weapons for Weapon Mastery
           </h3>
           <p class="text-xs text-[var(--color-text-tertiary)] mb-1.5">Select 2 melee weapons from Simple or Martial weapons:</p>
           <div class="max-h-[200px] overflow-y-auto border border-[var(--color-border-primary)] rounded p-1.5 mb-1.5">
@@ -213,7 +250,7 @@
 </template>
 
 <script setup lang="ts">
-import { FIGHTING_STYLES, WEAPON_MASTERY_WEAPONS, BARBARIAN_SKILLS, ROGUE_SKILLS, getMeleeWeapons } from '~/composables/useCharacter'
+import { FIGHTING_STYLES, WEAPON_MASTERY_WEAPONS, BARBARIAN_SKILLS, ROGUE_SKILLS, PALADIN_SKILLS, getMeleeWeapons } from '~/composables/useCharacter'
 
 const props = defineProps<{
   isOpen: boolean
@@ -224,7 +261,7 @@ const emit = defineEmits<{
   create: [charClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[], selectedExpertise?: string[]]
 }>()
 
-const selectedClass = ref<'Fighter' | 'Barbarian' | 'Rogue'>('Fighter')
+const selectedClass = ref<'Fighter' | 'Barbarian' | 'Rogue' | 'Paladin'>('Fighter')
 const selectedSkills = ref<string[]>([])
 const selectedFightingStyle = ref('')
 const selectedWeaponMasteries = ref<string[]>([])
@@ -244,12 +281,14 @@ const fighterSkills = [
 
 const barbarianSkills = BARBARIAN_SKILLS
 const rogueSkills = ROGUE_SKILLS
+const paladinSkills = PALADIN_SKILLS
 const fightingStyles = FIGHTING_STYLES
 
 const availableSkills = computed(() => {
   if (selectedClass.value === 'Fighter') return fighterSkills
   if (selectedClass.value === 'Barbarian') return barbarianSkills
   if (selectedClass.value === 'Rogue') return rogueSkills
+  if (selectedClass.value === 'Paladin') return paladinSkills
   return []
 })
 
@@ -269,6 +308,9 @@ const canCreate = computed(() => {
     return selectedWeaponMasteries.value.length === 2
   } else if (selectedClass.value === 'Rogue') {
     return selectedExpertise.value.length === 2 && selectedWeaponMasteries.value.length === 2
+  } else if (selectedClass.value === 'Paladin') {
+    // Paladin gets fighting style at level 2, not level 1, so it's optional at creation
+    return selectedWeaponMasteries.value.length === 2
   }
   return false
 })
@@ -284,6 +326,7 @@ const toggleSkill = (skill: string) => {
 
 const createCharacter = () => {
   if (canCreate.value) {
+    // Paladin gets fighting style at level 2, not level 1
     const fightingStyle = selectedClass.value === 'Fighter' ? selectedFightingStyle.value : undefined
     const expertise = selectedClass.value === 'Rogue' ? selectedExpertise.value : undefined
     emit('create', selectedClass.value, selectedSkills.value, fightingStyle, selectedWeaponMasteries.value, expertise)

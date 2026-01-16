@@ -129,11 +129,14 @@
             </div>
           </div>
 
-          <!-- Fighting Style Selection (Fighter only) -->
-          <div v-if="selectedClass === 'Fighter'" class="mb-2">
+          <!-- Fighting Style Selection (Fighter and Paladin level 2) -->
+          <div v-if="selectedClass === 'Fighter' || (selectedClass === 'Paladin' && (selectedClassOption?.currentLevel === 0 || selectedClassOption?.currentLevel === 1))" class="mb-2">
             <h4 class="text-xs font-semibold text-[var(--color-text-secondary)] mb-1">Choose Fighting Style</h4>
             <div v-if="fightingStyles.length === 0" class="text-xs text-[var(--color-text-tertiary)] italic mb-1">
               You already have a fighting style selected.
+            </div>
+            <div v-else-if="selectedClass === 'Paladin' && selectedClassOption?.currentLevel === 1" class="text-xs text-[var(--color-text-tertiary)] italic mb-1">
+              Paladins gain a fighting style at level 2.
             </div>
             <div v-else class="flex flex-col gap-1">
               <label
@@ -195,6 +198,42 @@
           </div>
         </div>
 
+        <!-- Spell Selection (Paladin level 2) -->
+        <div v-if="needsSpellSelection" class="mb-2">
+          <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Spell Selection</h3>
+          <div class="text-xs text-[var(--color-text-tertiary)] italic mb-1">
+            Choose 2 level 1 spells from the Paladin spell list.
+          </div>
+          <div class="max-h-[200px] overflow-y-auto border border-[var(--color-border-primary)] rounded p-1 mb-1">
+            <div class="grid grid-cols-1 gap-1">
+              <label
+                v-for="spell in availableSpells"
+                :key="spell.name"
+                class="flex items-start p-1 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-secondary)] cursor-pointer transition-colors text-xs"
+                :class="{ 
+                  'bg-[var(--color-bg-primary)] border-[var(--color-accent-primary)]': selectedSpells.includes(spell.name), 
+                  'opacity-50 cursor-not-allowed': !selectedSpells.includes(spell.name) && selectedSpells.length >= 2 
+                }"
+              >
+                <input
+                  type="checkbox"
+                  :value="spell.name"
+                  v-model="selectedSpells"
+                  :disabled="!selectedSpells.includes(spell.name) && selectedSpells.length >= 2"
+                  class="mt-0.5 mr-1 w-3 h-3"
+                />
+                <div class="flex-1">
+                  <div class="font-semibold text-[var(--color-text-primary)]">{{ spell.name }}</div>
+                  <div class="text-[0.65rem] text-[var(--color-text-tertiary)] mt-0.5 line-clamp-2">{{ spell.description }}</div>
+                </div>
+              </label>
+            </div>
+          </div>
+          <div class="text-center text-xs" :class="{ 'text-[var(--color-success)]': selectedSpells.length === 2, 'text-[var(--color-danger)]': selectedSpells.length !== 2 }">
+            Selected: {{ selectedSpells.length }} / 2 spells
+          </div>
+        </div>
+
         <div class="mb-2">
           <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Hit Points</h3>
 
@@ -245,7 +284,8 @@
 <script setup lang="ts">
 import { canMulticlassInto, computeHpGainOnLevelUp, getAllClassTypes, getAverageHpGainOnLevelUp, getHitDie, getMulticlassRequirements, type ClassType } from '~/composables/classProgression'
 import { canLevelUpWithXp, getXpForLevel } from '~/composables/xpProgression'
-import { BARBARIAN_SKILLS, FIGHTING_STYLES, ROGUE_SKILLS, WEAPON_MASTERY_WEAPONS, getMeleeWeapons } from '~/composables/useCharacter'
+import { BARBARIAN_SKILLS, FIGHTING_STYLES, ROGUE_SKILLS, PALADIN_SKILLS, WEAPON_MASTERY_WEAPONS, getMeleeWeapons } from '~/composables/useCharacter'
+import paladinSpellsData from '~/data/spells/Paladin.json'
 
 const props = defineProps<{
   isOpen: boolean
@@ -320,6 +360,20 @@ const selectedSkills = ref<string[]>([])
 const selectedFightingStyle = ref<string>('')
 const selectedWeaponMasteries = ref<string[]>([])
 const selectedExpertise = ref<string[]>([])
+const selectedSpells = ref<string[]>([])
+
+interface SpellData {
+  name: string
+  level: number
+  school: string
+  castingTime: string
+  range: string
+  components: string
+  duration: string
+  description: string
+}
+
+const paladinSpells = (paladinSpellsData as { spells: SpellData[] }).spells
 
 const availableSkills = computed(() => {
   if (!selectedClass.value) return []
@@ -330,6 +384,8 @@ const availableSkills = computed(() => {
     allSkills = BARBARIAN_SKILLS
   } else if (selectedClass.value === 'Rogue') {
     allSkills = ROGUE_SKILLS
+  } else if (selectedClass.value === 'Paladin') {
+    allSkills = PALADIN_SKILLS
   }
   // Filter out skills that are already proficient
   return allSkills.filter(skillName => {
@@ -368,7 +424,21 @@ const weaponMasteryCount = computed(() => {
   if (selectedClass.value === 'Fighter') return 3
   if (selectedClass.value === 'Barbarian') return 2
   if (selectedClass.value === 'Rogue') return 2
+  if (selectedClass.value === 'Paladin') return 2
   return 0
+})
+
+const availableSpells = computed(() => {
+  if (selectedClass.value !== 'Paladin') return []
+  // Only show level 1 spells for initial selection
+  return paladinSpells.filter(s => s.level === 1)
+})
+
+const needsSpellSelection = computed(() => {
+  if (!selectedClass.value) return false
+  const option = selectedClassOption.value
+  // Paladin needs spell selection when leveling to level 2
+  return selectedClass.value === 'Paladin' && option?.currentLevel === 1
 })
 
 watch(() => props.isOpen, (open) => {
@@ -381,6 +451,7 @@ watch(() => props.isOpen, (open) => {
   selectedFightingStyle.value = ''
   selectedWeaponMasteries.value = []
   selectedExpertise.value = []
+  selectedSpells.value = []
 })
 
 watch(selectedClass, (newClass) => {
@@ -389,6 +460,7 @@ watch(selectedClass, (newClass) => {
   selectedFightingStyle.value = ''
   selectedWeaponMasteries.value = []
   selectedExpertise.value = []
+  selectedSpells.value = []
   
   // If switching to a class that doesn't meet requirements, clear selection
   if (newClass) {
@@ -454,7 +526,30 @@ const canApply = computed(() => {
       // Check if there are enough available weapons
       if (weaponMasteryWeapons.value.length < 2) return false
       if (selectedWeaponMasteries.value.length !== 2) return false
+    } else if (selectedClass.value === 'Paladin') {
+      // Paladin gets fighting style at level 2, not level 1
+      // If leveling to level 2, check if fighting style is selected (if not already have one)
+      if (selectedClassOption.value?.currentLevel === 1) {
+        if (!character.value.fightingStyle && !selectedFightingStyle.value) return false
+      } else if (isNewClass) {
+        // For new class, no fighting style needed at level 1
+      }
+      // Check if there are enough available weapons (only for new class)
+      if (isNewClass) {
+        if (weaponMasteryWeapons.value.length < 2) return false
+        if (selectedWeaponMasteries.value.length !== 2) return false
+      }
     }
+  }
+
+  // Check spell selection for Paladin level 2
+  if (needsSpellSelection.value) {
+    if (selectedSpells.value.length !== 2) return false
+  }
+
+  // Check fighting style selection for Paladin level 2
+  if (selectedClass.value === 'Paladin' && selectedClassOption.value?.currentLevel === 1) {
+    if (!character.value.fightingStyle && !selectedFightingStyle.value) return false
   }
 
   // HP choice validation
@@ -471,11 +566,14 @@ const applyLevelUp = (): void => {
   if (!canApply.value || !selectedClass.value) return
   
   const isNewClass = selectedClassOption.value?.currentLevel === 0
-  const classChoices = isNewClass ? {
-    selectedSkills: selectedSkills.value,
-    selectedFightingStyle: selectedClass.value === 'Fighter' ? selectedFightingStyle.value : undefined,
-    selectedWeaponMasteries: selectedWeaponMasteries.value,
+  const needsSpells = needsSpellSelection.value
+  const needsFightingStyle = selectedClass.value === 'Paladin' && selectedClassOption.value?.currentLevel === 1 && !character.value.fightingStyle
+  const classChoices = (isNewClass || needsSpells || needsFightingStyle) ? {
+    selectedSkills: isNewClass ? selectedSkills.value : undefined,
+    selectedFightingStyle: (selectedClass.value === 'Fighter' || (selectedClass.value === 'Paladin' && (isNewClass || needsFightingStyle))) ? selectedFightingStyle.value : undefined,
+    selectedWeaponMasteries: isNewClass ? selectedWeaponMasteries.value : undefined,
     selectedExpertise: selectedClass.value === 'Rogue' ? selectedExpertise.value : undefined,
+    selectedSpells: needsSpells ? selectedSpells.value : undefined,
   } : undefined
 
   if (hpMethod.value === 'average') {

@@ -216,12 +216,21 @@
     <div class="section">
       <div class="section-header">
         <h3 class="section-title">Spells</h3>
-        <button
-          @click="showSpellForm = !showSpellForm"
-          class="btn btn-primary text-sm px-2 py-1"
-        >
-          {{ showSpellForm ? 'Cancel' : '+' }}
-        </button>
+        <div class="flex gap-1">
+          <button
+            @click="showSpellManagementModal = true"
+            class="btn btn-secondary text-sm px-2 py-1"
+            title="Manage spells from spell list"
+          >
+            Manage
+          </button>
+          <button
+            @click="showSpellForm = !showSpellForm"
+            class="btn btn-primary text-sm px-2 py-1"
+          >
+            {{ showSpellForm ? 'Cancel' : '+' }}
+          </button>
+        </div>
       </div>
       <!-- Spell Slots -->
       <div class="mb-2 pb-2 border-b border-[var(--color-border-divider)]">
@@ -288,14 +297,33 @@
             <div class="flex items-center gap-1">
               <span class="text-sm font-bold">{{ spell.name }}</span>
               <span class="text-xs text-[var(--color-text-tertiary)] px-1 py-0.5 bg-[var(--color-bg-secondary)] rounded">L{{ spell.level }}</span>
-              <span v-if="spell.prepared" class="text-xs text-[var(--color-success)] bg-[var(--color-success)]/20 px-1 py-0.5 rounded">P</span>
+              <span
+                v-if="spell.prepared"
+                class="text-xs text-[var(--color-success)] bg-[var(--color-success)]/20 px-1 py-0.5 rounded font-semibold"
+                title="Prepared"
+              >
+                P
+              </span>
             </div>
-            <button
-              @click="removeSpell(spell.id)"
-              class="btn btn-danger text-sm px-1.5 py-0.5"
-            >
-              ×
-            </button>
+            <div class="flex items-center gap-1">
+              <button
+                @click="toggleSpellPrepared(spell.id)"
+                :class="[
+                  'btn text-xs px-1.5 py-0.5',
+                  spell.prepared ? 'btn-success' : 'btn-secondary'
+                ]"
+                :title="spell.prepared ? 'Unprepare' : 'Prepare'"
+              >
+                {{ spell.prepared ? '✓' : '○' }}
+              </button>
+              <button
+                @click="removeSpell(spell.id)"
+                class="btn btn-danger text-sm px-1.5 py-0.5"
+                title="Remove spell"
+              >
+                ×
+              </button>
+            </div>
           </div>
           <div class="text-xs text-[var(--color-text-tertiary)]">{{ spell.school }} • {{ spell.castingTime }}</div>
         </div>
@@ -362,6 +390,12 @@
       @close="showEquipmentModal = false"
     />
 
+    <!-- Spell Management Modal -->
+    <SpellManagementModal
+      :is-open="showSpellManagementModal"
+      @close="showSpellManagementModal = false"
+    />
+
     <!-- Toast for dice rolls -->
     <Toast
       :is-visible="isToastVisible"
@@ -383,6 +417,7 @@ const { addRoll } = useDiceHistory()
 const showAddForm = ref(false)
 const showSpellForm = ref(false)
 const showEquipmentModal = ref(false)
+const showSpellManagementModal = ref(false)
 
 const newAction = ref<Omit<Action, 'id'>>({
   name: '',
@@ -435,6 +470,13 @@ const handleAddSpell = () => {
       prepared: false,
     }
     showSpellForm.value = false
+  }
+}
+
+const toggleSpellPrepared = (spellId: string): void => {
+  const spell = character.value.spells.find(s => s.id === spellId)
+  if (spell) {
+    spell.prepared = !spell.prepared
   }
 }
 

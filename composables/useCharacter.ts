@@ -1,7 +1,9 @@
 import type { Character, AbilityScore, Skill, Action, Spell, InventoryItem, FeatureTrait, ResourcePool, ClassType, ClassEntry } from '~/types/character'
 import { addMissingClassFeatures, canMulticlassInto, computeHpGainOnLevelUp, getMulticlassProficiencies, getResourcesForClassAtLevel, getStartingHpBase, type HpChoice } from '~/composables/classProgression'
 import { canLevelUpWithXp, getNextXpMilestoneFromXp } from '~/composables/xpProgression'
+import { getPaladinSpellSlots } from '~/composables/spellSlots'
 import fightingStylesJson from '~/data/fighting-styles.json'
+import paladinSpellsJson from '~/data/spells/Paladin.json'
 
 export interface FightingStyle {
   name: string
@@ -115,6 +117,15 @@ export const ROGUE_SKILLS = [
   'Persuasion',
   'Sleight of Hand',
   'Stealth',
+]
+
+export const PALADIN_SKILLS = [
+  'Athletics',
+  'Insight',
+  'Intimidation',
+  'Medicine',
+  'Persuasion',
+  'Religion',
 ]
 
 export interface ArmorData {
@@ -1016,6 +1027,9 @@ function createNewCharacter(characterClass: string, selectedSkills: string[], se
       throw new Error('Expertise selection is required for Rogue (2 skills)')
     }
     applyRogueLevel1(character, selectedSkills, selectedExpertise, selectedWeaponMasteries)
+  } else if (characterClass === 'Paladin') {
+    // Paladin gets fighting style at level 2, not level 1
+    applyPaladinLevel1(character, selectedSkills, selectedFightingStyle || undefined, selectedWeaponMasteries)
   }
 
   // Initialize basic attacks (unarmed strike)
@@ -1115,6 +1129,125 @@ function applyRogueLevel1(character: Character, selectedSkills: string[], select
   ]
 
   character.featuresTraits = [...character.featuresTraits, ...proficiencies]
+
+  // Recalculate AC and Initiative
+  const dexModifier = character.abilities.dexterity.modifier
+  character.ac = calculateAC(dexModifier, 10, character)
+  character.initiative = calculateInitiative(dexModifier)
+}
+
+function applyPaladinLevel1(character: Character, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[]): void {
+  const level = 1
+  const proficiencyBonus = calculateProficiencyBonus(level)
+  const conModifier = character.abilities.constitution.modifier
+
+  // Set hit points (starting HP: 10 + CON)
+  const startingHp = 10 + conModifier
+  character.hitPoints.maximum = startingHp
+  character.hitPoints.current = startingHp
+
+  // Set classes array (multiclass support)
+  character.classes = [{ classType: 'Paladin', level: 1 }]
+  character.classLevel = 'Paladin 1'
+  character.classType = 'Paladin' // Keep for migration compatibility
+  character.level = level
+  character.proficiencyBonus = proficiencyBonus
+
+  // Set saving throw proficiencies: Wisdom and Charisma
+  character.abilities.wisdom.saveProficient = true
+  character.abilities.wisdom.saveModifier = character.abilities.wisdom.modifier + proficiencyBonus
+  character.abilities.charisma.saveProficient = true
+  character.abilities.charisma.saveModifier = character.abilities.charisma.modifier + proficiencyBonus
+
+  // Apply skill proficiencies (2 selected skills)
+  character.skills.forEach(skill => {
+    if (selectedSkills.includes(skill.name)) {
+      skill.proficient = true
+    }
+  })
+
+  // Recalculate skill modifiers to include proficiency bonus
+  character.skills.forEach(skill => {
+    const ability = character.abilities[skill.ability]
+    const finalScore = ability.score + (ability.customModifier || 0)
+    const abilityModifier = calculateModifier(finalScore)
+    skill.modifier = abilityModifier + (skill.proficient ? proficiencyBonus : 0)
+  })
+
+  // Set Fighting Style (only if provided - Paladin gets it at level 2, not level 1)
+  if (selectedFightingStyle) {
+    character.fightingStyle = selectedFightingStyle
+    const fightingStyleData = FIGHTING_STYLES.find(style => style.name === selectedFightingStyle)
+    if (fightingStyleData) {
+      character.featuresTraits.push({
+        id: crypto.randomUUID(),
+        name: `Fighting Style: ${selectedFightingStyle}`,
+        description: fightingStyleData.description,
+        source: 'Class',
+      })
+    }
+  }
+
+  // Set Weapon Mastery (2 weapons)
+  character.weaponMastery = selectedWeaponMasteries
+  const weaponMasteryDescriptions = selectedWeaponMasteries.map(weaponName => {
+    const weapon = WEAPON_MASTERY_WEAPONS.find(w => w.name === weaponName)
+    return weapon ? `${weapon.name} (${weapon.mastery})` : weaponName
+  }).join(', ')
+  character.featuresTraits.push({
+    id: crypto.randomUUID(),
+    name: 'Weapon Mastery',
+    description: `You can use the Mastery property of the following weapons: ${weaponMasteryDescriptions}.`,
+    source: 'Class',
+  })
+
+  // Add level 1 features (Divine Sense, Lay on Hands, Weapon Mastery)
+  character.featuresTraits = addMissingClassFeatures(character.featuresTraits, 'Paladin', 1)
+
+  // Add weapon and armor proficiencies as features/traits
+  const proficiencies: FeatureTrait[] = [
+    {
+      id: crypto.randomUUID(),
+      name: 'Weapon Proficiency: Simple Weapons',
+      description: 'Proficient with all simple weapons.',
+      source: 'Class',
+    },
+    {
+      id: crypto.randomUUID(),
+      name: 'Weapon Proficiency: Martial Weapons',
+      description: 'Proficient with all martial weapons.',
+      source: 'Class',
+    },
+    {
+      id: crypto.randomUUID(),
+      name: 'Armor Proficiency: Light Armor',
+      description: 'Proficient with light armor.',
+      source: 'Class',
+    },
+    {
+      id: crypto.randomUUID(),
+      name: 'Armor Proficiency: Medium Armor',
+      description: 'Proficient with medium armor.',
+      source: 'Class',
+    },
+    {
+      id: crypto.randomUUID(),
+      name: 'Armor Proficiency: Heavy Armor',
+      description: 'Proficient with heavy armor.',
+      source: 'Class',
+    },
+    {
+      id: crypto.randomUUID(),
+      name: 'Armor Proficiency: Shields',
+      description: 'Proficient with shields.',
+      source: 'Class',
+    },
+  ]
+
+  character.featuresTraits = [...character.featuresTraits, ...proficiencies]
+
+  // Initialize spell slots (empty at level 1, will be added at level 2)
+  character.spellSlots = []
 
   // Recalculate AC and Initiative
   const dexModifier = character.abilities.dexterity.modifier
@@ -1664,6 +1797,31 @@ export const useCharacter = () => {
     character.value.experiencePoints.nextLevel = nextMilestone
   })
 
+  // Auto-calculate Paladin spell slots based on Paladin level
+  watchEffect(() => {
+    const classes = character.value.classes ?? []
+    const paladinClass = classes.find(c => c.classType === 'Paladin')
+    if (!paladinClass) return
+
+    const newSlots = getPaladinSpellSlots(paladinClass.level, character.value.spellSlots)
+    
+    // Only update if slots have changed
+    const currentSlots = character.value.spellSlots
+    if (currentSlots.length !== newSlots.length) {
+      character.value.spellSlots = newSlots
+      return
+    }
+
+    const hasChanges = currentSlots.some((slot, idx) => {
+      const newSlot = newSlots[idx]
+      return !newSlot || slot.level !== newSlot.level || slot.total !== newSlot.total
+    })
+
+    if (hasChanges) {
+      character.value.spellSlots = newSlots
+    }
+  })
+
   function ensureResourcesForAllClasses(): void {
     if (!character.value.resources) character.value.resources = {}
     const classes = character.value.classes ?? []
@@ -1914,6 +2072,7 @@ export const useCharacter = () => {
       selectedFightingStyle?: string
       selectedWeaponMasteries?: string[]
       selectedExpertise?: string[]
+      selectedSpells?: string[]
     },
   ): number => {
     const classes = character.value.classes ?? []
@@ -1975,8 +2134,8 @@ export const useCharacter = () => {
         updateSkillModifiers()
       }
 
-      // Apply Fighting Style (Fighter only)
-      if (selectedClass === 'Fighter' && classChoices.selectedFightingStyle) {
+      // Apply Fighting Style (Fighter and Paladin)
+      if ((selectedClass === 'Fighter' || selectedClass === 'Paladin') && classChoices.selectedFightingStyle) {
         character.value.fightingStyle = classChoices.selectedFightingStyle
         const fightingStyleData = FIGHTING_STYLES.find(style => style.name === classChoices.selectedFightingStyle)
         if (fightingStyleData) {
@@ -2039,6 +2198,55 @@ export const useCharacter = () => {
           })
         })
       }
+    }
+
+    // Handle fighting style selection for Paladin level 2 (if not already have one)
+    if (selectedClass === 'Paladin' && newClassLevel === 2 && classChoices?.selectedFightingStyle && !character.value.fightingStyle) {
+      character.value.fightingStyle = classChoices.selectedFightingStyle
+      const fightingStyleData = FIGHTING_STYLES.find(style => style.name === classChoices.selectedFightingStyle)
+      if (fightingStyleData) {
+        character.value.featuresTraits.push({
+          id: crypto.randomUUID(),
+          name: `Fighting Style: ${classChoices.selectedFightingStyle}`,
+          description: fightingStyleData.description,
+          source: 'Class',
+        })
+      }
+    }
+
+    // Handle spell selection for Paladin level 2
+    if (selectedClass === 'Paladin' && newClassLevel === 2 && classChoices?.selectedSpells && classChoices.selectedSpells.length > 0) {
+      const paladinSpells = (paladinSpellsJson as { spells: Array<{
+        name: string
+        level: number
+        school: string
+        castingTime: string
+        range: string
+        components: string
+        duration: string
+        description: string
+      }> }).spells
+
+      classChoices.selectedSpells.forEach(spellName => {
+        const spellData = paladinSpells.find(s => s.name === spellName)
+        if (spellData) {
+          const spell: Omit<Spell, 'id'> = {
+            name: spellData.name,
+            level: spellData.level,
+            school: spellData.school,
+            castingTime: spellData.castingTime,
+            range: spellData.range,
+            components: spellData.components,
+            duration: spellData.duration,
+            description: spellData.description,
+            prepared: true, // Initial spells are prepared
+          }
+          character.value.spells.push({
+            ...spell,
+            id: crypto.randomUUID(),
+          })
+        }
+      })
     }
 
     // Add features for the new level of this class
