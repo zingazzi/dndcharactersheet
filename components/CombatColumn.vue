@@ -512,7 +512,8 @@ const rollDamage = (action: Action) => {
     }
     
     // Add rage bonus if Barbarian is raging and using STR
-    if (character.value.classType === 'Barbarian' && 
+    const hasBarbarian = (character.value.classes ?? []).some(c => c.classType === 'Barbarian')
+    if (hasBarbarian && 
         character.value.rage?.active && 
         (weaponData.ability === 'strength' || 
          (weaponData.ability === 'finesse' && strModifier >= dexModifier))) {
@@ -523,7 +524,8 @@ const rollDamage = (action: Action) => {
     modifier = character.value.abilities.strength.modifier
     
     // Add rage bonus for Barbarian
-    if (character.value.classType === 'Barbarian' && character.value.rage?.active) {
+    const hasBarbarian = (character.value.classes ?? []).some(c => c.classType === 'Barbarian')
+    if (hasBarbarian && character.value.rage?.active) {
       rageBonus = character.value.rage.damageBonus
     }
   } else {

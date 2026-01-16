@@ -1,5 +1,5 @@
-import type { Character, AbilityScore, Skill, Action, Spell, InventoryItem, FeatureTrait, ResourcePool } from '~/types/character'
-import { addMissingClassFeatures, computeHpGainOnLevelUp, getResourcesForClassAtLevel, getStartingHpBase, type ClassType, type HpChoice } from '~/composables/classProgression'
+import type { Character, AbilityScore, Skill, Action, Spell, InventoryItem, FeatureTrait, ResourcePool, ClassType, ClassEntry } from '~/types/character'
+import { addMissingClassFeatures, canMulticlassInto, computeHpGainOnLevelUp, getMulticlassProficiencies, getResourcesForClassAtLevel, getStartingHpBase, type HpChoice } from '~/composables/classProgression'
 import { canLevelUpWithXp, getNextXpMilestoneFromXp } from '~/composables/xpProgression'
 import fightingStylesJson from '~/data/fighting-styles.json'
 
@@ -360,7 +360,8 @@ function calculateAC(dexModifier: number, baseAC: number = 10, character?: Chara
     let unarmoredAC = 10 + dexModifier
 
     // Barbarian Unarmored Defense: 10 + DEX + CON
-    if (character.classType === 'Barbarian' && !character.wearingArmor) {
+    const hasBarbarian = (character.classes ?? []).some(c => c.classType === 'Barbarian')
+    if (hasBarbarian && !character.wearingArmor) {
       const conModifier = character.abilities.constitution.modifier
       unarmoredAC = 10 + dexModifier + conModifier
     }
@@ -480,9 +481,10 @@ function generateAttackFromWeapon(weapon: InventoryItem, character: Character): 
   damageString += ` ${weaponData.damageType}`
 
   // Add rage damage bonus for Barbarian (only for STR-based attacks)
+  const hasBarbarian = (character.classes ?? []).some(c => c.classType === 'Barbarian')
   const usingStrength = weaponData.ability === 'strength' ||
     (weaponData.ability === 'finesse' && strModifier >= dexModifier)
-  if (character.classType === 'Barbarian' && character.rage?.active && usingStrength) {
+  if (hasBarbarian && character.rage?.active && usingStrength) {
     damageString += ` + ${character.rage.damageBonus} (rage)`
   }
 
@@ -511,7 +513,8 @@ function generateUnarmedStrike(character: Character): Action {
   damageString += ' bludgeoning'
 
   // Add rage damage bonus for Barbarian
-  if (character.classType === 'Barbarian' && character.rage?.active) {
+  const hasBarbarian = (character.classes ?? []).some(c => c.classType === 'Barbarian')
+  if (hasBarbarian && character.rage?.active) {
     damageString += ` + ${character.rage.damageBonus} (rage)`
   }
 
@@ -617,6 +620,7 @@ function createEmptyCharacter(): Character {
     spells: [],
     inventory: [],
     featuresTraits: [],
+    classes: [],
     classType: undefined,
     fightingStyle: undefined,
     weaponMastery: [],
@@ -642,9 +646,10 @@ function applyFighterLevel1(character: Character, selectedSkills: string[], sele
   character.hitPoints.maximum = startingHp
   character.hitPoints.current = startingHp
 
-  // Set class level and type
+  // Set classes array (multiclass support)
+  character.classes = [{ classType: 'Fighter', level: 1 }]
   character.classLevel = 'Fighter 1'
-  character.classType = 'Fighter'
+  character.classType = 'Fighter' // Keep for migration compatibility
   character.level = level
   character.proficiencyBonus = proficiencyBonus
 
@@ -748,9 +753,10 @@ function applyBarbarianLevel1(character: Character, selectedSkills: string[], se
   character.hitPoints.maximum = startingHp
   character.hitPoints.current = startingHp
 
-  // Set class level and type
+  // Set classes array (multiclass support)
+  character.classes = [{ classType: 'Barbarian', level: 1 }]
   character.classLevel = 'Barbarian 1'
-  character.classType = 'Barbarian'
+  character.classType = 'Barbarian' // Keep for migration compatibility
   character.level = level
   character.proficiencyBonus = proficiencyBonus
 
@@ -855,27 +861,43 @@ function createNewCharacter(characterClass: string, selectedSkills: string[], se
 }
 
 export const useCharacter = () => {
-  const CLASS_TYPES = [
-    'Barbarian',
-    'Bard',
-    'Cleric',
-    'Druid',
-    'Fighter',
-    'Monk',
-    'Paladin',
-    'Ranger',
-    'Rogue',
-    'Sorcerer',
-    'Warlock',
-    'Wizard',
-  ] as const satisfies readonly NonNullable<Character['classType']>[]
-
-  type ClassType = typeof CLASS_TYPES[number]
-
   const parseClassTypeFromClassLevel = (classLevel: string): ClassType | undefined => {
     const firstToken = classLevel.trim().split(/\s+/)[0]
-    const isKnown = (CLASS_TYPES as readonly string[]).includes(firstToken)
-    return isKnown ? (firstToken as ClassType) : undefined
+    const validTypes: readonly ClassType[] = ['Barbarian', 'Bard', 'Cleric', 'Druid', 'Fighter', 'Monk', 'Paladin', 'Ranger', 'Rogue', 'Sorcerer', 'Warlock', 'Wizard']
+    return validTypes.includes(firstToken as ClassType) ? (firstToken as ClassType) : undefined
+  }
+
+  const formatClassLevelString = (classes: ClassEntry[]): string => {
+    if (classes.length === 0) return 'No Class'
+    if (classes.length === 1) return `${classes[0].classType} ${classes[0].level}`
+    return classes.map(c => `${c.classType} ${c.level}`).join(' / ')
+  }
+
+  const getTotalLevel = (classes: ClassEntry[]): number => {
+    return classes.reduce((sum, c) => sum + c.level, 0)
+  }
+
+  const getClassLevel = (classes: ClassEntry[], classType: ClassType): number => {
+    const entry = classes.find(c => c.classType === classType)
+    return entry?.level ?? 0
+  }
+
+  const getAllClasses = (): ClassEntry[] => {
+    return character.value.classes ?? []
+  }
+
+  // Migration: convert old single-class model to new multiclass model
+  const migrateToMulticlass = (): void => {
+    if (character.value.classes && character.value.classes.length > 0) return
+
+    if (character.value.classType) {
+      const level = character.value.level || 1
+      character.value.classes = [{ classType: character.value.classType, level }]
+      character.value.classLevel = formatClassLevelString(character.value.classes)
+    } else {
+      character.value.classes = []
+      character.value.classLevel = 'No Class'
+    }
   }
 
   const proficiencyBonus = 3
@@ -890,6 +912,7 @@ export const useCharacter = () => {
 
   const character = useState<Character>('character', () => ({
     name: 'Thorin Ironforge',
+    classes: [{ classType: 'Fighter', level: 5 }],
     classLevel: 'Fighter 5',
     level: 5,
     experiencePoints: {
@@ -1199,7 +1222,8 @@ export const useCharacter = () => {
     }
 
     // Update wearingArmor flag for Barbarian
-    if (character.value.classType === 'Barbarian') {
+    const hasBarbarian = (character.value.classes ?? []).some(c => c.classType === 'Barbarian')
+    if (hasBarbarian) {
       const equippedArmor = getEquippedArmor(character.value)
       character.value.wearingArmor = equippedArmor !== null
     }
@@ -1353,12 +1377,19 @@ export const useCharacter = () => {
     character.value.proficiencyBonus = calculatedProficiencyBonus.value
   })
 
-  // Ensure classType is present when classLevel is set (e.g., sample character data)
+  // Migration: convert old single-class to multiclass model
   watchEffect(() => {
-    if (character.value.classType) return
-    const inferred = parseClassTypeFromClassLevel(character.value.classLevel || '')
-    if (!inferred) return
-    character.value.classType = inferred
+    migrateToMulticlass()
+  })
+
+  // Keep classLevel display string and total level in sync with classes array
+  watchEffect(() => {
+    const classes = character.value.classes ?? []
+    const total = getTotalLevel(classes)
+    const display = formatClassLevelString(classes)
+
+    if (character.value.level !== total) character.value.level = total
+    if (character.value.classLevel !== display) character.value.classLevel = display
   })
 
   // Keep nextLevel XP synced to the XP table (e.g., 300 -> 900 -> 2700 ...)
@@ -1369,40 +1400,43 @@ export const useCharacter = () => {
     character.value.experiencePoints.nextLevel = nextMilestone
   })
 
-  function ensureResourcesForLevel(classType: ClassType, level: number): void {
+  function ensureResourcesForAllClasses(): void {
     if (!character.value.resources) character.value.resources = {}
+    const classes = character.value.classes ?? []
 
-    const pools = getResourcesForClassAtLevel(classType, level)
-    pools.forEach(pool => {
-      const existing = character.value.resources?.[pool.id]
-      if (!existing) {
-        character.value.resources![pool.id] = {
-          id: pool.id,
-          label: pool.label,
-          description: pool.description,
-          reset: pool.reset,
-          current: pool.max,
-          max: pool.max,
-          active: pool.trackActive ? false : undefined,
+    classes.forEach(classEntry => {
+      const pools = getResourcesForClassAtLevel(classEntry.classType, classEntry.level)
+      pools.forEach(pool => {
+        const existing = character.value.resources?.[pool.id]
+        if (!existing) {
+          character.value.resources![pool.id] = {
+            id: pool.id,
+            label: pool.label,
+            description: pool.description,
+            reset: pool.reset,
+            current: pool.max,
+            max: pool.max,
+            active: pool.trackActive ? false : undefined,
+          }
+          return
         }
-        return
-      }
 
-      const newMax = pool.max
-      const oldMax = existing.max
-      const gained = Math.max(0, newMax - oldMax)
+        const newMax = pool.max
+        const oldMax = existing.max
+        const gained = Math.max(0, newMax - oldMax)
 
-      existing.label = pool.label
-      existing.description = pool.description
-      existing.reset = pool.reset
-      existing.max = newMax
-      existing.current = Math.min(newMax, existing.current + gained)
-      if (pool.trackActive && existing.active === undefined) {
-        existing.active = false
-      }
-      if (!pool.trackActive && existing.active !== undefined) {
-        delete existing.active
-      }
+        existing.label = pool.label
+        existing.description = pool.description
+        existing.reset = pool.reset
+        existing.max = Math.max(existing.max, newMax)
+        existing.current = Math.min(existing.max, existing.current + gained)
+        if (pool.trackActive && existing.active === undefined) {
+          existing.active = false
+        }
+        if (!pool.trackActive && existing.active !== undefined) {
+          delete existing.active
+        }
+      })
     })
   }
 
@@ -1495,10 +1529,9 @@ export const useCharacter = () => {
     updateBasicAttacks(character.value)
   }
 
-  // Initialize resources for current class/level and migrate legacy rage if needed
+  // Initialize resources for all classes and migrate legacy rage if needed
   watchEffect(() => {
-    if (!character.value.classType) return
-    ensureResourcesForLevel(character.value.classType, character.value.level || 1)
+    ensureResourcesForAllClasses()
 
     // One-way migration: if legacy rage exists but resource pool doesn't, initialize it
     if (character.value.rage && !character.value.resources?.rage) {
@@ -1516,19 +1549,19 @@ export const useCharacter = () => {
     syncLegacyRageFromResources()
   })
 
-  // Ensure class features from progression exist for the current level (covers cases where
-  // level/class is set directly, or progression data is updated after the fact).
+  // Ensure class features from progression exist for all classes and levels
   watchEffect(() => {
-    const classType = character.value.classType
-    if (!classType) return
+    const classes = character.value.classes ?? []
+    if (classes.length === 0) return
 
-    const currentLevel = character.value.level || 1
     const original = character.value.featuresTraits
     let updated = original
 
-    for (let lvl = 1; lvl <= currentLevel; lvl += 1) {
-      updated = addMissingClassFeatures(updated, classType, lvl)
-    }
+    classes.forEach(classEntry => {
+      for (let lvl = 1; lvl <= classEntry.level; lvl += 1) {
+        updated = addMissingClassFeatures(updated, classEntry.classType, lvl)
+      }
+    })
 
     if (updated.length === original.length) return
     character.value.featuresTraits = updated
@@ -1606,23 +1639,131 @@ export const useCharacter = () => {
     character.value.experiencePoints.nextLevel = getNextXpMilestoneFromXp(character.value.experiencePoints.current)
   }
 
-  const levelUpToNext = (choice: HpChoice): number => {
-    if (!character.value.classType) return 0
-    const currentLevel = character.value.level || 1
-    const targetLevel = currentLevel + 1
+  const levelUpToNext = (
+    selectedClass: ClassType,
+    choice: HpChoice,
+    classChoices?: {
+      selectedSkills?: string[]
+      selectedFightingStyle?: string
+      selectedWeaponMasteries?: string[]
+    },
+  ): number => {
+    const classes = character.value.classes ?? []
+    const currentTotalLevel = getTotalLevel(classes)
 
-    // Gate leveling by XP threshold for the *next level* (based on current level)
-    if (!canLevelUpWithXp(currentLevel, character.value.experiencePoints.current)) return 0
+    // Gate leveling by XP threshold for the *next level* (based on current total level)
+    if (!canLevelUpWithXp(currentTotalLevel, character.value.experiencePoints.current)) return 0
 
+    // Find existing class entry or create new one
+    let classEntry = classes.find(c => c.classType === selectedClass)
+    const isNewClass = !classEntry
+
+    if (isNewClass) {
+      // Check multiclass requirements
+      if (!canMulticlassInto(selectedClass, character.value.abilities)) return 0
+
+      classEntry = { classType: selectedClass, level: 0 }
+      character.value.classes = [...classes, classEntry]
+    }
+
+    // Increment this class's level
+    classEntry.level += 1
+    const newClassLevel = classEntry.level
+
+    // Recalculate total level
+    const newTotalLevel = getTotalLevel(character.value.classes)
+    character.value.level = newTotalLevel
+    character.value.classLevel = formatClassLevelString(character.value.classes)
+
+    // Apply HP gain using selected class's hit die
     const conModifier = character.value.abilities.constitution.modifier
-    const hpGain = computeHpGainOnLevelUp(character.value.classType, conModifier, choice)
-
+    const hpGain = computeHpGainOnLevelUp(selectedClass, conModifier, choice)
     character.value.hitPoints.maximum += hpGain
     character.value.hitPoints.current += hpGain
 
-    character.value.level = targetLevel
-    character.value.classLevel = `${character.value.classType} ${targetLevel}`
-    character.value.featuresTraits = addMissingClassFeatures(character.value.featuresTraits, character.value.classType, targetLevel)
+    // If first level of a new class, apply class choices and grant multiclass proficiencies
+    if (isNewClass && newClassLevel === 1 && classChoices) {
+      const proficiencyBonus = calculateProficiencyBonus(newTotalLevel)
+
+      // Apply skill proficiencies
+      if (classChoices.selectedSkills && classChoices.selectedSkills.length > 0) {
+        character.value.skills.forEach(skill => {
+          if (classChoices.selectedSkills!.includes(skill.name) && !skill.proficient) {
+            skill.proficient = true
+          }
+        })
+        // Recalculate skill modifiers to include proficiency bonus
+        updateSkillModifiers()
+      }
+
+      // Apply Fighting Style (Fighter only)
+      if (selectedClass === 'Fighter' && classChoices.selectedFightingStyle) {
+        character.value.fightingStyle = classChoices.selectedFightingStyle
+        const fightingStyleData = FIGHTING_STYLES.find(style => style.name === classChoices.selectedFightingStyle)
+        if (fightingStyleData) {
+          character.value.featuresTraits.push({
+            id: crypto.randomUUID(),
+            name: `Fighting Style: ${classChoices.selectedFightingStyle}`,
+            description: fightingStyleData.description,
+            source: 'Class',
+          })
+        }
+      }
+
+      // Apply Weapon Mastery
+      if (classChoices.selectedWeaponMasteries && classChoices.selectedWeaponMasteries.length > 0) {
+        const existingMasteries = character.value.weaponMastery ?? []
+        character.value.weaponMastery = [...existingMasteries, ...classChoices.selectedWeaponMasteries]
+        const weaponMasteryDescriptions = classChoices.selectedWeaponMasteries.map(weaponName => {
+          const weapon = WEAPON_MASTERY_WEAPONS.find(w => w.name === weaponName)
+          return weapon ? `${weapon.name} (${weapon.mastery})` : weaponName
+        }).join(', ')
+        character.value.featuresTraits.push({
+          id: crypto.randomUUID(),
+          name: 'Weapon Mastery',
+          description: `You can use the Mastery property of the following weapons: ${weaponMasteryDescriptions}.`,
+          source: 'Class',
+        })
+      }
+
+      // Grant multiclass proficiencies
+      const multiclassProfs = getMulticlassProficiencies(selectedClass)
+      if (multiclassProfs) {
+        if (!character.value.multiclassProficiencies) character.value.multiclassProficiencies = []
+
+        const newProfs: string[] = []
+        if (multiclassProfs.proficiencies) {
+          multiclassProfs.proficiencies.forEach(prof => {
+            if (!character.value.multiclassProficiencies!.includes(prof)) {
+              character.value.multiclassProficiencies!.push(prof)
+              newProfs.push(prof)
+            }
+          })
+        }
+        if (multiclassProfs.armorTraining) {
+          multiclassProfs.armorTraining.forEach(armor => {
+            const profName = `Armor Proficiency: ${armor}`
+            if (!character.value.multiclassProficiencies!.includes(profName)) {
+              character.value.multiclassProficiencies!.push(profName)
+              newProfs.push(profName)
+            }
+          })
+        }
+
+        // Add proficiency features
+        newProfs.forEach(profName => {
+          character.value.featuresTraits.push({
+            id: crypto.randomUUID(),
+            name: profName.includes('Armor') ? profName : `Weapon Proficiency: ${profName}`,
+            description: profName.includes('Armor') ? `Proficient with ${profName.replace('Armor Proficiency: ', '')}.` : `Proficient with ${profName}.`,
+            source: 'Class',
+          })
+        })
+      }
+    }
+
+    // Add features for the new level of this class
+    character.value.featuresTraits = addMissingClassFeatures(character.value.featuresTraits, selectedClass, newClassLevel)
 
     // Ensure nextLevel XP reflects the next milestone after current XP
     character.value.experiencePoints.nextLevel = getNextXpMilestoneFromXp(character.value.experiencePoints.current)
@@ -1693,6 +1834,11 @@ export const useCharacter = () => {
     deactivateRage,
     extendRage,
     resetRageUses,
+    getTotalLevel: () => getTotalLevel(character.value.classes ?? []),
+    getClassLevel: (classType: ClassType) => getClassLevel(character.value.classes ?? [], classType),
+    getAllClasses,
+    hasClass: (classType: ClassType) => getClassLevel(character.value.classes ?? [], classType) > 0,
+    formatClassLevelString: () => formatClassLevelString(character.value.classes ?? []),
     FIGHTING_STYLES,
     WEAPON_MASTERY_WEAPONS,
     getMeleeWeapons,

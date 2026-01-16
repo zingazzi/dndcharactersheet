@@ -4,6 +4,14 @@
     "starting": { "base": "maxHitDie", "addCon": true },
     "levelUp": { "average": "halfHitDieFloor", "addCon": true, "minGain": 1 }
   },
+  "multiclassRequirements": {
+    "primaryAbilities": ["strength", "dexterity"],
+    "minScore": 13
+  },
+  "multiclassProficiencies": {
+    "proficiencies": ["Martial Weapons"],
+    "armorTraining": ["Light Armor", "Medium Armor", "Shields"]
+  },
   "resources": {
     "secondWind": {
       "label": "Second Wind",

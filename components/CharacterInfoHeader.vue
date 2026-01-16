@@ -21,8 +21,7 @@
         </div>
 
         <div class="flex items-center gap-2 text-sm">
-          <span v-if="character.classType" class="font-medium text-[var(--color-text-secondary)]">{{ character.classType }}</span>
-          <span v-else class="font-medium text-[var(--color-text-tertiary)]">No Class</span>
+          <span class="font-medium text-[var(--color-text-secondary)]">{{ character.classLevel || 'No Class' }}</span>
           <span class="text-[var(--color-text-tertiary)]">•</span>
           <span class="font-medium text-[var(--color-text-secondary)]">Level {{ character.level || 1 }}</span>
           <span class="text-[var(--color-text-tertiary)]">•</span>

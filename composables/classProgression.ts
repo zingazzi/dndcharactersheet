@@ -1,7 +1,5 @@
-import type { Character, FeatureTrait } from '~/types/character'
+import type { Character, FeatureTrait, ClassType } from '~/types/character'
 import progressionData from '~/data/class-progression'
-
-export type ClassType = NonNullable<Character['classType']>
 
 export interface FeatureSpec {
   readonly name: string
@@ -39,9 +37,22 @@ export interface ClassLevelSpec {
   readonly features?: readonly FeatureSpec[]
 }
 
+export interface MulticlassRequirements {
+  readonly primaryAbility?: string
+  readonly primaryAbilities?: readonly string[]
+  readonly minScore: number
+}
+
+export interface MulticlassProficiencies {
+  readonly proficiencies?: readonly string[]
+  readonly armorTraining?: readonly string[]
+}
+
 export interface ClassProgressionSpec {
   readonly hitDie: number
   readonly hp: ClassHpRules
+  readonly multiclassRequirements?: MulticlassRequirements
+  readonly multiclassProficiencies?: MulticlassProficiencies
   readonly resources?: Readonly<Record<string, ResourceSpec>>
   readonly levels: Readonly<Record<string, ClassLevelSpec>>
 }
@@ -85,6 +96,29 @@ function assertProgressionFile(value: unknown): asserts value is ClassProgressio
     if (!isNumber(hp.levelUp.minGain)) throw new Error(`Invalid class progression: class ${className} hp.levelUp.minGain`)
 
     if (!isRecord(classValue.levels)) throw new Error(`Invalid class progression: class ${className} levels is not an object`)
+
+    if (classValue.multiclassRequirements !== undefined) {
+      const req = classValue.multiclassRequirements
+      if (!isRecord(req)) throw new Error(`Invalid class progression: class ${className} multiclassRequirements not object`)
+      if (req.primaryAbility !== undefined && !isString(req.primaryAbility)) {
+        throw new Error(`Invalid class progression: class ${className} multiclassRequirements.primaryAbility`)
+      }
+      if (req.primaryAbilities !== undefined && !Array.isArray(req.primaryAbilities)) {
+        throw new Error(`Invalid class progression: class ${className} multiclassRequirements.primaryAbilities`)
+      }
+      if (!isNumber(req.minScore)) throw new Error(`Invalid class progression: class ${className} multiclassRequirements.minScore`)
+    }
+
+    if (classValue.multiclassProficiencies !== undefined) {
+      const prof = classValue.multiclassProficiencies
+      if (!isRecord(prof)) throw new Error(`Invalid class progression: class ${className} multiclassProficiencies not object`)
+      if (prof.proficiencies !== undefined && !Array.isArray(prof.proficiencies)) {
+        throw new Error(`Invalid class progression: class ${className} multiclassProficiencies.proficiencies`)
+      }
+      if (prof.armorTraining !== undefined && !Array.isArray(prof.armorTraining)) {
+        throw new Error(`Invalid class progression: class ${className} multiclassProficiencies.armorTraining`)
+      }
+    }
 
     if (classValue.resources !== undefined) {
       if (!isRecord(classValue.resources)) throw new Error(`Invalid class progression: class ${className} resources is not an object`)
@@ -237,5 +271,31 @@ export function getMaxUses(resourceId: string, classType: ClassType, level: numb
   const res = spec.resources?.[resourceId]
   if (!res) return 0
   return getMaxForLevel(res.maxByLevel, level)
+}
+
+export function getMulticlassRequirements(classType: ClassType): MulticlassRequirements | undefined {
+  return getClassSpec(classType).multiclassRequirements
+}
+
+export function getMulticlassProficiencies(classType: ClassType): MulticlassProficiencies | undefined {
+  return getClassSpec(classType).multiclassProficiencies
+}
+
+export function canMulticlassInto(classType: ClassType, abilities: Character['abilities']): boolean {
+  const req = getMulticlassRequirements(classType)
+  if (!req) return true
+
+  const minScore = req.minScore
+  if (req.primaryAbility) {
+    const ability = abilities[req.primaryAbility as keyof typeof abilities]
+    return ability?.score >= minScore
+  }
+  if (req.primaryAbilities && req.primaryAbilities.length > 0) {
+    return req.primaryAbilities.some(abilityName => {
+      const ability = abilities[abilityName as keyof typeof abilities]
+      return ability?.score >= minScore
+    })
+  }
+  return true
 }
 

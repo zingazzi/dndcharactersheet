@@ -24,10 +24,141 @@
         </div>
 
         <div class="mb-2">
-          <label class="block mb-1 text-xs font-semibold text-[var(--color-text-secondary)] font-cinzel">Class</label>
-          <select v-model="selectedClass" class="input text-sm">
-            <option v-for="cls in availableClasses" :key="cls" :value="cls">{{ cls }}</option>
-          </select>
+          <label class="block mb-1 text-xs font-semibold text-[var(--color-text-secondary)] font-cinzel">Choose Class to Level</label>
+          <div class="flex flex-col gap-1 max-h-[200px] overflow-y-auto border border-[var(--color-border-primary)] rounded p-1.5">
+            <label
+              v-for="option in availableClasses"
+              :key="option.classType"
+              class="flex items-center gap-2 p-1.5 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-secondary)] transition-colors text-sm"
+              :class="{
+                'bg-[var(--color-bg-primary)] border-[var(--color-accent-primary)] cursor-pointer': selectedClass === option.classType && option.canTake,
+                'cursor-pointer': option.canTake && selectedClass !== option.classType,
+                'opacity-50 cursor-not-allowed': !option.canTake,
+              }"
+            >
+              <input
+                v-model="selectedClass"
+                type="radio"
+                :value="option.classType"
+                :disabled="!option.canTake"
+                class="mr-1"
+              />
+              <div class="flex-1">
+                <div class="font-semibold text-[var(--color-text-primary)]">
+                  {{ option.classType }}
+                  <span v-if="option.currentLevel > 0" class="text-xs text-[var(--color-text-tertiary)]">(Level {{ option.currentLevel }})</span>
+                  <span v-else class="text-xs text-[var(--color-text-tertiary)]">(New class)</span>
+                </div>
+                <div v-if="option.requirementText" class="text-xs" :class="option.canTake ? 'text-[var(--color-success)]' : 'text-[var(--color-danger)]'">
+                  Requires: {{ option.requirementText }} {{ option.canTake ? '✓' : '✗' }}
+                </div>
+              </div>
+            </label>
+          </div>
+          <div v-if="selectedClass" class="text-xs text-[var(--color-text-tertiary)] italic mt-1">
+            {{ selectedClassOption?.currentLevel > 0 ? `Leveling ${selectedClass} to level ${selectedClassOption.currentLevel + 1}` : `Taking first level of ${selectedClass}` }}
+          </div>
+        </div>
+
+        <!-- Class Choices (only for first level of new class) -->
+        <div v-if="selectedClassOption?.currentLevel === 0" class="mb-2">
+          <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Class Choices</h3>
+          
+          <!-- Skill Selection -->
+          <div class="mb-2">
+            <h4 class="text-xs font-semibold text-[var(--color-text-secondary)] mb-1">Choose 2 Skills</h4>
+            <div v-if="availableSkills.length === 0" class="text-xs text-[var(--color-text-tertiary)] italic mb-1">
+              All available skills are already proficient.
+            </div>
+            <div v-else class="grid grid-cols-2 gap-1 mb-1">
+              <label
+                v-for="skill in availableSkills"
+                :key="skill"
+                class="flex items-center p-1 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-secondary)] cursor-pointer transition-colors text-xs"
+                :class="{ 
+                  'bg-[var(--color-bg-primary)] border-[var(--color-accent-primary)]': selectedSkills.includes(skill), 
+                  'opacity-50 cursor-not-allowed': !selectedSkills.includes(skill) && selectedSkills.length >= 2 
+                }"
+              >
+                <input
+                  type="checkbox"
+                  :value="skill"
+                  v-model="selectedSkills"
+                  :disabled="!selectedSkills.includes(skill) && selectedSkills.length >= 2"
+                  class="mr-1 w-3 h-3"
+                />
+                <span class="text-[var(--color-text-primary)]">{{ skill }}</span>
+              </label>
+            </div>
+            <div class="text-center text-xs" :class="{ 'text-[var(--color-success)]': selectedSkills.length === 2, 'text-[var(--color-danger)]': selectedSkills.length !== 2 }">
+              Selected: {{ selectedSkills.length }} / 2 skills
+            </div>
+          </div>
+
+          <!-- Fighting Style Selection (Fighter only) -->
+          <div v-if="selectedClass === 'Fighter'" class="mb-2">
+            <h4 class="text-xs font-semibold text-[var(--color-text-secondary)] mb-1">Choose Fighting Style</h4>
+            <div v-if="fightingStyles.length === 0" class="text-xs text-[var(--color-text-tertiary)] italic mb-1">
+              You already have a fighting style selected.
+            </div>
+            <div v-else class="flex flex-col gap-1">
+              <label
+                v-for="style in fightingStyles"
+                :key="style.name"
+                class="flex items-start p-1 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-secondary)] cursor-pointer transition-colors text-xs"
+                :class="{ 'bg-[var(--color-bg-primary)] border-[var(--color-accent-primary)]': selectedFightingStyle === style.name }"
+              >
+                <input
+                  v-model="selectedFightingStyle"
+                  type="radio"
+                  :value="style.name"
+                  class="mt-0.5 mr-1 w-3 h-3"
+                />
+                <div class="flex-1">
+                  <div class="font-semibold text-[var(--color-text-primary)]">{{ style.name }}</div>
+                  <div class="text-[0.65rem] text-[var(--color-text-tertiary)] mt-0.5">{{ style.description }}</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Weapon Mastery Selection -->
+          <div class="mb-2">
+            <h4 class="text-xs font-semibold text-[var(--color-text-secondary)] mb-1">
+              Choose {{ weaponMasteryCount }} {{ selectedClass === 'Barbarian' ? 'Melee' : '' }} Weapons for Weapon Mastery
+            </h4>
+            <div v-if="weaponMasteryWeapons.length === 0" class="text-xs text-[var(--color-text-tertiary)] italic mb-1">
+              All available weapons already have mastery.
+            </div>
+            <div v-else class="max-h-[150px] overflow-y-auto border border-[var(--color-border-primary)] rounded p-1 mb-1">
+              <div class="grid grid-cols-1 gap-1">
+                <label
+                  v-for="weapon in weaponMasteryWeapons"
+                  :key="weapon.name"
+                  class="flex items-center p-1 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-secondary)] cursor-pointer transition-colors text-xs"
+                  :class="{ 
+                    'bg-[var(--color-bg-primary)] border-[var(--color-accent-primary)]': selectedWeaponMasteries.includes(weapon.name), 
+                    'opacity-50 cursor-not-allowed': !selectedWeaponMasteries.includes(weapon.name) && selectedWeaponMasteries.length >= weaponMasteryCount 
+                  }"
+                >
+                  <input
+                    type="checkbox"
+                    :value="weapon.name"
+                    v-model="selectedWeaponMasteries"
+                    :disabled="!selectedWeaponMasteries.includes(weapon.name) && selectedWeaponMasteries.length >= weaponMasteryCount"
+                    class="mr-1 w-3 h-3"
+                  />
+                  <div class="flex-1">
+                    <span class="font-semibold text-[var(--color-text-primary)]">{{ weapon.name }}</span>
+                    <span class="text-[0.65rem] text-[var(--color-text-tertiary)] ml-1">({{ weapon.type }}, {{ weapon.mastery }})</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+            <div class="text-center text-xs" :class="{ 'text-[var(--color-success)]': selectedWeaponMasteries.length === weaponMasteryCount, 'text-[var(--color-danger)]': selectedWeaponMasteries.length !== weaponMasteryCount }">
+              Selected: {{ selectedWeaponMasteries.length }} / {{ weaponMasteryCount }} weapons
+            </div>
+          </div>
         </div>
 
         <div class="mb-2">
@@ -78,8 +209,9 @@
 </template>
 
 <script setup lang="ts">
-import { computeHpGainOnLevelUp, getAllClassTypes, getAverageHpGainOnLevelUp, getHitDie, type ClassType } from '~/composables/classProgression'
+import { canMulticlassInto, computeHpGainOnLevelUp, getAllClassTypes, getAverageHpGainOnLevelUp, getHitDie, getMulticlassRequirements, type ClassType } from '~/composables/classProgression'
 import { canLevelUpWithXp, getXpForLevel } from '~/composables/xpProgression'
+import { BARBARIAN_SKILLS, FIGHTING_STYLES, WEAPON_MASTERY_WEAPONS, getMeleeWeapons } from '~/composables/useCharacter'
 
 const props = defineProps<{
   isOpen: boolean
@@ -89,25 +221,124 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const { character, levelUpToNext } = useCharacter()
+const { character, getAllClasses, getClassLevel, levelUpToNext } = useCharacter()
+
+const fighterSkills = [
+  'Acrobatics',
+  'Animal Handling',
+  'Athletics',
+  'History',
+  'Insight',
+  'Intimidation',
+  'Perception',
+  'Persuasion',
+  'Survival',
+]
 
 const currentLevel = computed(() => character.value.level || 1)
 const nextLevel = computed(() => currentLevel.value + 1)
 
-const availableClasses = computed<readonly ClassType[]>(() => {
-  return character.value.classType ? [character.value.classType] : getAllClassTypes()
+interface ClassOption {
+  classType: ClassType
+  currentLevel: number
+  canTake: boolean
+  requirementText: string
+}
+
+const availableClasses = computed<readonly ClassOption[]>(() => {
+  const currentClasses = getAllClasses()
+  const allTypes = getAllClassTypes()
+
+  return allTypes.map(classType => {
+    const current = getClassLevel(classType)
+    const req = getMulticlassRequirements(classType)
+    let canTake = true
+    let requirementText = ''
+
+    if (req) {
+      const minScore = req.minScore
+      if (req.primaryAbility) {
+        const ability = character.value.abilities[req.primaryAbility as keyof typeof character.value.abilities]
+        canTake = ability?.score >= minScore
+        requirementText = `${req.primaryAbility.toUpperCase()} ${minScore}+`
+      } else if (req.primaryAbilities && req.primaryAbilities.length > 0) {
+        canTake = req.primaryAbilities.some(abilityName => {
+          const ability = character.value.abilities[abilityName as keyof typeof character.value.abilities]
+          return ability?.score >= minScore
+        })
+        requirementText = `${req.primaryAbilities.map(a => a.toUpperCase()).join(' or ')} ${minScore}+`
+      }
+    }
+
+    return {
+      classType,
+      currentLevel: current,
+      canTake: current > 0 || canTake, // Can take if already have it OR meet requirements
+      requirementText,
+    }
+  })
 })
 
-const selectedClass = ref<ClassType | null>(character.value.classType ?? null)
+const selectedClass = ref<ClassType | null>(null)
 const hpMethod = ref<'average' | 'roll'>('average')
 const manualRoll = ref<number | null>(null)
+const selectedSkills = ref<string[]>([])
+const selectedFightingStyle = ref<string>('')
+const selectedWeaponMasteries = ref<string[]>([])
+
+const availableSkills = computed(() => {
+  if (!selectedClass.value) return []
+  const allSkills = selectedClass.value === 'Fighter' ? fighterSkills : BARBARIAN_SKILLS
+  // Filter out skills that are already proficient
+  return allSkills.filter(skillName => {
+    const skill = character.value.skills.find(s => s.name === skillName)
+    return !skill || !skill.proficient
+  })
+})
+
+const fightingStyles = computed(() => {
+  // Filter out fighting style if already selected
+  const currentStyle = character.value.fightingStyle
+  if (!currentStyle) return FIGHTING_STYLES
+  return FIGHTING_STYLES.filter(style => style.name !== currentStyle)
+})
+
+const weaponMasteryWeapons = computed(() => {
+  const allWeapons = selectedClass.value === 'Barbarian' ? getMeleeWeapons() : WEAPON_MASTERY_WEAPONS
+  const existingMasteries = character.value.weaponMastery ?? []
+  // Filter out weapons that are already in weaponMastery
+  return allWeapons.filter(weapon => !existingMasteries.includes(weapon.name))
+})
+const weaponMasteryCount = computed(() => {
+  if (selectedClass.value === 'Fighter') return 3
+  if (selectedClass.value === 'Barbarian') return 2
+  return 0
+})
 
 watch(() => props.isOpen, (open) => {
   if (!open) return
-  const preferred = character.value.classType ?? null
-  selectedClass.value = preferred ?? (availableClasses.value[0] ?? null)
+  const firstAvailable = availableClasses.value.find(opt => opt.canTake)
+  selectedClass.value = firstAvailable?.classType ?? null
   hpMethod.value = 'average'
   manualRoll.value = null
+  selectedSkills.value = []
+  selectedFightingStyle.value = ''
+  selectedWeaponMasteries.value = []
+})
+
+watch(selectedClass, (newClass) => {
+  // Reset choices when class changes
+  selectedSkills.value = []
+  selectedFightingStyle.value = ''
+  selectedWeaponMasteries.value = []
+  
+  // If switching to a class that doesn't meet requirements, clear selection
+  if (newClass) {
+    const option = availableClasses.value.find(opt => opt.classType === newClass)
+    if (option && !option.canTake) {
+      selectedClass.value = null
+    }
+  }
 })
 
 const hitDie = computed(() => selectedClass.value ? getHitDie(selectedClass.value) : 8)
@@ -132,9 +363,37 @@ const hasEnoughXp = computed(() => {
   return canLevelUpWithXp(level, character.value.experiencePoints.current)
 })
 
+const selectedClassOption = computed(() => {
+  return availableClasses.value.find(opt => opt.classType === selectedClass.value)
+})
+
 const canApply = computed(() => {
   if (!hasEnoughXp.value) return false
   if (!selectedClass.value) return false
+  const option = selectedClassOption.value
+  if (!option || !option.canTake) return false
+
+  // If taking first level of new class, check class choices
+  if (option.currentLevel === 0) {
+    // Check if there are enough available skills
+    if (availableSkills.value.length < 2) return false
+    if (selectedSkills.value.length !== 2) return false
+    
+    if (selectedClass.value === 'Fighter') {
+      // Check if there are available fighting styles
+      if (fightingStyles.value.length === 0) return false
+      if (!selectedFightingStyle.value) return false
+      // Check if there are enough available weapons
+      if (weaponMasteryWeapons.value.length < 3) return false
+      if (selectedWeaponMasteries.value.length !== 3) return false
+    } else if (selectedClass.value === 'Barbarian') {
+      // Check if there are enough available weapons
+      if (weaponMasteryWeapons.value.length < 2) return false
+      if (selectedWeaponMasteries.value.length !== 2) return false
+    }
+  }
+
+  // HP choice validation
   if (hpMethod.value === 'average') return true
   if (manualRoll.value === null) return false
   return manualRoll.value >= 1 && manualRoll.value <= hitDie.value
@@ -145,13 +404,21 @@ const rollNow = (): void => {
 }
 
 const applyLevelUp = (): void => {
-  if (!canApply.value) return
+  if (!canApply.value || !selectedClass.value) return
+  
+  const isNewClass = selectedClassOption.value?.currentLevel === 0
+  const classChoices = isNewClass ? {
+    selectedSkills: selectedSkills.value,
+    selectedFightingStyle: selectedClass.value === 'Fighter' ? selectedFightingStyle.value : undefined,
+    selectedWeaponMasteries: selectedWeaponMasteries.value,
+  } : undefined
+
   if (hpMethod.value === 'average') {
-    levelUpToNext({ method: 'average' })
+    levelUpToNext(selectedClass.value, { method: 'average' }, classChoices)
     close()
     return
   }
-  levelUpToNext({ method: 'roll', roll: manualRoll.value ?? undefined })
+  levelUpToNext(selectedClass.value, { method: 'roll', roll: manualRoll.value ?? undefined }, classChoices)
   close()
 }
 

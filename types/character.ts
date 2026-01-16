@@ -82,10 +82,18 @@ export interface ResourcePool {
   active?: boolean
 }
 
+export type ClassType = 'Barbarian' | 'Bard' | 'Cleric' | 'Druid' | 'Fighter' | 'Monk' | 'Paladin' | 'Ranger' | 'Rogue' | 'Sorcerer' | 'Warlock' | 'Wizard'
+
+export interface ClassEntry {
+  classType: ClassType
+  level: number
+}
+
 export interface Character {
   // Header
   name: string
-  classLevel: string // e.g., "Fighter 5"
+  classLevel: string // Display string: "Fighter 5" or "Barbarian 3 / Fighter 2" (computed from classes)
+  classes: ClassEntry[] // Multiclass support: [{ classType: "Barbarian", level: 3 }, { classType: "Fighter", level: 2 }]
   experiencePoints: {
     current: number
     nextLevel: number // XP needed for next level
@@ -127,9 +135,10 @@ export interface Character {
   featuresTraits: FeatureTrait[]
 
   // Class-specific
-  classType?: 'Barbarian' | 'Bard' | 'Cleric' | 'Druid' | 'Fighter' | 'Monk' | 'Paladin' | 'Ranger' | 'Rogue' | 'Sorcerer' | 'Warlock' | 'Wizard'
+  classType?: ClassType // DEPRECATED: kept for migration, use classes array instead
   resources?: Record<string, ResourcePool>
-  fightingStyle?: string // Fighter-specific
+  multiclassProficiencies?: string[] // Proficiencies granted from multiclassing (e.g., "Martial Weapons", "Shields")
+  fightingStyle?: string // Fighter-specific (applies to any Fighter level)
   weaponMastery: string[] // Array of weapon names with mastery
   rage?: {
     active: boolean

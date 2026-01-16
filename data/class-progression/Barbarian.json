@@ -4,6 +4,14 @@
     "starting": { "base": "maxHitDie", "addCon": true },
     "levelUp": { "average": "halfHitDieFloor", "addCon": true, "minGain": 1 }
   },
+  "multiclassRequirements": {
+    "primaryAbility": "strength",
+    "minScore": 13
+  },
+  "multiclassProficiencies": {
+    "proficiencies": ["Martial Weapons"],
+    "armorTraining": ["Shields"]
+  },
   "resources": {
     "rage": {
       "label": "Rage",
