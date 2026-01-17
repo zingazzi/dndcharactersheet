@@ -558,6 +558,7 @@ const rollAttack = (action: Action) => {
 
   // Recalculate to-hit modifier based on weapon type
   let modifier = 0
+  let archeryBonus = 0
 
   // Check if this is a weapon from the database
   const weaponData = getWeaponData(action.name)
@@ -579,6 +580,11 @@ const rollAttack = (action: Action) => {
       abilityModifier = Math.max(strModifier, dexModifier)
     }
 
+    // Apply Archery fighting style bonus (+2 to attack rolls with ranged weapons)
+    if (character.value.fightingStyle === 'Archery' && weaponData.type === 'ranged') {
+      archeryBonus = 2
+    }
+
     modifier = abilityModifier + proficiencyBonus
   } else if (action.name === 'Unarmed Strike') {
     // Unarmed Strike uses STR + proficiency
@@ -589,18 +595,18 @@ const rollAttack = (action: Action) => {
     modifier = modifierMatch ? parseInt(modifierMatch[1]) : 0
   }
 
-  const total = roll + modifier
+  const totalModifier = modifier + archeryBonus
+  const total = roll + totalModifier
   const title = `${action.name} - Attack Roll`
-
   toast.value = {
     title,
     roll,
-    modifier,
+    modifier: totalModifier,
     total,
   }
 
   isToastVisible.value = true
-  addRoll(title, roll, modifier)
+  addRoll(title, roll, totalModifier)
 
   setTimeout(() => {
     isToastVisible.value = false

@@ -499,13 +499,25 @@ function generateAttackFromWeapon(weapon: InventoryItem, character: Character): 
   }
 
   const proficiencyBonus = character.proficiencyBonus
-  const toHitModifier = abilityModifier + proficiencyBonus
+  let toHitModifier = abilityModifier + proficiencyBonus
+
+  // Apply Archery fighting style bonus (+2 to attack rolls with ranged weapons)
+  if (character.fightingStyle === 'Archery' && weaponData.type === 'ranged') {
+    toHitModifier += 2
+  }
+
   const toHitString = toHitModifier >= 0 ? `+${toHitModifier}` : `${toHitModifier}`
 
   // Calculate damage (weapon damage + ability modifier)
+  // Always include ability modifier in damage, even if it's 0 or negative
   let damageString = weaponData.damage
-  if (abilityModifier !== 0) {
-    damageString += abilityModifier >= 0 ? ` + ${abilityModifier}` : ` ${abilityModifier}`
+  if (abilityModifier > 0) {
+    damageString += ` + ${abilityModifier}`
+  } else if (abilityModifier < 0) {
+    damageString += ` ${abilityModifier}` // Negative numbers already have the minus sign
+  } else {
+    // For ability modifier of 0, still show it for clarity (optional, but helps with consistency)
+    damageString += ` + 0`
   }
   damageString += ` ${weaponData.damageType}`
 
@@ -730,6 +742,26 @@ function updateBasicAttacks(character: Character): void {
 
     // Check if there are any changes needed
     const basicAttackNames = new Set(actionsToAdd.map(a => a.name))
+
+    // Helper function to check if a weapon attack needs updating
+    const checkWeaponAttackNeedsUpdate = (action: Action, weapon: InventoryItem): boolean => {
+      const weaponData = getWeaponData(weapon.name)
+      if (!weaponData) return false
+
+      // Generate expected attack to compare
+      const expectedAttack = generateAttackFromWeapon(weapon, character)
+
+      // Compare to-hit modifiers
+      if (action.toHit !== expectedAttack.toHit) return true
+
+      // Compare damage (but ignore rage bonus which is dynamic)
+      const actionDamageBase = action.damage.replace(/\s*\+\s*\d+\s*\(rage\)/g, '').trim()
+      const expectedDamageBase = expectedAttack.damage.replace(/\s*\+\s*\d+\s*\(rage\)/g, '').trim()
+      if (actionDamageBase !== expectedDamageBase) return true
+
+      return false
+    }
+
     const hasChanges = character.actions.some(action => {
       if (!action.isBasicAttack && !action.isBonusAction) return false
       // Check if we need to update this basic attack
@@ -737,6 +769,22 @@ function updateBasicAttacks(character: Character): void {
         if (!rogueClass) return true // Should be removed
         const expectedDice = getSneakAttackDice(rogueClass.level)
         return action.damage !== `${expectedDice}d6`
+      }
+      // Check Unarmed Strike
+      if (action.name === 'Unarmed Strike') {
+        const expectedUnarmed = generateUnarmedStrike(character)
+        if (action.toHit !== expectedUnarmed.toHit || action.damage !== expectedUnarmed.damage) {
+          return true
+        }
+      }
+      // Check weapon attacks - compare with expected values
+      const equippedWeapons = getEquippedWeapons(character)
+      for (const weapon of equippedWeapons) {
+        if (action.name === weapon.name && action.isBasicAttack) {
+          if (checkWeaponAttackNeedsUpdate(action, weapon)) {
+            return true
+          }
+        }
       }
       // Check bonus actions
       if (action.isBonusAction) {

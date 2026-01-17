@@ -326,8 +326,10 @@ const toggleSkill = (skill: string) => {
 
 const createCharacter = () => {
   if (canCreate.value) {
-    // Paladin gets fighting style at level 2, not level 1
-    const fightingStyle = selectedClass.value === 'Fighter' ? selectedFightingStyle.value : undefined
+    // Fighter gets fighting style at level 1, Paladin can select it at creation (applied at level 2)
+    const fightingStyle = (selectedClass.value === 'Fighter' || selectedClass.value === 'Paladin')
+      ? selectedFightingStyle.value
+      : undefined
     const expertise = selectedClass.value === 'Rogue' ? selectedExpertise.value : undefined
     emit('create', selectedClass.value, selectedSkills.value, fightingStyle, selectedWeaponMasteries.value, expertise)
     selectedClass.value = 'Fighter'
