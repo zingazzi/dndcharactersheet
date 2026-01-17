@@ -5,7 +5,7 @@ import type { SpellSlot } from '~/types/character'
  * Based on D&D 5.5 Paladin progression
  */
 const PALADIN_SPELL_SLOTS: Readonly<Record<number, ReadonlyArray<{ level: number; total: number }>>> = {
-  1: [],
+  1: [{ level: 1, total: 2 }],
   2: [{ level: 1, total: 2 }],
   3: [{ level: 1, total: 3 }],
   4: [{ level: 1, total: 3 }],
@@ -138,13 +138,40 @@ export function getPaladinSpellSlots(
 }
 
 /**
+ * Paladin prepared spells progression table
+ * Based on D&D 5.5 Paladin progression - fixed values per level
+ */
+const PALADIN_PREPARED_SPELLS: Readonly<Record<number, number>> = {
+  1: 2,
+  2: 3,
+  3: 4,
+  4: 5,
+  5: 6,
+  6: 6,
+  7: 7,
+  8: 7,
+  9: 9,
+  10: 9,
+  11: 10,
+  12: 10,
+  13: 11,
+  14: 11,
+  15: 12,
+  16: 12,
+  17: 14,
+  18: 14,
+  19: 15,
+  20: 15,
+}
+
+/**
  * Get the number of prepared spells for a Paladin of the given level
- * Based on: Paladin level + Charisma modifier (minimum 1)
- * @param level Paladin level
- * @param charismaModifier Charisma ability modifier
+ * Based on fixed table values per level (not dependent on Charisma modifier)
+ * @param level Paladin level (1-20)
+ * @param charismaModifier Charisma ability modifier (kept for backward compatibility, not used)
  * @returns Number of spells that can be prepared
  */
 export function getPaladinPreparedSpellCount(level: number, charismaModifier: number): number {
-  if (level < 2) return 0 // No spellcasting before level 2
-  return Math.max(1, level + charismaModifier)
+  if (level < 1 || level > 20) return 0
+  return PALADIN_PREPARED_SPELLS[level] || 0
 }

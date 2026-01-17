@@ -18,7 +18,28 @@
       "description": "You have a pool of healing power that replenishes when you take a Long Rest. With that pool, you can restore a total number of Hit Points equal to your Paladin level × 5. As an action, you can touch a creature and draw power from the pool to restore a number of Hit Points to that creature, up to the maximum amount remaining in your pool. Alternatively, you can expend 5 Hit Points from the pool of healing to cure the target of one disease or neutralize one poison affecting it. You can cure multiple diseases and neutralize multiple poisons with a single use of Lay on Hands, expending Hit Points separately for each one.",
       "reset": "longRest",
       "trackActive": false,
-      "maxByLevel": {}
+      "maxByLevel": {
+        "1": 5,
+        "2": 10,
+        "3": 15,
+        "4": 20,
+        "5": 25,
+        "6": 30,
+        "7": 35,
+        "8": 40,
+        "9": 45,
+        "10": 50,
+        "11": 55,
+        "12": 60,
+        "13": 65,
+        "14": 70,
+        "15": 75,
+        "16": 80,
+        "17": 85,
+        "18": 90,
+        "19": 95,
+        "20": 100
+      }
     }
   },
   "levels": {

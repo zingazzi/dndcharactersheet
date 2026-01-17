@@ -82,6 +82,45 @@
       </div>
     </div>
 
+    <!-- Spell Slots -->
+    <div v-if="spellSlotsList.length > 0" class="section">
+      <div class="section-header">
+        <h3 class="section-title">Spell Slots</h3>
+        <button @click="longRest" class="btn btn-primary text-xs px-2 py-1" title="Reset all spell slots (Long Rest)">
+          Long Rest
+        </button>
+      </div>
+      <div class="flex flex-col gap-2">
+        <div
+          v-for="slot in spellSlotsList"
+          :key="slot.level"
+          class="card-compact p-2"
+        >
+          <div class="flex items-center justify-between gap-2 mb-1">
+            <span class="text-sm font-semibold text-[var(--color-text-secondary)]">Level {{ slot.level }}</span>
+            <span class="text-xs text-[var(--color-text-tertiary)]">
+              {{ slot.used }} / {{ slot.total }} used
+            </span>
+          </div>
+          <div class="flex flex-wrap gap-1.5">
+            <label
+              v-for="index in slot.total"
+              :key="index"
+              class="flex items-center gap-1 cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                :checked="index <= slot.used"
+                @change="toggleSpellSlot(slot.level, index)"
+                class="w-4 h-4"
+              />
+              <span class="text-xs text-[var(--color-text-tertiary)]">{{ index }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Actions -->
     <div class="section">
       <div class="section-header">
@@ -151,7 +190,7 @@
             <span class="text-sm font-semibold text-[var(--color-text-primary)]">{{ action.name }}</span>
             <div class="flex items-center gap-2 shrink-0">
               <span v-if="action.toHit !== '-'" class="text-xs text-[var(--color-text-tertiary)]">
-                To Hit: 
+                To Hit:
                 <button
                   @click="rollAttack(action)"
                   class="clickable-text text-sm font-bold text-[var(--color-accent-primary)] hover:text-[var(--color-accent-primary-dark)] transition-colors"
@@ -224,69 +263,9 @@
           >
             Manage
           </button>
-          <button
-            @click="showSpellForm = !showSpellForm"
-            class="btn btn-primary text-sm px-2 py-1"
-          >
-            {{ showSpellForm ? 'Cancel' : '+' }}
-          </button>
         </div>
       </div>
-      <!-- Spell Slots -->
-      <div class="mb-2 pb-2 border-b border-[var(--color-border-divider)]">
-        <div class="text-sm text-[var(--color-text-tertiary)] mb-1">Spell Slots</div>
-        <div class="grid grid-cols-4 gap-1">
-          <div
-            v-for="slot in character.spellSlots.slice(0, 4)"
-            :key="slot.level"
-            class="text-center"
-          >
-            <div class="text-xs text-[var(--color-text-tertiary)]">L{{ slot.level }}</div>
-            <div class="flex items-center justify-center gap-0.5">
-              <input
-                v-model.number="slot.used"
-                type="number"
-                :max="slot.total"
-                min="0"
-                class="input text-sm py-0.5 px-1 w-8 text-center"
-              />
-              <span class="text-[var(--color-text-tertiary)]">/</span>
-              <input
-                v-model.number="slot.total"
-                type="number"
-                min="0"
-                class="input text-sm py-0.5 px-1 w-8 text-center"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Spell List -->
-      <div v-if="showSpellForm" class="p-2 bg-[var(--color-bg-secondary)] rounded mb-2">
-        <input
-          v-model="newSpell.name"
-          type="text"
-          placeholder="Spell Name"
-          class="input text-sm py-1 px-1.5 mb-1 w-full"
-        />
-        <div class="flex gap-1 mb-1">
-          <input
-            v-model.number="newSpell.level"
-            type="number"
-            placeholder="Lvl"
-            min="0"
-            max="9"
-            class="input text-sm py-1 px-1.5 w-16"
-          />
-          <input
-            v-model="newSpell.school"
-            type="text"
-            placeholder="School"
-            class="input text-sm py-1 px-1.5 flex-1"
-          />
-        </div>
-        <button @click="handleAddSpell" class="btn btn-primary text-xs px-1.5 py-0.5 w-full">Add</button>
-      </div>
+
       <div class="flex flex-col gap-1 max-h-[200px] overflow-y-auto">
         <div
           v-for="spell in character.spells"
@@ -480,6 +459,25 @@ const toggleSpellPrepared = (spellId: string): void => {
   }
 }
 
+// Get spell slots list for display
+const spellSlotsList = computed(() => {
+  return character.value.spellSlots.filter(slot => slot.total > 0)
+})
+
+// Toggle spell slot usage
+const toggleSpellSlot = (level: number, slotIndex: number): void => {
+  const slot = character.value.spellSlots.find(s => s.level === level)
+  if (!slot) return
+
+  if (slotIndex <= slot.used) {
+    // Unchecking - reduce used count
+    slot.used = Math.max(0, slot.used - 1)
+  } else {
+    // Checking - increase used count (but not beyond total)
+    slot.used = Math.min(slot.total, slot.used + 1)
+  }
+}
+
 const isEquippable = (item: InventoryItem): boolean => {
   // Check if item is a weapon
   if (getWeaponData(item.name)) return true
@@ -543,33 +541,33 @@ const rollDice = (diceString: string): number => {
   // Parse dice string like "1d8" or "2d6"
   const match = diceString.match(/(\d+)d(\d+)/)
   if (!match) return 0
-  
+
   const numDice = parseInt(match[1])
   const sides = parseInt(match[2])
   let total = 0
-  
+
   for (let i = 0; i < numDice; i++) {
     total += Math.floor(Math.random() * sides) + 1
   }
-  
+
   return total
 }
 
 const rollAttack = (action: Action) => {
   const roll = rollD20()
-  
+
   // Recalculate to-hit modifier based on weapon type
   let modifier = 0
-  
+
   // Check if this is a weapon from the database
   const weaponData = getWeaponData(action.name)
-  
+
   if (weaponData) {
     // Get the appropriate ability modifier
     const strModifier = character.value.abilities.strength.modifier
     const dexModifier = character.value.abilities.dexterity.modifier
     const proficiencyBonus = character.value.proficiencyBonus
-    
+
     // Determine which modifier to use based on weapon ability
     let abilityModifier = 0
     if (weaponData.ability === 'strength') {
@@ -580,7 +578,7 @@ const rollAttack = (action: Action) => {
       // For finesse weapons, use the higher of STR or DEX
       abilityModifier = Math.max(strModifier, dexModifier)
     }
-    
+
     modifier = abilityModifier + proficiencyBonus
   } else if (action.name === 'Unarmed Strike') {
     // Unarmed Strike uses STR + proficiency
@@ -590,20 +588,20 @@ const rollAttack = (action: Action) => {
     const modifierMatch = action.toHit.match(/([+-]?\d+)/)
     modifier = modifierMatch ? parseInt(modifierMatch[1]) : 0
   }
-  
+
   const total = roll + modifier
   const title = `${action.name} - Attack Roll`
-  
+
   toast.value = {
     title,
     roll,
     modifier,
     total,
   }
-  
+
   isToastVisible.value = true
   addRoll(title, roll, modifier)
-  
+
   setTimeout(() => {
     isToastVisible.value = false
   }, 3000)
@@ -612,44 +610,44 @@ const rollAttack = (action: Action) => {
 const rollDamage = (action: Action) => {
   // Parse damage string like "1d8 + 3 slashing" or "1d8 + 3 slashing + 2 (rage)" or "1d8 + 3 slashing + 1d6 (sneak attack)"
   const damageString = action.damage
-  
+
   // Extract main weapon dice (e.g., "1d8", "2d6")
   const diceMatch = damageString.match(/(\d+d\d+)/)
   const diceRoll = diceMatch ? rollDice(diceMatch[1]) : 0
-  
+
   // Handle Sneak Attack separately (it's its own action)
   if (action.name === 'Sneak Attack') {
     const diceRoll = rollDice(damageString)
     const title = `${action.name} - Damage`
-    
+
     toast.value = {
       title,
       roll: diceRoll,
       modifier: 0,
       total: diceRoll,
     }
-    
+
     isToastVisible.value = true
     addRoll(title, diceRoll, 0)
-    
+
     setTimeout(() => {
       isToastVisible.value = false
     }, 3000)
     return
   }
-  
+
   // Recalculate modifier based on weapon type
   let modifier = 0
   let rageBonus = 0
-  
+
   // Check if this is a weapon from the database
   const weaponData = getWeaponData(action.name)
-  
+
   if (weaponData) {
     // Get the appropriate ability modifier
     const strModifier = character.value.abilities.strength.modifier
     const dexModifier = character.value.abilities.dexterity.modifier
-    
+
     // Determine which modifier to use based on weapon ability
     if (weaponData.ability === 'strength') {
       modifier = strModifier
@@ -659,19 +657,19 @@ const rollDamage = (action: Action) => {
       // For finesse weapons, use the higher of STR or DEX
       modifier = Math.max(strModifier, dexModifier)
     }
-    
+
     // Add rage bonus if Barbarian is raging and using STR
     const hasBarbarian = (character.value.classes ?? []).some(c => c.classType === 'Barbarian')
-    if (hasBarbarian && 
-        character.value.rage?.active && 
-        (weaponData.ability === 'strength' || 
+    if (hasBarbarian &&
+        character.value.rage?.active &&
+        (weaponData.ability === 'strength' ||
          (weaponData.ability === 'finesse' && strModifier >= dexModifier))) {
       rageBonus = character.value.rage.damageBonus
     }
   } else if (action.name === 'Unarmed Strike') {
     // Unarmed Strike uses STR
     modifier = character.value.abilities.strength.modifier
-    
+
     // Add rage bonus for Barbarian
     const hasBarbarian = (character.value.classes ?? []).some(c => c.classType === 'Barbarian')
     if (hasBarbarian && character.value.rage?.active) {
@@ -681,28 +679,28 @@ const rollDamage = (action: Action) => {
     // For custom/manual attacks, try to extract modifier from the damage string
     const modifierMatch = damageString.match(/([+-]\s*\d+)/)
     modifier = modifierMatch ? parseInt(modifierMatch[1].replace(/\s/g, '')) : 0
-    
+
     // Try to extract rage bonus if present
     const rageMatch = damageString.match(/\+\s*(\d+)\s*\(rage\)/)
     if (rageMatch) {
       rageBonus = parseInt(rageMatch[1])
     }
   }
-  
+
   const totalModifier = modifier + rageBonus
   const total = diceRoll + totalModifier
   const title = `${action.name} - Damage`
-  
+
   toast.value = {
     title,
     roll: diceRoll,
     modifier: totalModifier,
     total,
   }
-  
+
   isToastVisible.value = true
   addRoll(title, diceRoll, totalModifier)
-  
+
   setTimeout(() => {
     isToastVisible.value = false
   }, 3000)

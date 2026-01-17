@@ -617,6 +617,27 @@ function generateHideBonusAction(character: Character): Action {
   }
 }
 
+function generateLayOnHandsAction(character: Character): Action {
+  const paladinClass = (character.classes ?? []).find(c => c.classType === 'Paladin')
+  if (!paladinClass) return null as any
+
+  const layOnHandsPool = character.resources?.layOnHands
+  const poolInfo = layOnHandsPool
+    ? ` (${layOnHandsPool.current} / ${layOnHandsPool.max} HP remaining)`
+    : ''
+
+  return {
+    id: crypto.randomUUID(),
+    name: 'Lay on Hands',
+    type: 'Action',
+    range: 'Touch',
+    toHit: '-',
+    damage: '-',
+    description: `You have a pool of healing power that replenishes when you take a Long Rest. With that pool, you can restore a total number of Hit Points equal to your Paladin level × 5. As an action, you can touch a creature and draw power from the pool to restore a number of Hit Points to that creature, up to the maximum amount remaining in your pool. Alternatively, you can expend 5 Hit Points from the pool of healing to cure the target of one disease or neutralize one poison affecting it.${poolInfo}`,
+    isBasicAttack: true,
+  }
+}
+
 let isUpdatingBasicAttacks = false
 
 function updateBasicAttacks(character: Character): void {
@@ -627,7 +648,7 @@ function updateBasicAttacks(character: Character): void {
   try {
     // Collect what we need to add
     const actionsToAdd: Action[] = []
-    
+
     // Generate unarmed strike (always available) - but check if it was manually converted
     const existingUnarmed = character.actions.find(a => a.name === 'Unarmed Strike' && !a.isBasicAttack)
     if (!existingUnarmed) {
@@ -652,7 +673,7 @@ function updateBasicAttacks(character: Character): void {
     if (rogueClass) {
       const expectedDice = getSneakAttackDice(rogueClass.level)
       const expectedDamage = `${expectedDice}d6`
-      
+
       // Check if Sneak Attack exists and has correct dice count
       const existingBasicSneakAttack = character.actions.find(a => a.name === 'Sneak Attack' && a.isBasicAttack)
       if (!existingBasicSneakAttack || existingBasicSneakAttack.damage !== expectedDamage) {
@@ -683,6 +704,18 @@ function updateBasicAttacks(character: Character): void {
       }
     }
 
+    // Generate Lay on Hands for Paladins (but skip if manually converted)
+    const paladinClass = (character.classes ?? []).find(c => c.classType === 'Paladin')
+    if (paladinClass && paladinClass.level >= 1) {
+      const existingLayOnHands = character.actions.find(a => a.name === 'Lay on Hands' && !a.isBasicAttack)
+      if (!existingLayOnHands) {
+        const layOnHands = generateLayOnHandsAction(character)
+        if (layOnHands) {
+          actionsToAdd.push(layOnHands)
+        }
+      }
+    }
+
     // Check if we need to remove Sneak Attack when Rogue is removed
     const hasSneakAttack = character.actions.some(a => a.name === 'Sneak Attack' && a.isBasicAttack)
     const needsSneakAttackRemoval = !rogueClass && hasSneakAttack
@@ -690,6 +723,10 @@ function updateBasicAttacks(character: Character): void {
     // Check if we need to remove bonus actions when Rogue level < 2 or Rogue is removed
     const hasBonusActions = character.actions.some(a => a.isBonusAction)
     const needsBonusActionRemoval = (!rogueClass || (rogueClass && rogueClass.level < 2)) && hasBonusActions
+
+    // Check if we need to remove Lay on Hands when Paladin is removed
+    const hasLayOnHands = character.actions.some(a => a.name === 'Lay on Hands' && a.isBasicAttack)
+    const needsLayOnHandsRemoval = (!paladinClass || (paladinClass && paladinClass.level < 1)) && hasLayOnHands
 
     // Check if there are any changes needed
     const basicAttackNames = new Set(actionsToAdd.map(a => a.name))
@@ -709,7 +746,7 @@ function updateBasicAttacks(character: Character): void {
       return !basicAttackNames.has(action.name) // Should be removed if not in our list
     })
 
-    if (!hasChanges && actionsToAdd.length === 0 && !needsSneakAttackRemoval && !needsBonusActionRemoval) {
+    if (!hasChanges && actionsToAdd.length === 0 && !needsSneakAttackRemoval && !needsBonusActionRemoval && !needsLayOnHandsRemoval) {
       return // No changes needed
     }
 
@@ -1549,17 +1586,186 @@ export const useCharacter = () => {
   }
 
   const addSpell = (spell: Omit<Spell, 'id'>) => {
+    // Check if spell already exists to avoid duplicates
+    const exists = character.value.spells.some(s => s.name === spell.name)
+    if (exists) return
+
     character.value.spells.push({
       ...spell,
       id: crypto.randomUUID(),
     })
   }
 
+  let isEnsuringPaladinSpells = false
+
+  /**
+   * Ensure all Paladin spells are in the character's spellbook
+   * Adds any missing Paladin spells (with prepared: false)
+   * Does not remove existing spells
+   */
+  function ensurePaladinSpells(): void {
+    // Guard against recursive calls
+    if (isEnsuringPaladinSpells) return
+    isEnsuringPaladinSpells = true
+
+    try {
+      const paladinClass = (character.value.classes ?? []).find(c => c.classType === 'Paladin')
+      if (!paladinClass || paladinClass.level < 1) {
+        isEnsuringPaladinSpells = false
+        return
+      }
+
+      const paladinSpells = (paladinSpellsJson as { spells: Array<{
+        name: string
+        level: number
+        school: string
+        castingTime: string
+        range: string
+        components: string
+        duration: string
+        description: string
+      }> }).spells
+
+      const existingSpellNames = new Set(character.value.spells.map(s => s.name))
+      const spellsToAdd: Omit<Spell, 'id'>[] = []
+
+      paladinSpells.forEach(spellData => {
+        if (!existingSpellNames.has(spellData.name)) {
+          spellsToAdd.push({
+            name: spellData.name,
+            level: spellData.level,
+            school: spellData.school,
+            castingTime: spellData.castingTime,
+            range: spellData.range,
+            components: spellData.components,
+            duration: spellData.duration,
+            description: spellData.description,
+            prepared: false,
+          })
+        }
+      })
+
+      // Add all spells at once to minimize reactive triggers
+      if (spellsToAdd.length > 0) {
+        spellsToAdd.forEach(spell => {
+          character.value.spells.push({
+            ...spell,
+            id: crypto.randomUUID(),
+          })
+        })
+      }
+    } finally {
+      isEnsuringPaladinSpells = false
+    }
+  }
+
   const removeSpell = (id: string) => {
     const index = character.value.spells.findIndex((s: Spell) => s.id === id)
     if (index !== -1) {
+      const spell = character.value.spells[index]
       character.value.spells.splice(index, 1)
+      // Remove corresponding action if spell was prepared
+      if (spell.prepared) {
+        syncSpellActions()
+      }
     }
+  }
+
+  /**
+   * Parse casting time string to determine if spell is action or bonus action
+   * @param castingTime The casting time string (e.g., "1 action", "1 bonus action")
+   * @returns Object with isAction and isBonusAction flags
+   */
+  function parseCastingTime(castingTime: string): { isAction: boolean; isBonusAction: boolean } {
+    const normalized = castingTime.toLowerCase().trim()
+    if (normalized.includes('bonus action')) {
+      return { isAction: false, isBonusAction: true }
+    }
+    if (normalized.includes('action') && !normalized.includes('bonus')) {
+      return { isAction: true, isBonusAction: false }
+    }
+    // For other casting times (1 minute, 10 minutes, Special, etc.), don't create actions
+    return { isAction: false, isBonusAction: false }
+  }
+
+  /**
+   * Sync prepared spells with actions/bonus actions
+   * Creates actions for prepared spells with "1 action" or "1 bonus action" casting time
+   * Removes actions for unprepared spells
+   */
+  function syncSpellActions(): void {
+    const preparedSpells = character.value.spells.filter(s => s.prepared)
+
+    // Create a set of spell names that should have actions
+    const spellNamesNeedingActions = new Set<string>()
+
+    preparedSpells.forEach(spell => {
+      const { isAction, isBonusAction } = parseCastingTime(spell.castingTime)
+      if (isAction || isBonusAction) {
+        spellNamesNeedingActions.add(spell.name)
+      }
+    })
+
+    // Remove actions that correspond to unprepared spells or spells with non-action casting times
+    character.value.actions = character.value.actions.filter(action => {
+      // Keep actions that are not spell-based (basic attacks, manually added, etc.)
+      if (!action.name || action.isBasicAttack) {
+        return true
+      }
+
+      // Check if this action corresponds to a prepared spell
+      const correspondingSpell = preparedSpells.find(s => s.name === action.name)
+      if (!correspondingSpell) {
+        // No prepared spell with this name, remove the action
+        return false
+      }
+
+      // Verify the casting time matches
+      const { isAction, isBonusAction } = parseCastingTime(correspondingSpell.castingTime)
+      const shouldBeBonusAction = isBonusAction
+
+      // If the action's bonus action flag doesn't match, remove it (will be recreated below)
+      if (action.isBonusAction !== shouldBeBonusAction) {
+        return false
+      }
+
+      return true
+    })
+
+    // Create actions for prepared spells that need them
+    preparedSpells.forEach(spell => {
+      const { isAction, isBonusAction } = parseCastingTime(spell.castingTime)
+
+      if (!isAction && !isBonusAction) {
+        return // Skip spells with non-action casting times
+      }
+
+      // Check if action already exists
+      const existingAction = character.value.actions.find(
+        a => a.name === spell.name && a.isBonusAction === isBonusAction
+      )
+
+      if (!existingAction) {
+        // Create new action for this spell
+        const newAction: Action = {
+          id: crypto.randomUUID(),
+          name: spell.name,
+          type: isBonusAction ? 'Bonus Action' : 'Spell',
+          range: spell.range,
+          toHit: '-',
+          damage: '-',
+          description: spell.description,
+          isBonusAction: isBonusAction,
+        }
+        character.value.actions.push(newAction)
+      } else {
+        // Update existing action to ensure it has correct properties
+        existingAction.type = isBonusAction ? 'Bonus Action' : 'Spell'
+        existingAction.range = spell.range
+        existingAction.description = spell.description
+        existingAction.isBonusAction = isBonusAction
+      }
+    })
   }
 
   const addInventoryItem = (item: Omit<InventoryItem, 'id'>) => {
@@ -1804,7 +2010,7 @@ export const useCharacter = () => {
     if (!paladinClass) return
 
     const newSlots = getPaladinSpellSlots(paladinClass.level, character.value.spellSlots)
-    
+
     // Only update if slots have changed
     const currentSlots = character.value.spellSlots
     if (currentSlots.length !== newSlots.length) {
@@ -1950,6 +2156,10 @@ export const useCharacter = () => {
       pool.current = pool.max
       if (pool.active !== undefined) pool.active = false
     })
+    // Reset all spell slots on long rest
+    character.value.spellSlots.forEach(slot => {
+      slot.used = 0
+    })
     syncLegacyRageFromResources()
     updateBasicAttacks(character.value)
   }
@@ -1990,6 +2200,49 @@ export const useCharacter = () => {
 
     if (updated.length === original.length) return
     character.value.featuresTraits = updated
+  })
+
+  // Ensure all Paladin spells are in spellbook when Paladin level changes
+  // Use watch to only trigger on class changes, not all reactive updates
+  let lastPaladinLevel = 0
+  watch(() => {
+    const paladinClass = (character.value.classes ?? []).find(c => c.classType === 'Paladin')
+    return paladinClass ? paladinClass.level : 0
+  }, (newLevel) => {
+    // Only call if level actually changed and is >= 1
+    if (newLevel >= 1 && newLevel !== lastPaladinLevel) {
+      lastPaladinLevel = newLevel
+      ensurePaladinSpells()
+    } else if (newLevel === 0) {
+      lastPaladinLevel = 0
+    }
+  }, { immediate: true })
+
+  // Auto-sync spell actions when spells are prepared/unprepared
+  // Watch only the prepared status to avoid unnecessary syncing
+  let isSyncingSpellActions = false
+  let lastSpellPreparedState = ''
+  watch(() => {
+    // Create a stable string representation of prepared spells state
+    return character.value.spells
+      .filter(s => s.prepared)
+      .map(s => `${s.id}:${s.name}:${s.prepared}`)
+      .sort()
+      .join('|')
+  }, (newState) => {
+    if (isSyncingSpellActions || isEnsuringPaladinSpells) return
+    if (newState === lastSpellPreparedState) return // No change in prepared state
+
+    lastSpellPreparedState = newState
+    isSyncingSpellActions = true
+    try {
+      syncSpellActions()
+    } finally {
+      // Use nextTick to ensure the sync completes before allowing another sync
+      setTimeout(() => {
+        isSyncingSpellActions = false
+      }, 0)
+    }
   })
 
   // HP Management functions
@@ -2287,6 +2540,8 @@ export const useCharacter = () => {
     convertToManualAttack,
     addSpell,
     removeSpell,
+    syncSpellActions,
+    ensurePaladinSpells,
     addInventoryItem,
     removeInventoryItem,
     toggleEquipItem,
