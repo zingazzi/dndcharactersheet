@@ -12,7 +12,7 @@
       </div>
       <div class="modal-body">
         <!-- Step 1: Class Selection -->
-        <div class="mb-2">
+        <div v-if="currentStep === 1" class="mb-2">
           <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Step 1: Choose Your Class</h3>
           <div class="mb-1.5 flex flex-col gap-1">
             <label class="flex items-center p-2 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-secondary)] cursor-pointer hover:bg-[var(--color-bg-primary)] transition-colors"
@@ -70,8 +70,10 @@
           </div>
         </div>
 
-        <!-- Step 2: Skill Selection -->
-        <div v-if="selectedClass" class="mb-2">
+        <!-- Step 2: Ability Scores (handled by AbilitiesEditModal) -->
+
+        <!-- Step 3: Skill Selection -->
+        <div v-if="currentStep === 3 && selectedClass" class="mb-2">
           <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Step 2: Choose {{ skillCount }} Skills</h3>
           <div class="grid grid-cols-2 gap-1 mb-1.5">
             <label
@@ -95,8 +97,8 @@
           </div>
         </div>
 
-        <!-- Step 2.5: Expertise Selection (for Rogue) -->
-        <div v-if="selectedClass === 'Rogue'" class="mb-2">
+        <!-- Step 3.5: Expertise Selection (for Rogue) -->
+        <div v-if="currentStep === 3 && selectedClass === 'Rogue'" class="mb-2">
           <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Step 2.5: Choose 2 Skills for Expertise</h3>
           <div v-if="selectedSkills.length < skillCount" class="text-xs text-[var(--color-text-tertiary)] italic mb-1.5">
             Select {{ skillCount }} skills first.
@@ -123,9 +125,9 @@
           </div>
         </div>
 
-        <!-- Step 3: Fighting Style Selection (for Fighter only) -->
-        <div v-if="selectedClass === 'Fighter'" class="mb-2">
-          <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Step 3: Choose Fighting Style</h3>
+        <!-- Step 4: Fighting Style Selection (for Fighter and Paladin) -->
+        <div v-if="currentStep === 3 && (selectedClass === 'Fighter' || selectedClass === 'Paladin')" class="mb-2">
+          <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Step 4: Choose a Fighting Style</h3>
           <div class="flex flex-col gap-1 mb-1.5">
             <label
               v-for="style in fightingStyles"
@@ -147,34 +149,10 @@
           </div>
         </div>
 
-        <!-- Step 3: Fighting Style Selection (for Fighter and Paladin) -->
-        <div v-if="selectedClass === 'Fighter' || selectedClass === 'Paladin'" class="mb-2">
-          <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Step 3: Choose a Fighting Style</h3>
-          <div class="flex flex-col gap-1 mb-1.5">
-            <label
-              v-for="style in fightingStyles"
-              :key="style.name"
-              class="flex items-start p-1.5 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-secondary)] cursor-pointer transition-colors text-sm"
-              :class="{ 'bg-[var(--color-bg-primary)] border-[var(--color-accent-primary)]': selectedFightingStyle === style.name }"
-            >
-              <input
-                v-model="selectedFightingStyle"
-                type="radio"
-                :value="style.name"
-                class="mt-0.5 mr-1.5 w-3 h-3"
-              />
-              <div class="flex-1">
-                <div class="font-semibold text-[var(--color-text-primary)]">{{ style.name }}</div>
-                <div class="text-xs text-[var(--color-text-tertiary)] mt-0.5">{{ style.description }}</div>
-              </div>
-            </label>
-          </div>
-        </div>
-
-        <!-- Step 4: Weapon Mastery Selection (for Barbarian, Rogue, and Paladin) -->
-        <div v-if="selectedClass === 'Barbarian' || selectedClass === 'Rogue' || selectedClass === 'Paladin'" class="mb-2">
+        <!-- Step 5: Weapon Mastery Selection (for Barbarian, Rogue, and Paladin) -->
+        <div v-if="currentStep === 3 && (selectedClass === 'Barbarian' || selectedClass === 'Rogue' || selectedClass === 'Paladin')" class="mb-2">
           <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">
-            Step {{ selectedClass === 'Rogue' ? '3' : selectedClass === 'Paladin' ? '4' : '3' }}: Choose 2 {{ selectedClass === 'Barbarian' ? 'Melee ' : '' }}Weapons for Weapon Mastery
+            Step 5: Choose 2 {{ selectedClass === 'Barbarian' ? 'Melee ' : '' }}Weapons for Weapon Mastery
           </h3>
           <p class="text-xs text-[var(--color-text-tertiary)] mb-1.5">Select 2 melee weapons from Simple or Martial weapons:</p>
           <div class="max-h-[200px] overflow-y-auto border border-[var(--color-border-primary)] rounded p-1.5 mb-1.5">
@@ -204,9 +182,9 @@
           </div>
         </div>
 
-        <!-- Step 4: Weapon Mastery Selection (for Fighter) -->
-        <div v-if="selectedClass === 'Fighter'" class="mb-2">
-          <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Step 4: Choose 3 Weapons for Weapon Mastery</h3>
+        <!-- Step 5: Weapon Mastery Selection (for Fighter) -->
+        <div v-if="currentStep === 3 && selectedClass === 'Fighter'" class="mb-2">
+          <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Step 5: Choose 3 Weapons for Weapon Mastery</h3>
           <p class="text-xs text-[var(--color-text-tertiary)] mb-1.5">Select 3 weapons from Simple or Martial weapons:</p>
           <div class="max-h-[200px] overflow-y-auto border border-[var(--color-border-primary)] rounded p-1.5 mb-1.5">
             <div class="grid grid-cols-1 gap-1">
@@ -238,6 +216,15 @@
       <div class="modal-footer">
         <button @click="close" class="btn btn-secondary text-sm">Cancel</button>
         <button
+          v-if="currentStep === 1"
+          @click="goToAbilityScores"
+          class="btn btn-primary text-sm"
+          :disabled="!selectedClass"
+        >
+          Next
+        </button>
+        <button
+          v-else-if="currentStep === 3"
           @click="createCharacter"
           class="btn btn-primary text-sm"
           :disabled="!canCreate"
@@ -246,11 +233,21 @@
         </button>
       </div>
     </div>
+
+    <!-- Abilities Edit Modal for Step 2 -->
+    <AbilitiesEditModal
+      :is-open="isAbilitiesModalOpen"
+      @close="closeAbilitiesModal"
+      @save="handleAbilitiesSave"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { nextTick } from 'vue'
+import type { Character } from '~/types/character'
 import { FIGHTING_STYLES, WEAPON_MASTERY_WEAPONS, BARBARIAN_SKILLS, ROGUE_SKILLS, PALADIN_SKILLS, getMeleeWeapons } from '~/composables/useCharacter'
+import AbilitiesEditModal from './AbilitiesEditModal.vue'
 
 const props = defineProps<{
   isOpen: boolean
@@ -258,14 +255,17 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
-  create: [charClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[], selectedExpertise?: string[]]
+  create: [charClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[], selectedExpertise?: string[], abilityScores?: Character['abilities']]
 }>()
 
+const currentStep = ref(1) // 1 = class selection, 2 = ability scores, 3 = rest of creation
 const selectedClass = ref<'Fighter' | 'Barbarian' | 'Rogue' | 'Paladin'>('Fighter')
 const selectedSkills = ref<string[]>([])
 const selectedFightingStyle = ref('')
 const selectedWeaponMasteries = ref<string[]>([])
 const selectedExpertise = ref<string[]>([])
+const isAbilitiesModalOpen = ref(false)
+const savedAbilityScores = ref<Character['abilities'] | null>(null)
 
 const fighterSkills = [
   'Acrobatics',
@@ -301,7 +301,8 @@ const weaponMasteryWeapons = computed(() => selectedClass.value === 'Barbarian' 
 const weaponMasteryCount = computed(() => selectedClass.value === 'Fighter' ? 3 : 2)
 
 const canCreate = computed(() => {
-  if (!selectedClass.value || selectedSkills.value.length !== skillCount.value) return false
+  if (currentStep.value !== 3) return false
+  if (!selectedClass.value || !savedAbilityScores.value || selectedSkills.value.length !== skillCount.value) return false
   if (selectedClass.value === 'Fighter') {
     return selectedFightingStyle.value !== '' && selectedWeaponMasteries.value.length === 3
   } else if (selectedClass.value === 'Barbarian') {
@@ -324,19 +325,78 @@ const toggleSkill = (skill: string) => {
   }
 }
 
+const goToAbilityScores = () => {
+  if (selectedClass.value) {
+    const { character } = useCharacter()
+
+    // Clear properties that trigger watchers to avoid recursive updates
+    // Do this carefully without triggering full character reset
+    if (character.value.classes && character.value.classes.length > 0) {
+      character.value.classes = []
+    }
+    if (character.value.spells && character.value.spells.length > 0) {
+      character.value.spells = []
+    }
+    if (character.value.actions && character.value.actions.length > 0) {
+      character.value.actions = []
+    }
+    if (character.value.spellSlots && character.value.spellSlots.length > 0) {
+      character.value.spellSlots = []
+    }
+    if (character.value.resources && Object.keys(character.value.resources).length > 0) {
+      character.value.resources = {}
+    }
+
+    // Ensure abilities exist with default values
+    if (!character.value.abilities || Object.keys(character.value.abilities).length === 0) {
+      const defaultAbilities = {
+        strength: { score: 10, modifier: 0, saveProficient: false, saveModifier: 0, customModifier: 0 },
+        dexterity: { score: 10, modifier: 0, saveProficient: false, saveModifier: 0, customModifier: 0 },
+        constitution: { score: 10, modifier: 0, saveProficient: false, saveModifier: 0, customModifier: 0 },
+        intelligence: { score: 10, modifier: 0, saveProficient: false, saveModifier: 0, customModifier: 0 },
+        wisdom: { score: 10, modifier: 0, saveProficient: false, saveModifier: 0, customModifier: 0 },
+        charisma: { score: 10, modifier: 0, saveProficient: false, saveModifier: 0, customModifier: 0 },
+      }
+      character.value.abilities = defaultAbilities
+    }
+
+    // Use nextTick to defer opening the modal, allowing watchers to settle
+    nextTick(() => {
+      isAbilitiesModalOpen.value = true
+    })
+  }
+}
+
+const closeAbilitiesModal = () => {
+  isAbilitiesModalOpen.value = false
+  // If user cancels, stay on step 1
+  if (!savedAbilityScores.value) {
+    currentStep.value = 1
+  }
+}
+
+const handleAbilitiesSave = (abilities: Character['abilities']) => {
+  savedAbilityScores.value = abilities
+  isAbilitiesModalOpen.value = false
+  currentStep.value = 3 // Move to rest of creation
+}
+
 const createCharacter = () => {
-  if (canCreate.value) {
+  if (canCreate.value && savedAbilityScores.value) {
     // Fighter gets fighting style at level 1, Paladin can select it at creation (applied at level 2)
     const fightingStyle = (selectedClass.value === 'Fighter' || selectedClass.value === 'Paladin')
       ? selectedFightingStyle.value
       : undefined
     const expertise = selectedClass.value === 'Rogue' ? selectedExpertise.value : undefined
-    emit('create', selectedClass.value, selectedSkills.value, fightingStyle, selectedWeaponMasteries.value, expertise)
+    emit('create', selectedClass.value, selectedSkills.value, fightingStyle, selectedWeaponMasteries.value, expertise, savedAbilityScores.value)
+    // Reset state
+    currentStep.value = 1
     selectedClass.value = 'Fighter'
     selectedSkills.value = []
     selectedFightingStyle.value = ''
     selectedWeaponMasteries.value = []
     selectedExpertise.value = []
+    savedAbilityScores.value = null
   }
 }
 
@@ -348,7 +408,17 @@ watch(selectedClass, () => {
   selectedExpertise.value = []
 })
 
+// Reset step when modal opens/closes
+watch(() => props.isOpen, (isOpen) => {
+  if (isOpen) {
+    currentStep.value = 1
+    savedAbilityScores.value = null
+  }
+})
+
 const close = () => {
+  currentStep.value = 1
+  savedAbilityScores.value = null
   emit('close')
 }
 </script>

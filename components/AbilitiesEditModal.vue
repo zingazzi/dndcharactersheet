@@ -10,7 +10,7 @@
           ×
         </button>
       </div>
-      
+
       <div class="modal-body">
         <div class="mb-2">
           <label class="text-xs font-semibold text-[var(--color-text-secondary)] mr-2">Method:</label>
@@ -35,6 +35,9 @@
               class="ability-edit-item"
             >
               <label>{{ getAbilityName(key) }}</label>
+              <div v-if="hasCurrentValue(key)" class="current-value-display">
+                Current: {{ getCurrentValue(key) }}
+              </div>
               <input
                 v-model.number="editingAbilities[key].score"
                 type="number"
@@ -58,6 +61,9 @@
               class="ability-edit-item"
             >
               <label>{{ getAbilityName(key) }}</label>
+              <div v-if="hasCurrentValue(key)" class="current-value-display">
+                Current: {{ getCurrentValue(key) }}
+              </div>
               <select
                 v-model.number="editingAbilities[key].score"
                 class="score-select"
@@ -86,6 +92,9 @@
               class="ability-edit-item"
             >
               <label>{{ getAbilityName(key) }}</label>
+              <div v-if="hasCurrentValue(key)" class="current-value-display">
+                Current: {{ getCurrentValue(key) }}
+              </div>
               <div class="roll-controls">
                 <input
                   v-model.number="editingAbilities[key].score"
@@ -110,6 +119,9 @@
               class="ability-edit-item"
             >
               <label>{{ getAbilityName(key) }}</label>
+              <div v-if="hasCurrentValue(key)" class="current-value-display">
+                Current: {{ getCurrentValue(key) }}
+              </div>
               <input
                 v-model.number="editingAbilities[key].score"
                 type="number"
@@ -187,6 +199,20 @@ const getAbilityName = (key: keyof Character['abilities']): string => {
   return names[key]
 }
 
+const hasCurrentValue = (key: keyof Character['abilities']): boolean => {
+  const currentAbility = character.value.abilities[key]
+  return currentAbility.score !== 10 || (currentAbility.customModifier || 0) !== 0
+}
+
+const getCurrentValue = (key: keyof Character['abilities']): string => {
+  const currentAbility = character.value.abilities[key]
+  const finalScore = currentAbility.score + (currentAbility.customModifier || 0)
+  if (currentAbility.customModifier && currentAbility.customModifier !== 0) {
+    return `${currentAbility.score}${currentAbility.customModifier >= 0 ? '+' : ''}${currentAbility.customModifier} = ${finalScore}`
+  }
+  return `${finalScore}`
+}
+
 const calculatePointBuyCost = (score: number): number => {
   if (score <= 13) return Math.max(0, score - 8)
   if (score === 14 || score === 15) return (score - 13) * 2 + 5
@@ -202,7 +228,7 @@ const availablePoints = computed(() => {
 
 const handleStandardArrayChange = (changedKey: keyof Character['abilities']) => {
   const newValue = editingAbilities.value[changedKey].score
-  
+
   // If a value was selected, check if it's already assigned to another ability
   if (newValue) {
     Object.keys(editingAbilities.value).forEach(key => {
@@ -249,7 +275,7 @@ const initializeEditing = () => {
     }
     pointBuyCosts.value[abilityKey] = calculatePointBuyCost(abilities[abilityKey].score)
   })
-  
+
   // If opening in standard array mode, reset to empty values
   if (selectedMethod.value === 'standard') {
     Object.keys(editingAbilities.value).forEach(key => {
@@ -293,7 +319,7 @@ const save = () => {
       return
     }
   }
-  
+
   const newAbilities = {} as Character['abilities']
   Object.keys(editingAbilities.value).forEach(key => {
     const abilityKey = key as keyof Character['abilities']
@@ -337,7 +363,7 @@ watch(() => props.isOpen, (isOpen) => {
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 
+  box-shadow:
     0 0 0 2px #d4a574,
     0 8px 32px rgba(0, 0, 0, 0.4),
     inset 0 0 50px rgba(139, 69, 19, 0.1);
@@ -452,6 +478,14 @@ watch(() => props.isOpen, (isOpen) => {
   color: #666;
 }
 
+.current-value-display {
+  font-size: 0.8rem;
+  color: #8b4513;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  font-style: italic;
+}
+
 .roll-btn,
 .roll-single-btn {
   padding: 0.5rem 1.25rem;
@@ -462,7 +496,7 @@ watch(() => props.isOpen, (isOpen) => {
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 600;
-  box-shadow: 
+  box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   transition: all 0.2s ease;
@@ -472,7 +506,7 @@ watch(() => props.isOpen, (isOpen) => {
 .roll-single-btn:hover {
   background: linear-gradient(180deg, #9d5520 0%, #7b4415 100%);
   transform: translateY(-1px);
-  box-shadow: 
+  box-shadow:
     0 3px 6px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
@@ -523,7 +557,7 @@ watch(() => props.isOpen, (isOpen) => {
   font-size: 1rem;
   font-weight: 600;
   transition: all 0.2s ease;
-  box-shadow: 
+  box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
@@ -547,7 +581,7 @@ watch(() => props.isOpen, (isOpen) => {
 .btn-save:hover {
   background: linear-gradient(180deg, #9d5520 0%, #7b4415 100%);
   transform: translateY(-1px);
-  box-shadow: 
+  box-shadow:
     0 3px 6px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
