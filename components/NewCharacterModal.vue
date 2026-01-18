@@ -212,6 +212,40 @@
             Selected: {{ selectedWeaponMasteries.length }} / 3 weapons
           </div>
         </div>
+
+        <!-- Step 4: Origin Selection -->
+        <div v-if="currentStep === 4" class="mb-2">
+          <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Step 4: Select Origins (Optional)</h3>
+          <p class="text-xs text-[var(--color-text-tertiary)] mb-1.5">You can select one or more origins. Each origin grants ability score increases, proficiencies, features, and an origin feat.</p>
+          <button @click="openOriginModal" class="btn btn-primary text-sm mb-2">Select Origins</button>
+          <div v-if="selectedOrigins.length > 0" class="flex flex-col gap-1">
+            <div
+              v-for="originId in selectedOrigins"
+              :key="originId"
+              class="card-compact p-1.5 flex items-center justify-between"
+            >
+              <span class="text-sm font-semibold">{{ getOriginName(originId) }}</span>
+              <button @click="removeOrigin(originId)" class="btn btn-danger text-xs px-1.5 py-0.5">×</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5: Feat Selection -->
+        <div v-if="currentStep === 5" class="mb-2">
+          <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Step 5: Select Feats (Optional)</h3>
+          <p class="text-xs text-[var(--color-text-tertiary)] mb-1.5">You can select additional feats. Origin feats are typically granted by origins, but you can also select general feats if you meet prerequisites.</p>
+          <button @click="openFeatModal" class="btn btn-primary text-sm mb-2">Select Feats</button>
+          <div v-if="selectedFeats.length > 0" class="flex flex-col gap-1">
+            <div
+              v-for="featId in selectedFeats"
+              :key="featId"
+              class="card-compact p-1.5 flex items-center justify-between"
+            >
+              <span class="text-sm font-semibold">{{ getFeatName(featId) }}</span>
+              <button @click="removeFeat(featId)" class="btn btn-danger text-xs px-1.5 py-0.5">×</button>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
         <button @click="close" class="btn btn-secondary text-sm">Cancel</button>
@@ -225,6 +259,21 @@
         </button>
         <button
           v-else-if="currentStep === 3"
+          @click="goToOrigins"
+          class="btn btn-primary text-sm"
+          :disabled="!canProceedToStep4"
+        >
+          Next
+        </button>
+        <button
+          v-else-if="currentStep === 4"
+          @click="goToFeats"
+          class="btn btn-primary text-sm"
+        >
+          Next
+        </button>
+        <button
+          v-else-if="currentStep === 5"
           @click="createCharacter"
           class="btn btn-primary text-sm"
           :disabled="!canCreate"
@@ -240,6 +289,24 @@
       @close="closeAbilitiesModal"
       @save="handleAbilitiesSave"
     />
+
+    <!-- Origin Selection Modal -->
+    <OriginSelectionModal
+      v-if="isOriginModalOpen"
+      :is-open="isOriginModalOpen"
+      :selected-origins="selectedOrigins"
+      @close="isOriginModalOpen = false"
+      @select="handleOriginSelect"
+    />
+
+    <!-- Feat Selection Modal -->
+    <FeatSelectionModal
+      v-if="isFeatModalOpen"
+      :is-open="isFeatModalOpen"
+      :selected-feats="selectedFeats"
+      @close="isFeatModalOpen = false"
+      @select="handleFeatSelect"
+    />
   </div>
 </template>
 
@@ -248,6 +315,10 @@ import { nextTick } from 'vue'
 import type { Character } from '~/types/character'
 import { FIGHTING_STYLES, WEAPON_MASTERY_WEAPONS, BARBARIAN_SKILLS, ROGUE_SKILLS, PALADIN_SKILLS, getMeleeWeapons } from '~/composables/useCharacter'
 import AbilitiesEditModal from './AbilitiesEditModal.vue'
+import OriginSelectionModal from './OriginSelectionModal.vue'
+import FeatSelectionModal from './FeatSelectionModal.vue'
+import originsJson from '~/data/origins.json'
+import featsJson from '~/data/feats.json'
 
 const props = defineProps<{
   isOpen: boolean
@@ -255,16 +326,20 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
-  create: [charClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[], selectedExpertise?: string[], abilityScores?: Character['abilities']]
+  create: [charClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[], selectedExpertise?: string[], abilityScores?: Character['abilities'], origins?: string[], feats?: string[]]
 }>()
 
-const currentStep = ref(1) // 1 = class selection, 2 = ability scores, 3 = rest of creation
+const currentStep = ref(1) // 1 = class, 2 = ability scores, 3 = skills/fighting style/weapon mastery, 4 = origins, 5 = feats
 const selectedClass = ref<'Fighter' | 'Barbarian' | 'Rogue' | 'Paladin'>('Fighter')
 const selectedSkills = ref<string[]>([])
 const selectedFightingStyle = ref('')
 const selectedWeaponMasteries = ref<string[]>([])
 const selectedExpertise = ref<string[]>([])
+const selectedOrigins = ref<string[]>([])
+const selectedFeats = ref<string[]>([])
 const isAbilitiesModalOpen = ref(false)
+const isOriginModalOpen = ref(false)
+const isFeatModalOpen = ref(false)
 const savedAbilityScores = ref<Character['abilities'] | null>(null)
 
 const fighterSkills = [
@@ -300,7 +375,7 @@ const skillCount = computed(() => {
 const weaponMasteryWeapons = computed(() => selectedClass.value === 'Barbarian' ? getMeleeWeapons() : WEAPON_MASTERY_WEAPONS)
 const weaponMasteryCount = computed(() => selectedClass.value === 'Fighter' ? 3 : 2)
 
-const canCreate = computed(() => {
+const canProceedToStep4 = computed(() => {
   if (currentStep.value !== 3) return false
   if (!selectedClass.value || !savedAbilityScores.value || selectedSkills.value.length !== skillCount.value) return false
   if (selectedClass.value === 'Fighter') {
@@ -381,6 +456,58 @@ const handleAbilitiesSave = (abilities: Character['abilities']) => {
   currentStep.value = 3 // Move to rest of creation
 }
 
+const goToOrigins = () => {
+  currentStep.value = 4
+}
+
+const goToFeats = () => {
+  currentStep.value = 5
+}
+
+const openOriginModal = () => {
+  isOriginModalOpen.value = true
+}
+
+const openFeatModal = () => {
+  isFeatModalOpen.value = true
+}
+
+const handleOriginSelect = (originIds: string[]) => {
+  selectedOrigins.value = originIds
+  isOriginModalOpen.value = false
+}
+
+const handleFeatSelect = (featIds: string[]) => {
+  selectedFeats.value = featIds
+  isFeatModalOpen.value = false
+}
+
+const removeOrigin = (originId: string) => {
+  const index = selectedOrigins.value.indexOf(originId)
+  if (index !== -1) {
+    selectedOrigins.value.splice(index, 1)
+  }
+}
+
+const removeFeat = (featId: string) => {
+  const index = selectedFeats.value.indexOf(featId)
+  if (index !== -1) {
+    selectedFeats.value.splice(index, 1)
+  }
+}
+
+const getOriginName = (originId: string): string => {
+  const originsData = originsJson as { origins: any[] }
+  const origin = originsData.origins.find(o => o.id === originId)
+  return origin?.name || originId
+}
+
+const getFeatName = (featId: string): string => {
+  const featsData = featsJson as { feats: any[] }
+  const feat = featsData.feats.find(f => f.id === featId)
+  return feat?.name || featId
+}
+
 const createCharacter = () => {
   if (canCreate.value && savedAbilityScores.value) {
     // Fighter gets fighting style at level 1, Paladin can select it at creation (applied at level 2)
@@ -388,7 +515,7 @@ const createCharacter = () => {
       ? selectedFightingStyle.value
       : undefined
     const expertise = selectedClass.value === 'Rogue' ? selectedExpertise.value : undefined
-    emit('create', selectedClass.value, selectedSkills.value, fightingStyle, selectedWeaponMasteries.value, expertise, savedAbilityScores.value)
+    emit('create', selectedClass.value, selectedSkills.value, fightingStyle, selectedWeaponMasteries.value, expertise, savedAbilityScores.value, selectedOrigins.value, selectedFeats.value)
     // Reset state
     currentStep.value = 1
     selectedClass.value = 'Fighter'
@@ -396,6 +523,8 @@ const createCharacter = () => {
     selectedFightingStyle.value = ''
     selectedWeaponMasteries.value = []
     selectedExpertise.value = []
+    selectedOrigins.value = []
+    selectedFeats.value = []
     savedAbilityScores.value = null
   }
 }

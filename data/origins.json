@@ -1,0 +1,373 @@
+{
+  "origins": [
+    {
+      "id": "acolyte",
+      "name": "Acolyte",
+      "description": "You have spent your life in the service of a temple to a specific god or pantheon of gods. You act as an intermediary between the realm of the holy and the mortal world, performing sacred rites and offering sacrifices in order to conduct worshipers into the presence of the divine.",
+      "abilityScoreIncreases": {
+        "strength": 0,
+        "dexterity": 0,
+        "constitution": 0,
+        "intelligence": 1,
+        "wisdom": 2,
+        "charisma": 0
+      },
+      "skillProficiencies": ["Insight", "Religion"],
+      "toolProficiencies": [],
+      "languages": [],
+      "originFeat": "magic-initiate-cleric",
+      "features": [
+        {
+          "name": "Shelter of the Faithful",
+          "description": "As an acolyte, you command the respect of those who share your faith, and you can perform the religious ceremonies of your deity. You and your adventuring companions can expect to receive free healing and care at a temple, shrine, or other established presence of your faith, though you must provide any material components needed for spells. Those who share your religion will support you (but only you) at a modest lifestyle."
+        }
+      ],
+      "startingEquipment": []
+    },
+    {
+      "id": "artisan",
+      "name": "Artisan",
+      "description": "You are a member of an artisan's guild, skilled in a particular field and closely associated with other artisans. You are a well-established part of the mercantile world, freed by talent and wealth from the constraints of a feudal social order.",
+      "abilityScoreIncreases": {
+        "strength": 0,
+        "dexterity": 0,
+        "constitution": 1,
+        "intelligence": 2,
+        "wisdom": 0,
+        "charisma": 0
+      },
+      "skillProficiencies": ["Investigation", "Persuasion"],
+      "toolProficiencies": ["One type of artisan's tools"],
+      "languages": [],
+      "originFeat": "crafter",
+      "features": [],
+      "startingEquipment": []
+    },
+    {
+      "id": "charlatan",
+      "name": "Charlatan",
+      "description": "You have always had a way with people. You know what makes them tick, you can tease out their hearts' desires after a few minutes of conversation, and with a few leading questions you can read them like they were children's books. It's a useful talent, and one that you're perfectly willing to use for your advantage.",
+      "abilityScoreIncreases": {
+        "strength": 0,
+        "dexterity": 1,
+        "constitution": 0,
+        "intelligence": 0,
+        "wisdom": 0,
+        "charisma": 2
+      },
+      "skillProficiencies": ["Deception", "Sleight of Hand"],
+      "toolProficiencies": ["Disguise kit", "Forgery kit"],
+      "languages": [],
+      "originFeat": "skilled",
+      "features": [
+        {
+          "name": "False Identity",
+          "description": "You have created a second identity that includes documentation, established acquaintances, and disguises that allow you to assume that persona. Additionally, you can forge documents including official papers and personal letters, as long as you have seen an example of the kind of document or the handwriting you are trying to copy."
+        }
+      ],
+      "startingEquipment": []
+    },
+    {
+      "id": "criminal",
+      "name": "Criminal",
+      "description": "You are an experienced criminal with a history of breaking the law. You have spent a lot of time among other criminals and still have contacts within the criminal underworld. You're far closer than most people to the world of murder, theft, and violence that pervades the underbelly of civilization, and you have survived up to this point by flouting the rules and regulations of society.",
+      "abilityScoreIncreases": {
+        "strength": 0,
+        "dexterity": 2,
+        "constitution": 0,
+        "intelligence": 0,
+        "wisdom": 0,
+        "charisma": 1
+      },
+      "skillProficiencies": ["Deception", "Stealth"],
+      "toolProficiencies": ["One type of gaming set", "Thieves' tools"],
+      "languages": [],
+      "originFeat": "alert",
+      "features": [
+        {
+          "name": "Criminal Contact",
+          "description": "You have a reliable and trustworthy contact who acts as your liaison to a network of other criminals. You know how to get messages to and from your contact, even over great distances; specifically, you know the local messengers, corrupt caravan masters, and seedy sailors who can deliver messages for you."
+        }
+      ],
+      "startingEquipment": []
+    },
+    {
+      "id": "cultist",
+      "name": "Cultist",
+      "description": "You were raised in a cult or joined one seeking answers, power, or belonging. You learned to keep secrets and to recognize when others are hiding something.",
+      "abilityScoreIncreases": {
+        "strength": 0,
+        "dexterity": 0,
+        "constitution": 0,
+        "intelligence": 1,
+        "wisdom": 1,
+        "charisma": 1
+      },
+      "skillProficiencies": ["Deception", "Religion"],
+      "toolProficiencies": [],
+      "languages": [],
+      "originFeat": "magic-initiate-warlock",
+      "features": [
+        {
+          "name": "Cultist's Secrets",
+          "description": "You know the secret signs and symbols of your cult. You can identify cult symbols and recognize when others are members of your cult or similar organizations."
+        }
+      ],
+      "startingEquipment": []
+    },
+    {
+      "id": "entertainer",
+      "name": "Entertainer",
+      "description": "You thrive in front of an audience. You know how to entrance them, entertain them, and even inspire them. Your poetics can stir the hearts of those who hear you, awakening grief or joy, laughter or anger. Your music raises their spirits or captures their sorrow. Your dance steps captivate, your humor cuts to the quick. Whatever techniques you use, your art is your life.",
+      "abilityScoreIncreases": {
+        "strength": 0,
+        "dexterity": 1,
+        "constitution": 0,
+        "intelligence": 0,
+        "wisdom": 0,
+        "charisma": 2
+      },
+      "skillProficiencies": ["Acrobatics", "Performance"],
+      "toolProficiencies": ["Disguise kit", "One type of musical instrument"],
+      "languages": [],
+      "originFeat": "musician",
+      "features": [
+        {
+          "name": "By Popular Demand",
+          "description": "You can always find a place to perform, usually in an inn or tavern but possibly with a circus, at a theater, or even in a noble's court. At such a place, you receive free lodging and food of a modest or comfortable standard (depending on the quality of the establishment), as long as you perform each night. In addition, your performance makes you something of a local figure. When strangers recognize you in a town where you have performed, they typically take a liking to you."
+        }
+      ],
+      "startingEquipment": []
+    },
+    {
+      "id": "farmer",
+      "name": "Farmer",
+      "description": "You grew up close to the land, and you know the secrets of cultivation and animal husbandry. The cycles of nature are familiar to you, and you've spent more than a few nights sleeping under the stars.",
+      "abilityScoreIncreases": {
+        "strength": 1,
+        "dexterity": 0,
+        "constitution": 2,
+        "intelligence": 0,
+        "wisdom": 0,
+        "charisma": 0
+      },
+      "skillProficiencies": ["Animal Handling", "Nature"],
+      "toolProficiencies": ["One type of artisan's tools"],
+      "languages": [],
+      "originFeat": "tough",
+      "features": [],
+      "startingEquipment": []
+    },
+    {
+      "id": "gladiator",
+      "name": "Gladiator",
+      "description": "You are a warrior who fights for the entertainment of others. You might be a pit fighter, a wrestler, or a duelist who performs in arenas for crowds.",
+      "abilityScoreIncreases": {
+        "strength": 2,
+        "dexterity": 0,
+        "constitution": 1,
+        "intelligence": 0,
+        "wisdom": 0,
+        "charisma": 0
+      },
+      "skillProficiencies": ["Athletics", "Performance"],
+      "toolProficiencies": [],
+      "languages": [],
+      "originFeat": "savage-attacker",
+      "features": [
+        {
+          "name": "By Popular Demand",
+          "description": "You can always find a place to perform in any place that features combat for entertainment—perhaps a gladiatorial arena or secret pit fighting club. At such a place, you receive free lodging and food of a modest or comfortable standard (depending on the quality of the establishment), as long as you perform each night. In addition, your performance makes you something of a local figure. When strangers recognize you in a town where you have performed, they typically take a liking to you."
+        }
+      ],
+      "startingEquipment": []
+    },
+    {
+      "id": "guard",
+      "name": "Guard",
+      "description": "You have served as a guard, soldier, or other member of a military or law enforcement organization. You understand the importance of order and discipline, and you know how to protect what matters most.",
+      "abilityScoreIncreases": {
+        "strength": 2,
+        "dexterity": 0,
+        "constitution": 1,
+        "intelligence": 0,
+        "wisdom": 0,
+        "charisma": 0
+      },
+      "skillProficiencies": ["Athletics", "Intimidation"],
+      "toolProficiencies": [],
+      "languages": [],
+      "originFeat": "sentinel",
+      "features": [],
+      "startingEquipment": []
+    },
+    {
+      "id": "hermit",
+      "name": "Hermit",
+      "description": "You lived in seclusion—either in a sheltered community such as a monastery, or entirely alone—for a formative part of your life. In your time apart from the clamor of society, you found quiet, solitude, and perhaps some of the answers you were looking for.",
+      "abilityScoreIncreases": {
+        "strength": 0,
+        "dexterity": 0,
+        "constitution": 0,
+        "intelligence": 0,
+        "wisdom": 2,
+        "charisma": 1
+      },
+      "skillProficiencies": ["Medicine", "Religion"],
+      "toolProficiencies": ["Herbalism kit"],
+      "languages": [],
+      "originFeat": "magic-initiate-druid",
+      "features": [
+        {
+          "name": "Discovery",
+          "description": "The quiet seclusion of your extended hermitage gave you access to a unique and powerful discovery. The exact nature of this revelation depends on the nature of your seclusion. It might be a great truth about the cosmos, the deities, the powerful beings of the outer planes, or the forces of nature. It could be a site that no one else has ever seen. You might have uncovered a fact that has long been forgotten, or unearthed some relic of the past that could rewrite history. It might be information that would be damaging to the people who or consigned you to exile, and hence the reason for your return to society."
+        }
+      ],
+      "startingEquipment": []
+    },
+    {
+      "id": "noble",
+      "name": "Noble",
+      "description": "You understand wealth, power, and privilege. You carry a noble title, and your family owns land, collects taxes, and wields significant political influence. You might be a pampered aristocrat unfamiliar with work or discomfort, a former merchant just elevated to the nobility, or a disinherited scoundrel with a disproportionate sense of entitlement. You might be a member of a family that has fallen from grace, or you could be an upstart who has recently gained a title.",
+      "abilityScoreIncreases": {
+        "strength": 0,
+        "dexterity": 0,
+        "constitution": 0,
+        "intelligence": 1,
+        "wisdom": 0,
+        "charisma": 2
+      },
+      "skillProficiencies": ["History", "Persuasion"],
+      "toolProficiencies": ["One type of gaming set"],
+      "languages": [],
+      "originFeat": "inspiring-leader",
+      "features": [
+        {
+          "name": "Position of Privilege",
+          "description": "Thanks to your noble birth, people are inclined to think the best of you. You are welcome in high society, and people assume you have the right to be wherever you are. The common folk make every effort to accommodate you and avoid your displeasure, and other people of high birth treat you as a member of the same social sphere. You can secure an audience with a local noble if you need to."
+        }
+      ],
+      "startingEquipment": []
+    },
+    {
+      "id": "sage",
+      "name": "Sage",
+      "description": "You spent years learning the lore of the multiverse. You scoured manuscripts, studied scrolls, and listened to the greatest experts on the subjects that interest you. Your efforts have made you a master in your fields of study.",
+      "abilityScoreIncreases": {
+        "strength": 0,
+        "dexterity": 0,
+        "constitution": 0,
+        "intelligence": 2,
+        "wisdom": 1,
+        "charisma": 0
+      },
+      "skillProficiencies": ["Arcana", "History"],
+      "toolProficiencies": [],
+      "languages": ["Two languages of your choice"],
+      "originFeat": "magic-initiate-wizard",
+      "features": [
+        {
+          "name": "Researcher",
+          "description": "When you attempt to learn or recall a piece of lore, if you do not know that information, you often know where and from whom you can obtain it. Usually, this information comes from a library, scriptorium, university, or a sage or other learned person or creature. Your DM might rule that the knowledge you seek is secreted away in an almost inaccessible place, or that it simply cannot be found. Unearthing the deepest secrets of the multiverse can require an adventure or even a whole campaign."
+        }
+      ],
+      "startingEquipment": []
+    },
+    {
+      "id": "sailor",
+      "name": "Sailor",
+      "description": "You sailed on a seagoing vessel for years. In that time, you faced down mighty storms, monsters of the deep, and those who wanted to sink your craft to the bottomless depths. Your first love is the distant line of the horizon, and the dark, glittering expanse of open water.",
+      "abilityScoreIncreases": {
+        "strength": 1,
+        "dexterity": 2,
+        "constitution": 0,
+        "intelligence": 0,
+        "wisdom": 0,
+        "charisma": 0
+      },
+      "skillProficiencies": ["Athletics", "Perception"],
+      "toolProficiencies": ["Navigator's tools", "Vehicles (water)"],
+      "languages": [],
+      "originFeat": "magic-initiate-sorcerer",
+      "features": [
+        {
+          "name": "Ship's Passage",
+          "description": "When you need to, you can secure free passage on a sailing ship for yourself and your adventuring companions. You might sail on the ship you served on, or another ship you have good relations with (perhaps one captained by a former crewmate). Because you're calling in a favor, you can't be certain of a schedule or route that will meet your every need. Your DM will determine how long it takes to get where you need to go. In return for your free passage, you and your companions are expected to assist the crew during the voyage."
+        }
+      ],
+      "startingEquipment": []
+    },
+    {
+      "id": "soldier",
+      "name": "Soldier",
+      "description": "War has been your life for as long as you care to remember. You trained as a youth, studied the use of weapons and armor, learned basic survival techniques, including how to stay alive on the battlefield. You might have been part of a standing national army or a mercenary company, or perhaps a member of a local militia who rose to prominence during a recent war.",
+      "abilityScoreIncreases": {
+        "strength": 2,
+        "dexterity": 0,
+        "constitution": 1,
+        "intelligence": 0,
+        "wisdom": 0,
+        "charisma": 0
+      },
+      "skillProficiencies": ["Athletics", "Intimidation"],
+      "toolProficiencies": ["One type of gaming set", "Vehicles (land)"],
+      "languages": [],
+      "originFeat": "savage-attacker",
+      "features": [
+        {
+          "name": "Military Rank",
+          "description": "You have a military rank from your career as a soldier. Soldiers loyal to your former military organization still recognize your authority and influence, and they defer to you if they are of a lower rank. You can invoke your rank to exert influence over other soldiers and requisition simple equipment or horses for temporary use. You can also usually gain access to friendly military encampments and fortresses where your rank is recognized."
+        }
+      ],
+      "startingEquipment": []
+    },
+    {
+      "id": "urchin",
+      "name": "Urchin",
+      "description": "You grew up on the streets alone, orphaned, and poor. You had no one to watch over you or provide for you, so you learned to provide for yourself. You fought fiercely over food and kept a constant watch out for other desperate souls who might steal from you. You slept on rooftops and in alleyways, exposed to the elements, and endured sickness without the advantage of medicine or a place to recuperate. You've survived despite all odds, and did so through cunning, strength, speed, or some combination of each.",
+      "abilityScoreIncreases": {
+        "strength": 0,
+        "dexterity": 2,
+        "constitution": 0,
+        "intelligence": 0,
+        "wisdom": 1,
+        "charisma": 0
+      },
+      "skillProficiencies": ["Sleight of Hand", "Stealth"],
+      "toolProficiencies": ["Disguise kit", "Thieves' tools"],
+      "languages": [],
+      "originFeat": "lucky",
+      "features": [
+        {
+          "name": "City Secrets",
+          "description": "You know the secret patterns and flow to cities and can find passages through the urban sprawl that others would miss. When you are not in combat, you (and companions you lead) can travel between any two locations in the city twice as fast as your speed would normally allow."
+        }
+      ],
+      "startingEquipment": []
+    },
+    {
+      "id": "wanderer",
+      "name": "Wanderer",
+      "description": "You have no permanent home. You've spent your life traveling from place to place, never staying in one location for long. You might be a nomad, a merchant, a pilgrim, or simply someone who can't settle down.",
+      "abilityScoreIncreases": {
+        "strength": 0,
+        "dexterity": 1,
+        "constitution": 1,
+        "intelligence": 0,
+        "wisdom": 2,
+        "charisma": 0
+      },
+      "skillProficiencies": ["Animal Handling", "Survival"],
+      "toolProficiencies": [],
+      "languages": [],
+      "originFeat": "magic-initiate-ranger",
+      "features": [
+        {
+          "name": "Wanderer",
+          "description": "You have an excellent memory for maps and geography, and you can always recall the general layout of terrain, settlements, and other features around you. In addition, you can find food and fresh water for yourself and up to five other people each day, provided that the land offers berries, small game, water, and so forth."
+        }
+      ],
+      "startingEquipment": []
+    }
+  ]
+}

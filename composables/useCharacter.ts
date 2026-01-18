@@ -4,6 +4,8 @@ import { canLevelUpWithXp, getNextXpMilestoneFromXp } from '~/composables/xpProg
 import { getPaladinSpellSlots } from '~/composables/spellSlots'
 import fightingStylesJson from '~/data/fighting-styles.json'
 import paladinSpellsJson from '~/data/spells/Paladin.json'
+import originsJson from '~/data/origins.json'
+import featsJson from '~/data/feats.json'
 
 export interface FightingStyle {
   name: string
@@ -875,6 +877,8 @@ function createEmptyCharacter(): Character {
     spells: [],
     inventory: [],
     featuresTraits: [],
+    origins: [],
+    feats: [],
     classes: [],
     classType: undefined,
     fightingStyle: undefined,
@@ -1525,6 +1529,8 @@ export const useCharacter = () => {
         source: 'Race',
       },
     ],
+    origins: [],
+    feats: [],
     background: {
       name: 'Soldier',
       personalityTraits: 'I can stare down a hellhound without flinching. I enjoy being strong and like breaking things.',
@@ -2575,6 +2581,274 @@ export const useCharacter = () => {
     // The watchEffect in AbilitiesSection will handle this automatically
   }
 
+  // Helper function to apply origin advantages
+  const applyOriginAdvantages = (originId: string): void => {
+    const originsData = originsJson as { origins: any[] }
+    const origin = originsData.origins.find(o => o.id === originId)
+    if (!origin) return
+
+    // Apply ability score increases
+    Object.keys(origin.abilityScoreIncreases || {}).forEach(key => {
+      const abilityKey = key as keyof Character['abilities']
+      const increase = origin.abilityScoreIncreases[abilityKey]
+      if (increase > 0 && character.value.abilities[abilityKey]) {
+        character.value.abilities[abilityKey].score += increase
+        const finalScore = character.value.abilities[abilityKey].score + (character.value.abilities[abilityKey].customModifier || 0)
+        character.value.abilities[abilityKey].modifier = Math.floor((finalScore - 10) / 2)
+      }
+    })
+
+    // Apply skill proficiencies
+    if (origin.skillProficiencies && Array.isArray(origin.skillProficiencies)) {
+      origin.skillProficiencies.forEach((skillName: string) => {
+        const skill = character.value.skills.find(s => s.name === skillName)
+        if (skill && !skill.proficient) {
+          skill.proficient = true
+          skill.originId = originId
+          updateSkillModifiers()
+        }
+      })
+    }
+
+    // Add features
+    if (origin.features && Array.isArray(origin.features)) {
+      origin.features.forEach((feature: any) => {
+        character.value.featuresTraits.push({
+          id: crypto.randomUUID(),
+          name: feature.name,
+          description: feature.description,
+          source: 'Origin',
+          originId: originId,
+        })
+      })
+    }
+
+    // Add origin feat automatically
+    if (origin.originFeat) {
+      if (!character.value.feats.includes(origin.originFeat)) {
+        character.value.feats.push(origin.originFeat)
+        applyFeatAdvantages(origin.originFeat)
+      }
+    }
+  }
+
+  // Helper function to remove origin advantages
+  const removeOriginAdvantages = (originId: string): void => {
+    const originsData = originsJson as { origins: any[] }
+    const origin = originsData.origins.find(o => o.id === originId)
+    if (!origin) return
+
+    // Remove ability score increases
+    Object.keys(origin.abilityScoreIncreases || {}).forEach(key => {
+      const abilityKey = key as keyof Character['abilities']
+      const increase = origin.abilityScoreIncreases[abilityKey]
+      if (increase > 0 && character.value.abilities[abilityKey]) {
+        character.value.abilities[abilityKey].score -= increase
+        const finalScore = character.value.abilities[abilityKey].score + (character.value.abilities[abilityKey].customModifier || 0)
+        character.value.abilities[abilityKey].modifier = Math.floor((finalScore - 10) / 2)
+      }
+    })
+
+    // Remove skill proficiencies granted by this origin
+    character.value.skills.forEach(skill => {
+      if (skill.originId === originId) {
+        skill.proficient = false
+        skill.originId = undefined
+        updateSkillModifiers()
+      }
+    })
+
+    // Remove features granted by this origin
+    character.value.featuresTraits = character.value.featuresTraits.filter(f => f.originId !== originId)
+
+    // Remove origin feat if it was granted by this origin
+    if (origin.originFeat) {
+      const featIndex = character.value.feats.indexOf(origin.originFeat)
+      if (featIndex !== -1) {
+        removeFeatAdvantages(origin.originFeat)
+        character.value.feats.splice(featIndex, 1)
+      }
+    }
+  }
+
+  // Helper function to apply feat advantages
+  const applyFeatAdvantages = (featId: string): void => {
+    const featsData = featsJson as { feats: any[] }
+    const feat = featsData.feats.find(f => f.id === featId)
+    if (!feat) return
+
+    // Apply ability score increases
+    Object.keys(feat.abilityScoreIncreases || {}).forEach(key => {
+      const abilityKey = key as keyof Character['abilities']
+      const increase = feat.abilityScoreIncreases[abilityKey]
+      if (increase > 0 && character.value.abilities[abilityKey]) {
+        character.value.abilities[abilityKey].score += increase
+        const finalScore = character.value.abilities[abilityKey].score + (character.value.abilities[abilityKey].customModifier || 0)
+        character.value.abilities[abilityKey].modifier = Math.floor((finalScore - 10) / 2)
+      }
+    })
+
+    // Apply skill proficiencies
+    if (feat.skillProficiencies && Array.isArray(feat.skillProficiencies)) {
+      feat.skillProficiencies.forEach((skillName: string) => {
+        const skill = character.value.skills.find(s => s.name === skillName)
+        if (skill && !skill.proficient) {
+          skill.proficient = true
+          skill.featId = featId
+          updateSkillModifiers()
+        }
+      })
+    }
+
+    // Add features
+    if (feat.features && Array.isArray(feat.features)) {
+      feat.features.forEach((feature: any) => {
+        character.value.featuresTraits.push({
+          id: crypto.randomUUID(),
+          name: feature.name,
+          description: feature.description,
+          source: 'Feat',
+          featId: featId,
+        })
+      })
+    }
+
+    // Add spells
+    if (feat.spells && Array.isArray(feat.spells)) {
+      feat.spells.forEach((spell: any) => {
+        // Check if spell already exists
+        const existingSpell = character.value.spells.find(s => s.name === spell.name && s.featId === featId)
+        if (!existingSpell) {
+          character.value.spells.push({
+            ...spell,
+            id: crypto.randomUUID(),
+            featId: featId,
+          })
+        }
+      })
+    }
+
+    // Add actions
+    if (feat.actions && Array.isArray(feat.actions)) {
+      feat.actions.forEach((action: any) => {
+        character.value.actions.push({
+          ...action,
+          id: crypto.randomUUID(),
+          featId: featId,
+        })
+      })
+    }
+
+    // Add resources
+    if (feat.resources && typeof feat.resources === 'object') {
+      if (!character.value.resources) {
+        character.value.resources = {}
+      }
+      Object.keys(feat.resources).forEach(resourceId => {
+        const resource = feat.resources[resourceId]
+        character.value.resources![resourceId] = {
+          id: resourceId,
+          label: resource.label,
+          description: resource.description,
+          reset: resource.reset,
+          current: resource.current || resource.max || 0,
+          max: resource.max || 0,
+          active: resource.active,
+        }
+      })
+    }
+  }
+
+  // Helper function to remove feat advantages
+  const removeFeatAdvantages = (featId: string): void => {
+    const featsData = featsJson as { feats: any[] }
+    const feat = featsData.feats.find(f => f.id === featId)
+    if (!feat) return
+
+    // Remove ability score increases
+    Object.keys(feat.abilityScoreIncreases || {}).forEach(key => {
+      const abilityKey = key as keyof Character['abilities']
+      const increase = feat.abilityScoreIncreases[abilityKey]
+      if (increase > 0 && character.value.abilities[abilityKey]) {
+        character.value.abilities[abilityKey].score -= increase
+        const finalScore = character.value.abilities[abilityKey].score + (character.value.abilities[abilityKey].customModifier || 0)
+        character.value.abilities[abilityKey].modifier = Math.floor((finalScore - 10) / 2)
+      }
+    })
+
+    // Remove skill proficiencies granted by this feat
+    character.value.skills.forEach(skill => {
+      if (skill.featId === featId) {
+        skill.proficient = false
+        skill.featId = undefined
+        updateSkillModifiers()
+      }
+    })
+
+    // Remove features granted by this feat
+    character.value.featuresTraits = character.value.featuresTraits.filter(f => f.featId !== featId)
+
+    // Remove spells granted by this feat
+    character.value.spells = character.value.spells.filter(s => s.featId !== featId)
+
+    // Remove actions granted by this feat
+    character.value.actions = character.value.actions.filter(a => a.featId !== featId)
+
+    // Remove resources granted by this feat
+    if (feat.resources && typeof feat.resources === 'object' && character.value.resources) {
+      Object.keys(feat.resources).forEach(resourceId => {
+        delete character.value.resources![resourceId]
+      })
+    }
+  }
+
+  // Add origin to character
+  const addOrigin = (originId: string): void => {
+    if (character.value.origins.includes(originId)) return
+    character.value.origins.push(originId)
+    applyOriginAdvantages(originId)
+    updateSkillModifiers()
+  }
+
+  // Remove origin from character
+  const removeOrigin = (originId: string): void => {
+    const index = character.value.origins.indexOf(originId)
+    if (index === -1) return
+    character.value.origins.splice(index, 1)
+    removeOriginAdvantages(originId)
+    updateSkillModifiers()
+  }
+
+  // Check if character meets feat prerequisites
+  const canTakeFeat = (featId: string): boolean => {
+    const featsData = featsJson as { feats: any[] }
+    const feat = featsData.feats.find(f => f.id === featId)
+    if (!feat || !feat.prerequisites) return true
+
+    // Check prerequisites (ability scores, level, other feats, etc.)
+    // For now, we'll implement basic checks
+    // TODO: Implement full prerequisite checking logic
+    return true
+  }
+
+  // Add feat to character
+  const addFeat = (featId: string): void => {
+    if (character.value.feats.includes(featId)) return
+    if (!canTakeFeat(featId)) return
+    character.value.feats.push(featId)
+    applyFeatAdvantages(featId)
+    updateSkillModifiers()
+  }
+
+  // Remove feat from character
+  const removeFeat = (featId: string): void => {
+    const index = character.value.feats.indexOf(featId)
+    if (index === -1) return
+    character.value.feats.splice(index, 1)
+    removeFeatAdvantages(featId)
+    updateSkillModifiers()
+  }
+
   return {
     character,
     updateAbilityScore,
@@ -2633,6 +2907,11 @@ export const useCharacter = () => {
     getAllClasses,
     hasClass: (classType: ClassType) => getClassLevel(character.value.classes ?? [], classType) > 0,
     formatClassLevelString: () => formatClassLevelString(character.value.classes ?? []),
+    addOrigin,
+    removeOrigin,
+    addFeat,
+    removeFeat,
+    canTakeFeat,
     FIGHTING_STYLES,
     WEAPON_MASTERY_WEAPONS,
     getMeleeWeapons,

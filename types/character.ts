@@ -21,6 +21,8 @@ export interface Skill {
   proficient: boolean
   expertise?: boolean
   modifier: number
+  originId?: string // ID of origin that granted proficiency
+  featId?: string // ID of feat that granted proficiency
 }
 
 export interface Action {
@@ -33,6 +35,8 @@ export interface Action {
   description?: string
   isBasicAttack?: boolean // True for auto-generated attacks (unarmed strike, equipped weapons)
   isBonusAction?: boolean // True for bonus actions (e.g., Cunning Action: Dash, Disengage, Hide)
+  originId?: string // ID of origin that granted this action
+  featId?: string // ID of feat that granted this action
 }
 
 export interface SpellSlot {
@@ -52,6 +56,8 @@ export interface Spell {
   duration: string
   description: string
   prepared?: boolean
+  originId?: string // ID of origin that granted this spell
+  featId?: string // ID of feat that granted this spell
 }
 
 export interface InventoryItem {
@@ -69,7 +75,9 @@ export interface FeatureTrait {
   id: string
   name: string
   description: string
-  source?: string // e.g., "Class", "Race", "Feat"
+  source?: string // e.g., "Class", "Race", "Feat", "Origin"
+  originId?: string // ID of origin that granted this feature
+  featId?: string // ID of feat that granted this feature
 }
 
 export type ResourceReset = 'shortRest' | 'longRest' | 'daily'
@@ -135,6 +143,10 @@ export interface Character {
 
   // Features & Traits
   featuresTraits: FeatureTrait[]
+
+  // Origins & Feats
+  origins: string[] // Array of origin IDs
+  feats: string[] // Array of feat IDs
 
   // Class-specific
   classType?: ClassType // DEPRECATED: kept for migration, use classes array instead

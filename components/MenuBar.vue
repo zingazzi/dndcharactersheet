@@ -96,8 +96,8 @@ const closeNewCharacterModal = () => {
   isNewCharacterModalOpen.value = false
 }
 
-const handleCreateCharacter = (characterClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[], selectedExpertise?: string[], abilityScores?: Character['abilities']) => {
-  const { createNewCharacter, resetCharacter } = useCharacter()
+const handleCreateCharacter = (characterClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[], selectedExpertise?: string[], abilityScores?: Character['abilities'], origins?: string[], feats?: string[]) => {
+  const { createNewCharacter, resetCharacter, addOrigin, addFeat } = useCharacter()
   const newCharacter = createNewCharacter(characterClass, selectedSkills, selectedFightingStyle, selectedWeaponMasteries, selectedExpertise)
 
   // Apply custom ability scores if provided
@@ -118,6 +118,19 @@ const handleCreateCharacter = (characterClass: string, selectedSkills: string[],
   }
 
   resetCharacter(newCharacter)
+
+  // Apply origins and feats
+  if (origins && origins.length > 0) {
+    origins.forEach(originId => {
+      addOrigin(originId)
+    })
+  }
+  if (feats && feats.length > 0) {
+    feats.forEach(featId => {
+      addFeat(featId)
+    })
+  }
+
   closeNewCharacterModal()
 }
 </script>

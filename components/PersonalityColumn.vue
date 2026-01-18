@@ -184,6 +184,12 @@
       </div>
     </div>
 
+    <!-- Origins -->
+    <OriginsSection />
+
+    <!-- Feats -->
+    <FeatsSection />
+
     <!-- Features & Traits -->
     <div class="section">
       <div class="section-header">
@@ -252,6 +258,8 @@
 <script setup lang="ts">
 import type { FeatureTrait, Skill } from '~/types/character'
 import { FIGHTING_STYLES, WEAPON_MASTERY_WEAPONS } from '~/composables/useCharacter'
+import OriginsSection from './OriginsSection.vue'
+import FeatsSection from './FeatsSection.vue'
 
 const { character, addFeatureTrait, removeFeatureTrait, updateSkillProficiency, updateFightingStyle, updateWeaponMastery } = useCharacter()
 const { addRoll } = useDiceHistory()
@@ -311,8 +319,8 @@ const newFeature = ref<Omit<FeatureTrait, 'id'>>({
 
 // Filter out Fighting Style and Weapon Mastery from featuresTraits
 const otherFeaturesTraits = computed(() => {
-  return character.value.featuresTraits.filter(feature => 
-    !feature.name.startsWith('Fighting Style:') && 
+  return character.value.featuresTraits.filter(feature =>
+    !feature.name.startsWith('Fighting Style:') &&
     feature.name !== 'Weapon Mastery'
   )
 })
