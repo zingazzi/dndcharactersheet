@@ -1138,11 +1138,12 @@ function createNewCharacter(
     // Paladin gets fighting style at level 2, not level 1
     applyPaladinLevel1(character, selectedSkills, selectedFightingStyle || undefined, selectedWeaponMasteries)
   } else if (characterClass === 'Cleric') {
-    // Cleric requires Divine Order, cantrips, and initial spells
-    if (!selectedDivineOrder || !selectedCantrips || !selectedSpells) {
-      throw new Error('Cleric requires Divine Order, cantrips, and initial spells')
+    // Cleric requires Divine Order and cantrips (spells can be added later)
+    if (!selectedDivineOrder || !selectedCantrips) {
+      throw new Error('Cleric requires Divine Order and cantrips')
     }
-    applyClericLevel1(character, selectedSkills, selectedDivineOrder, selectedCantrips, selectedSpells)
+    // Use empty array for spells if not provided - they can be added later
+    applyClericLevel1(character, selectedSkills, selectedDivineOrder, selectedCantrips, selectedSpells || [])
   }
 
   // Initialize basic attacks (unarmed strike)
@@ -1467,27 +1468,29 @@ function applyClericLevel1(
     }
   })
 
-  // Initialize 4 level 1 spells (prepared)
-  selectedSpells.forEach(spellName => {
-    const spellData = clericSpells.find(s => s.name === spellName && s.level === 1)
-    if (spellData) {
-      const spell: Omit<Spell, 'id'> = {
-        name: spellData.name,
-        level: spellData.level,
-        school: spellData.school,
-        castingTime: spellData.castingTime,
-        range: spellData.range,
-        components: spellData.components,
-        duration: spellData.duration,
-        description: spellData.description,
-        prepared: true, // Initial spells are prepared
+  // Initialize level 1 spells (prepared) - optional at creation, can be added later
+  if (selectedSpells && selectedSpells.length > 0) {
+    selectedSpells.forEach(spellName => {
+      const spellData = clericSpells.find(s => s.name === spellName && s.level === 1)
+      if (spellData) {
+        const spell: Omit<Spell, 'id'> = {
+          name: spellData.name,
+          level: spellData.level,
+          school: spellData.school,
+          castingTime: spellData.castingTime,
+          range: spellData.range,
+          components: spellData.components,
+          duration: spellData.duration,
+          description: spellData.description,
+          prepared: true, // Initial spells are prepared
+        }
+        character.spells.push({
+          ...spell,
+          id: crypto.randomUUID(),
+        })
       }
-      character.spells.push({
-        ...spell,
-        id: crypto.randomUUID(),
-      })
-    }
-  })
+    })
+  }
 
   // Initialize spell slots (2x 1st level)
   character.spellSlots = getClericSpellSlots(1, [])

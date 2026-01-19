@@ -234,36 +234,6 @@
           </div>
         </div>
 
-        <!-- Step 3.7: Initial Spell Selection (for Cleric) -->
-        <div v-if="currentStep === 3 && selectedClass === 'Cleric' && selectedCantrips.length === getClericCantripCount(1, selectedDivineOrder as 'Protector' | 'Thaumaturge')" class="mb-2">
-          <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Step 3.7: Choose 4 Level 1 Spells</h3>
-          <div class="max-h-[200px] overflow-y-auto border border-[var(--color-border-primary)] rounded p-1.5 mb-1.5">
-            <div class="grid grid-cols-1 gap-1">
-              <label
-                v-for="spell in availableLevel1Spells"
-                :key="spell.name"
-                class="flex items-start p-1.5 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-secondary)] cursor-pointer transition-colors text-sm"
-                :class="{ 'bg-[var(--color-bg-primary)] border-[var(--color-accent-primary)]': selectedSpells.includes(spell.name), 'opacity-50 cursor-not-allowed': !selectedSpells.includes(spell.name) && selectedSpells.length >= 4 }"
-              >
-                <input
-                  type="checkbox"
-                  :value="spell.name"
-                  v-model="selectedSpells"
-                  :disabled="!selectedSpells.includes(spell.name) && selectedSpells.length >= 4"
-                  class="mt-0.5 mr-1.5 w-3 h-3"
-                />
-                <div class="flex-1">
-                  <div class="font-semibold text-[var(--color-text-primary)]">{{ spell.name }}</div>
-                  <div class="text-xs text-[var(--color-text-tertiary)] mt-0.5">{{ spell.description }}</div>
-                </div>
-              </label>
-            </div>
-          </div>
-          <div class="text-center text-sm" :class="{ 'text-[var(--color-success)]': selectedSpells.length === 4, 'text-[var(--color-danger)]': selectedSpells.length !== 4 }">
-            Selected: {{ selectedSpells.length }} / 4 spells
-          </div>
-        </div>
-
         <!-- Step 5: Weapon Mastery Selection (for Barbarian, Rogue, Paladin, and Cleric) -->
         <div v-if="currentStep === 3 && (selectedClass === 'Barbarian' || selectedClass === 'Rogue' || selectedClass === 'Paladin' || selectedClass === 'Cleric')" class="mb-2">
           <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">
@@ -484,11 +454,6 @@ const availableCantrips = computed(() => {
   return clericSpells.value.filter(s => s.level === 0)
 })
 
-const availableLevel1Spells = computed(() => {
-  if (selectedClass.value !== 'Cleric') return []
-  return clericSpells.value.filter(s => s.level === 1)
-})
-
 const canProceedToStep4 = computed(() => {
   if (currentStep.value !== 3) return false
   if (!selectedClass.value || !savedAbilityScores.value || selectedSkills.value.length !== skillCount.value) return false
@@ -502,11 +467,10 @@ const canProceedToStep4 = computed(() => {
     // Paladin gets fighting style at level 2, not level 1, so it's optional at creation
     return selectedWeaponMasteries.value.length === 2
   } else if (selectedClass.value === 'Cleric') {
-    // Cleric requires Divine Order, cantrips, and initial spells
+    // Cleric requires Divine Order, cantrips, and weapon mastery (spells can be added later)
     const cantripCount = getClericCantripCount(1, selectedDivineOrder.value as 'Protector' | 'Thaumaturge' | null)
     return selectedDivineOrder.value !== '' && 
            selectedCantrips.value.length === cantripCount && 
-           selectedSpells.value.length === 4 &&
            selectedWeaponMasteries.value.length === 2
   }
   return false
@@ -619,8 +583,8 @@ const createCharacter = () => {
     const expertise = selectedClass.value === 'Rogue' ? selectedExpertise.value : undefined
     const divineOrder = selectedClass.value === 'Cleric' ? (selectedDivineOrder.value as 'Protector' | 'Thaumaturge') : undefined
     const cantrips = selectedClass.value === 'Cleric' ? selectedCantrips.value : undefined
-    const spells = selectedClass.value === 'Cleric' ? selectedSpells.value : undefined
-    emit('create', selectedClass.value, selectedSkills.value, fightingStyle, selectedWeaponMasteries.value, expertise, savedAbilityScores.value, selectedOrigins.value, divineOrder, cantrips, spells)
+    // Spells are not required at creation - can be added later through spell management
+    emit('create', selectedClass.value, selectedSkills.value, fightingStyle, selectedWeaponMasteries.value, expertise, savedAbilityScores.value, selectedOrigins.value, divineOrder, cantrips, undefined)
     // Reset state
     currentStep.value = 1
     selectedClass.value = 'Fighter'

@@ -12,7 +12,7 @@
       </div>
       <div class="modal-body flex-1 overflow-hidden flex flex-col">
         <!-- Spell Preparation Limits -->
-        <div v-if="isPaladin" class="mb-2 p-2 bg-[var(--color-bg-secondary)] rounded border border-[var(--color-border-light)]">
+        <div v-if="isPaladin || isCleric" class="mb-2 p-2 bg-[var(--color-bg-secondary)] rounded border border-[var(--color-border-light)]">
           <div class="flex items-center justify-between mb-1">
             <span class="text-xs font-semibold text-[var(--color-text-secondary)]">Prepared Spells:</span>
             <span :class="[
@@ -22,8 +22,17 @@
               {{ preparedCount }} / {{ maxPreparedSpells }}
             </span>
           </div>
-          <div v-if="preparedCount >= maxPreparedSpells" class="text-xs text-[var(--color-warning)] mb-1">
+          <div v-if="preparedCount >= maxPreparedSpells && maxPreparedSpells > 0" class="text-xs text-[var(--color-warning)] mb-1">
             ⚠️ Preparation limit reached
+          </div>
+          <div v-if="isCleric" class="flex items-center justify-between mb-1">
+            <span class="text-xs font-semibold text-[var(--color-text-secondary)]">Cantrips:</span>
+            <span :class="[
+              'text-xs font-bold',
+              currentCantripCount >= maxCantrips ? 'text-[var(--color-warning)]' : 'text-[var(--color-text-primary)]'
+            ]">
+              {{ currentCantripCount }} / {{ maxCantrips }}
+            </span>
           </div>
           <div class="text-xs text-[var(--color-text-tertiary)]">
             Spell Slots:
@@ -32,6 +41,32 @@
             </span>
             <span v-if="spellSlotsByLevel.length === 0">None</span>
           </div>
+        </div>
+        
+        <!-- Tab Navigation -->
+        <div v-if="isCleric" class="mb-2 flex gap-1 border-b border-[var(--color-border-divider)]">
+          <button
+            @click="activeTab = 'spells'"
+            :class="[
+              'px-3 py-1.5 text-sm font-semibold transition-colors',
+              activeTab === 'spells' 
+                ? 'text-[var(--color-accent-primary)] border-b-2 border-[var(--color-accent-primary)]' 
+                : 'text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)]'
+            ]"
+          >
+            Spells
+          </button>
+          <button
+            @click="activeTab = 'cantrips'"
+            :class="[
+              'px-3 py-1.5 text-sm font-semibold transition-colors',
+              activeTab === 'cantrips' 
+                ? 'text-[var(--color-accent-primary)] border-b-2 border-[var(--color-accent-primary)]' 
+                : 'text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)]'
+            ]"
+          >
+            Cantrips
+          </button>
         </div>
         <!-- Search and Filters -->
         <div class="mb-2">
@@ -56,8 +91,109 @@
           </div>
         </div>
 
+        <!-- Cantrip Tab -->
+        <div v-if="activeTab === 'cantrips' && isCleric" class="flex-1 overflow-y-auto">
+          <div class="mb-2">
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="Search cantrips..."
+              class="input w-full mb-1.5"
+            />
+          </div>
+          
+          <!-- Known Cantrips -->
+          <div v-if="knownCantrips.length > 0" class="mb-4">
+            <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] mb-1.5">Known Cantrips</h3>
+            <div class="grid grid-cols-1 gap-1.5 mb-3">
+              <div
+                v-for="cantrip in knownCantrips"
+                :key="cantrip.name"
+                class="card-compact p-2 border-l-2 border-[var(--color-success)]"
+              >
+                <div class="flex items-start justify-between gap-2">
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                      <h3 class="text-sm font-bold text-[var(--color-text-primary)] m-0">{{ cantrip.name }}</h3>
+                      <span class="text-xs px-1.5 py-0.5 bg-[var(--color-bg-secondary)] rounded text-[var(--color-text-tertiary)]">
+                        {{ cantrip.school }}
+                      </span>
+                      <span class="text-xs text-[var(--color-text-tertiary)]">{{ cantrip.castingTime }}</span>
+                    </div>
+                    <p v-if="cantrip.description" class="text-xs text-[var(--color-text-secondary)] mb-1 line-clamp-2">{{ cantrip.description }}</p>
+                    <div class="text-xs text-[var(--color-text-tertiary)]">
+                      <span>{{ cantrip.range }}</span>
+                      <span class="mx-1">•</span>
+                      <span>{{ cantrip.components }}</span>
+                      <span class="mx-1">•</span>
+                      <span>{{ cantrip.duration }}</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-1 shrink-0">
+                    <button
+                      @click="removeCantrip(cantrip.name)"
+                      class="btn btn-danger text-xs px-2 py-1"
+                      title="Remove cantrip"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Available Cantrips -->
+          <div>
+            <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] mb-1.5" :class="knownCantrips.length > 0 ? 'mt-4' : 'mt-0'">Available Cantrips</h3>
+            <div class="grid grid-cols-1 gap-1.5 mb-3">
+              <div
+                v-for="cantrip in availableCantripsList"
+                :key="cantrip.name"
+                class="card-compact p-2"
+              >
+                <div class="flex items-start justify-between gap-2">
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                      <h3 class="text-sm font-bold text-[var(--color-text-primary)] m-0">{{ cantrip.name }}</h3>
+                      <span class="text-xs px-1.5 py-0.5 bg-[var(--color-bg-secondary)] rounded text-[var(--color-text-tertiary)]">
+                        {{ cantrip.school }}
+                      </span>
+                      <span class="text-xs text-[var(--color-text-tertiary)]">{{ cantrip.castingTime }}</span>
+                    </div>
+                    <p v-if="cantrip.description" class="text-xs text-[var(--color-text-secondary)] mb-1 line-clamp-2">{{ cantrip.description }}</p>
+                    <div class="text-xs text-[var(--color-text-tertiary)]">
+                      <span>{{ cantrip.range }}</span>
+                      <span class="mx-1">•</span>
+                      <span>{{ cantrip.components }}</span>
+                      <span class="mx-1">•</span>
+                      <span>{{ cantrip.duration }}</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-1 shrink-0">
+                    <button
+                      @click="addCantrip(cantrip.name)"
+                      :disabled="currentCantripCount >= maxCantrips"
+                      :class="[
+                        'btn text-xs px-2 py-1',
+                        currentCantripCount >= maxCantrips ? 'btn-secondary opacity-50 cursor-not-allowed' : 'btn-primary'
+                      ]"
+                      :title="currentCantripCount >= maxCantrips ? 'Cantrip limit reached' : 'Add cantrip'"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-if="knownCantrips.length === 0 && availableCantripsList.length === 0" class="text-center py-4 text-[var(--color-text-muted)] italic text-sm">
+            No cantrips found
+          </div>
+        </div>
+
         <!-- Spell List -->
-        <div class="flex-1 overflow-y-auto">
+        <div v-if="activeTab === 'spells' || !isCleric" class="flex-1 overflow-y-auto">
           <!-- Prepared Spells Section -->
           <div v-if="preparedSpellsList.length > 0" class="mb-4">
             <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] mb-1.5">Prepared Spells</h3>
@@ -162,9 +298,11 @@
 </template>
 
 <script setup lang="ts">
+import { watch } from 'vue'
 import type { Spell } from '~/types/character'
 import paladinSpellsData from '~/data/spells/Paladin.json'
-import { getPaladinPreparedSpellCount } from '~/composables/spellSlots'
+import clericSpellsData from '~/data/spells/Cleric.json'
+import { getPaladinPreparedSpellCount, getClericPreparedSpellCount, getClericCantripCount } from '~/composables/spellSlots'
 
 interface SpellData {
   name: string
@@ -189,10 +327,16 @@ const { character, addSpell, removeSpell, syncSpellActions, getClassLevel, ensur
 
 const searchQuery = ref('')
 const selectedLevel = ref<'all' | 1 | 2 | 3 | 4 | 5>('all')
+const activeTab = ref<'spells' | 'cantrips'>('spells')
 
 // Check if character is a Paladin
 const isPaladin = computed(() => {
   return getClassLevel('Paladin') > 0
+})
+
+// Check if character is a Cleric
+const isCleric = computed(() => {
+  return getClassLevel('Cleric') > 0
 })
 
 // Get Paladin level
@@ -200,16 +344,45 @@ const paladinLevel = computed(() => {
   return getClassLevel('Paladin')
 })
 
-// Calculate max prepared spells for Paladin
-const maxPreparedSpells = computed(() => {
-  if (!isPaladin.value || paladinLevel.value < 1) return 0
-  const charismaModifier = character.value.abilities.charisma.modifier
-  return getPaladinPreparedSpellCount(paladinLevel.value, charismaModifier)
+// Get Cleric level
+const clericLevel = computed(() => {
+  return getClassLevel('Cleric')
 })
 
-// Count currently prepared spells
+// Get Divine Order (stored on character)
+const divineOrder = computed(() => {
+  return (character.value as any).divineOrder as 'Protector' | 'Thaumaturge' | null
+})
+
+// Calculate max prepared spells for Paladin or Cleric
+const maxPreparedSpells = computed(() => {
+  if (isPaladin.value && paladinLevel.value >= 1) {
+    const charismaModifier = character.value.abilities.charisma.modifier
+    return getPaladinPreparedSpellCount(paladinLevel.value, charismaModifier)
+  }
+  if (isCleric.value && clericLevel.value >= 1) {
+    const wisdomModifier = character.value.abilities.wisdom.modifier
+    return getClericPreparedSpellCount(clericLevel.value, wisdomModifier)
+  }
+  return 0
+})
+
+// Get max cantrips for Cleric
+const maxCantrips = computed(() => {
+  if (isCleric.value && clericLevel.value >= 1) {
+    return getClericCantripCount(clericLevel.value, divineOrder.value)
+  }
+  return 0
+})
+
+// Get current cantrip count
+const currentCantripCount = computed(() => {
+  return character.value.spells.filter(s => s.level === 0).length
+})
+
+// Count currently prepared spells (only level 1+ spells, not cantrips)
 const preparedCount = computed(() => {
-  return character.value.spells.filter(s => s.prepared).length
+  return character.value.spells.filter(s => s.prepared && s.level > 0).length
 })
 
 // Get spell slots by level
@@ -256,11 +429,19 @@ const getPrepareButtonTitle = (spell: SpellData): string => {
 }
 
 const paladinSpells = (paladinSpellsData as { spells: SpellData[] }).spells
+const clericSpells = (clericSpellsData as { spells: SpellData[] }).spells
+
+// Get the appropriate spell list based on class
+const classSpells = computed(() => {
+  if (isCleric.value) return clericSpells
+  if (isPaladin.value) return paladinSpells
+  return []
+})
 
 const spellLevels = ['all', 1, 2, 3, 4, 5] as const
 
 const filteredSpells = computed(() => {
-  let spells = paladinSpells
+  let spells = classSpells.value.filter(s => s.level > 0) // Only level 1+ spells
 
   if (selectedLevel.value !== 'all') {
     spells = spells.filter(s => s.level === selectedLevel.value)
@@ -278,14 +459,45 @@ const filteredSpells = computed(() => {
   return spells
 })
 
+// Get known cantrips (level 0 spells in character's spellbook)
+const knownCantrips = computed(() => {
+  const cantrips = character.value.spells.filter(s => s.level === 0)
+  if (searchQuery.value.trim()) {
+    const query = searchQuery.value.toLowerCase()
+    return cantrips.filter(c =>
+      c.name.toLowerCase().includes(query) ||
+      c.description.toLowerCase().includes(query) ||
+      c.school.toLowerCase().includes(query)
+    )
+  }
+  return cantrips
+})
+
+// Get available cantrips (not yet known)
+const availableCantripsList = computed(() => {
+  const knownNames = new Set(character.value.spells.filter(s => s.level === 0).map(s => s.name))
+  let available = clericSpells.filter(s => s.level === 0 && !knownNames.has(s.name))
+  
+  if (searchQuery.value.trim()) {
+    const query = searchQuery.value.toLowerCase()
+    available = available.filter(c =>
+      c.name.toLowerCase().includes(query) ||
+      c.description.toLowerCase().includes(query) ||
+      c.school.toLowerCase().includes(query)
+    )
+  }
+  
+  return available
+})
+
 const getSpellsByLevel = (level: number): SpellData[] => {
   return filteredSpells.value.filter(s => s.level === level)
 }
 
 // Get prepared spells list
 const preparedSpellsList = computed(() => {
-  return paladinSpells
-    .filter(spell => isPrepared(spell.name))
+  return classSpells.value
+    .filter(spell => spell.level > 0 && isPrepared(spell.name))
     .filter(spell => {
       // Apply search filter if active
       if (searchQuery.value.trim()) {
@@ -314,7 +526,7 @@ const getUnpreparedSpellsByLevel = (level: number): SpellData[] => {
   }
 
   return filteredSpells.value
-    .filter(s => s.level === level)
+    .filter(s => s.level === level && s.level > 0) // Only level 1+ spells, not cantrips
     .filter(s => !isPrepared(s.name))
 }
 
@@ -332,7 +544,7 @@ const togglePrepared = (spellName: string): void => {
 
   // If spell doesn't exist in character's spellbook, add it first
   if (!spell) {
-    const spellData = paladinSpells.find(s => s.name === spellName)
+    const spellData = classSpells.value.find(s => s.name === spellName)
     if (!spellData) return
 
     const newSpell: Omit<Spell, 'id'> = {
@@ -354,7 +566,7 @@ const togglePrepared = (spellName: string): void => {
     // Check if we can prepare (allow unpreparing always)
     if (!spell.prepared) {
       // Find the spell data to check preparation limits
-      const spellData = paladinSpells.find(s => s.name === spellName)
+      const spellData = classSpells.value.find(s => s.name === spellName)
       if (spellData && !canPrepareSpell(spellData)) {
         return // Don't prepare if limit reached or no slots
       }
@@ -366,7 +578,54 @@ const togglePrepared = (spellName: string): void => {
   }
 }
 
+// Add cantrip
+const addCantrip = (cantripName: string): void => {
+  if (currentCantripCount.value >= maxCantrips.value) return
+  
+  const cantripData = clericSpells.find(s => s.name === cantripName && s.level === 0)
+  if (!cantripData) return
+
+  // Check if already exists
+  if (character.value.spells.some(s => s.name === cantripName && s.level === 0)) return
+
+  const newCantrip: Omit<Spell, 'id'> = {
+    name: cantripData.name,
+    level: cantripData.level,
+    school: cantripData.school,
+    castingTime: cantripData.castingTime,
+    range: cantripData.range,
+    components: cantripData.components,
+    duration: cantripData.duration,
+    description: cantripData.description,
+    prepared: false, // Cantrips don't need to be prepared
+  }
+  addSpell(newCantrip)
+  syncSpellActions()
+}
+
+// Remove cantrip
+const removeCantrip = (cantripName: string): void => {
+  const cantrip = character.value.spells.find(s => s.name === cantripName && s.level === 0)
+  if (cantrip) {
+    removeSpell(cantrip.id)
+    syncSpellActions()
+  }
+}
+
 const close = () => {
+  // Reset to spells tab when closing
+  activeTab.value = 'spells'
+  searchQuery.value = ''
+  selectedLevel.value = 'all'
   emit('close')
 }
+
+// Watch for modal opening to reset tab
+watch(() => props.isOpen, (isOpen) => {
+  if (isOpen) {
+    activeTab.value = 'spells'
+    searchQuery.value = ''
+    selectedLevel.value = 'all'
+  }
+})
 </script>
