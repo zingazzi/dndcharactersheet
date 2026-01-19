@@ -4,5 +4,188 @@
     "starting": { "base": "maxHitDie", "addCon": true },
     "levelUp": { "average": "halfHitDieFloor", "addCon": true, "minGain": 1 }
   },
-  "levels": {}
+  "multiclassRequirements": {
+    "primaryAbility": "wisdom",
+    "minScore": 13
+  },
+  "multiclassProficiencies": {
+    "armorTraining": ["Light Armor", "Medium Armor", "Shields"]
+  },
+  "resources": {
+    "channelDivinity": {
+      "label": "Channel Divinity",
+      "description": "Your ability to channel divine energy directly from your deity, represented by a number of uses. You start with 2 uses at 2nd level, which increases to 3 at 6th level and 4 at 18th level. You regain all expended uses when you finish a Short Rest or Long Rest.",
+      "reset": "shortRest",
+      "trackActive": false,
+      "maxByLevel": {
+        "1": 0,
+        "2": 2,
+        "3": 2,
+        "4": 2,
+        "5": 2,
+        "6": 3,
+        "7": 3,
+        "8": 3,
+        "9": 3,
+        "10": 3,
+        "11": 3,
+        "12": 3,
+        "13": 3,
+        "14": 3,
+        "15": 3,
+        "16": 3,
+        "17": 3,
+        "18": 4,
+        "19": 4,
+        "20": 4
+      }
+    }
+  },
+  "levels": {
+    "1": {
+      "features": [
+        {
+          "name": "Divine Order",
+          "description": "You have dedicated yourself to one of the following sacred roles of your choice: Protector - Trained for battle, you gain proficiency with Martial Weapons and training with Heavy Armor. Thaumaturge - You know one extra cantrip from the Cleric spell list. In addition, your mystical connection to the divine gives you a bonus to your Intelligence (Arcana or Religion) checks. The bonus equals your Wisdom modifier (minimum of +1)."
+        },
+        {
+          "name": "Spellcasting",
+          "description": "You have learned to cast spells through prayer and meditation. You know three cantrips of your choice from the Cleric spell list. You prepare a list of level 1+ spells that are available for you to cast. To start, choose four level 1 spells from the Cleric spell list. The number of spells on your list increases as you gain Cleric levels, as shown in the Prepared Spells column of the Cleric table. Whenever that number increases, choose additional spells from the Cleric spell list until the number of spells on your list matches the number on the table. The chosen spells must be of a level for which you have spell slots. You can change your list of prepared spells whenever you finish a Long Rest, replacing one or more of the spells there with other Divine spells for which you have spell slots. Wisdom is your Spellcasting Ability for your Cleric spells."
+        }
+      ]
+    },
+    "2": {
+      "features": [
+        {
+          "name": "Channel Divinity",
+          "description": "You gain the ability to channel divine energy directly from your deity, using that energy to fuel magical effects. You start with two such effects: Turn Undead and Divine Spark. When you use your Channel Divinity, you choose which effect to create. You can use Channel Divinity a number of times equal to your proficiency bonus, and you regain all expended uses when you finish a Short Rest or Long Rest.",
+          "resourceRef": "channelDivinity"
+        }
+      ]
+    },
+    "3": {
+      "features": [
+        {
+          "name": "Cleric Subclass",
+          "description": "When you reach 3rd level, you choose a Divine Domain that reflects your devotion to your deity. Your choice grants you features at 3rd level and again at 6th, 17th, and 20th level."
+        }
+      ]
+    },
+    "4": {
+      "features": [
+        {
+          "name": "Ability Score Improvement",
+          "description": "You can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature."
+        }
+      ]
+    },
+    "5": {
+      "features": [
+        {
+          "name": "Smite Undead",
+          "description": "When you use your Channel Divinity to Turn Undead, each undead that fails its saving throw takes Radiant damage equal to a number of d8s equal to your Wisdom modifier (minimum of 1)."
+        }
+      ]
+    },
+    "6": {
+      "features": [
+        {
+          "name": "Subclass Feature",
+          "description": "You gain a feature from your Divine Domain."
+        }
+      ]
+    },
+    "7": {
+      "features": [
+        {
+          "name": "Blessed Strikes",
+          "description": "You are blessed with divine might in battle. When a creature takes damage from one of your cantrips or weapon attacks, you can deal extra damage to that target. The extra damage is 1d8 Radiant or Necrotic damage (your choice). You can deal this extra damage only once per turn."
+        }
+      ]
+    },
+    "8": {
+      "features": [
+        {
+          "name": "Ability Score Improvement",
+          "description": "You can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature."
+        }
+      ]
+    },
+    "9": {
+      "features": [
+        {
+          "name": "Commune",
+          "description": "You can use your action to contact your deity or a divine proxy through prayer and meditation. You can ask up to three questions that can be answered with a yes or no. You receive correct answers to these questions. You can't use this feature again until you finish a Long Rest."
+        }
+      ]
+    },
+    "10": {
+      "features": [
+        {
+          "name": "Divine Intervention",
+          "description": "Beginning at 10th level, you can call on your deity to intervene on your behalf when your need is great. As a Magic Action, you can choose any Cleric spell of 5th level or lower that doesn't require a Reaction. You cast that spell without expending a spell slot or material components. Once you use this feature, you can't use it again until you finish a Long Rest."
+        }
+      ]
+    },
+    "11": {
+      "features": []
+    },
+    "12": {
+      "features": [
+        {
+          "name": "Ability Score Improvement",
+          "description": "You can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature."
+        }
+      ]
+    },
+    "13": {
+      "features": []
+    },
+    "14": {
+      "features": [
+        {
+          "name": "Improved Blessed Strikes",
+          "description": "The extra damage from your Blessed Strikes feature increases to 2d8 Radiant or Necrotic damage (your choice)."
+        }
+      ]
+    },
+    "15": {
+      "features": []
+    },
+    "16": {
+      "features": [
+        {
+          "name": "Ability Score Improvement",
+          "description": "You can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature."
+        }
+      ]
+    },
+    "17": {
+      "features": [
+        {
+          "name": "Subclass Feature",
+          "description": "You gain a feature from your Divine Domain."
+        }
+      ]
+    },
+    "18": {
+      "features": []
+    },
+    "19": {
+      "features": [
+        {
+          "name": "Ability Score Improvement",
+          "description": "You can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature."
+        }
+      ]
+    },
+    "20": {
+      "features": [
+        {
+          "name": "Greater Divine Intervention",
+          "description": "When you use your Divine Intervention feature, you can choose the Wish spell when selecting the spell. If you do so, you can't use Divine Intervention again for 2d4 Long Rests."
+        }
+      ]
+    }
+  }
 }

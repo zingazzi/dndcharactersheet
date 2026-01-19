@@ -1,9 +1,10 @@
 import type { Character, AbilityScore, Skill, Action, Spell, InventoryItem, FeatureTrait, ResourcePool, ClassType, ClassEntry } from '~/types/character'
 import { addMissingClassFeatures, canMulticlassInto, computeHpGainOnLevelUp, getMulticlassProficiencies, getResourcesForClassAtLevel, getStartingHpBase, type HpChoice } from '~/composables/classProgression'
 import { canLevelUpWithXp, getNextXpMilestoneFromXp } from '~/composables/xpProgression'
-import { getPaladinSpellSlots } from '~/composables/spellSlots'
+import { getPaladinSpellSlots, getClericSpellSlots, getClericCantripCount } from '~/composables/spellSlots'
 import fightingStylesJson from '~/data/fighting-styles.json'
 import paladinSpellsJson from '~/data/spells/Paladin.json'
+import clericSpellsJson from '~/data/spells/Cleric.json'
 import originsJson from '~/data/origins.json'
 import featsJson from '~/data/feats.json'
 
@@ -125,6 +126,14 @@ export const PALADIN_SKILLS = [
   'Athletics',
   'Insight',
   'Intimidation',
+  'Medicine',
+  'Persuasion',
+  'Religion',
+]
+
+export const CLERIC_SKILLS = [
+  'History',
+  'Insight',
   'Medicine',
   'Persuasion',
   'Religion',
@@ -1101,7 +1110,16 @@ function applyBarbarianLevel1(character: Character, selectedSkills: string[], se
   character.initiative = calculateInitiative(dexModifier)
 }
 
-function createNewCharacter(characterClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[], selectedExpertise?: string[]): Character {
+function createNewCharacter(
+  characterClass: string,
+  selectedSkills: string[],
+  selectedFightingStyle: string | undefined,
+  selectedWeaponMasteries: string[],
+  selectedExpertise?: string[],
+  selectedDivineOrder?: 'Protector' | 'Thaumaturge',
+  selectedCantrips?: string[],
+  selectedSpells?: string[],
+): Character {
   const character = createEmptyCharacter()
 
   if (characterClass === 'Fighter') {
@@ -1119,6 +1137,12 @@ function createNewCharacter(characterClass: string, selectedSkills: string[], se
   } else if (characterClass === 'Paladin') {
     // Paladin gets fighting style at level 2, not level 1
     applyPaladinLevel1(character, selectedSkills, selectedFightingStyle || undefined, selectedWeaponMasteries)
+  } else if (characterClass === 'Cleric') {
+    // Cleric requires Divine Order, cantrips, and initial spells
+    if (!selectedDivineOrder || !selectedCantrips || !selectedSpells) {
+      throw new Error('Cleric requires Divine Order, cantrips, and initial spells')
+    }
+    applyClericLevel1(character, selectedSkills, selectedDivineOrder, selectedCantrips, selectedSpells)
   }
 
   // Initialize basic attacks (unarmed strike)
@@ -1337,6 +1361,190 @@ function applyPaladinLevel1(character: Character, selectedSkills: string[], sele
 
   // Initialize spell slots (empty at level 1, will be added at level 2)
   character.spellSlots = []
+
+  // Recalculate AC and Initiative
+  const dexModifier = character.abilities.dexterity.modifier
+  character.ac = calculateAC(dexModifier, 10, character)
+  character.initiative = calculateInitiative(dexModifier)
+}
+
+function applyClericLevel1(
+  character: Character,
+  selectedSkills: string[],
+  selectedDivineOrder: 'Protector' | 'Thaumaturge',
+  selectedCantrips: string[],
+  selectedSpells: string[],
+): void {
+  const level = 1
+  const proficiencyBonus = calculateProficiencyBonus(level)
+  const conModifier = character.abilities.constitution.modifier
+
+  // Set hit points (starting HP: 8 + CON)
+  const startingHp = 8 + conModifier
+  character.hitPoints.maximum = startingHp
+  character.hitPoints.current = startingHp
+
+  // Set classes array (multiclass support)
+  character.classes = [{ classType: 'Cleric', level: 1 }]
+  character.classLevel = 'Cleric 1'
+  character.classType = 'Cleric' // Keep for migration compatibility
+  character.level = level
+  character.proficiencyBonus = proficiencyBonus
+
+  // Store Divine Order choice
+  ;(character as any).divineOrder = selectedDivineOrder
+
+  // Set saving throw proficiencies: Wisdom and Charisma
+  character.abilities.wisdom.saveProficient = true
+  character.abilities.wisdom.saveModifier = character.abilities.wisdom.modifier + proficiencyBonus
+  character.abilities.charisma.saveProficient = true
+  character.abilities.charisma.saveModifier = character.abilities.charisma.modifier + proficiencyBonus
+
+  // Apply skill proficiencies (2 selected skills)
+  character.skills.forEach(skill => {
+    if (selectedSkills.includes(skill.name)) {
+      skill.proficient = true
+    }
+  })
+
+  // Recalculate skill modifiers to include proficiency bonus
+  character.skills.forEach(skill => {
+    const ability = character.abilities[skill.ability]
+    const finalScore = ability.score + (ability.customModifier || 0)
+    const abilityModifier = calculateModifier(finalScore)
+    skill.modifier = abilityModifier + (skill.proficient ? proficiencyBonus : 0)
+  })
+
+  // Apply Divine Order choice
+  if (selectedDivineOrder === 'Protector') {
+    // Protector: Martial Weapons, Heavy Armor proficiency
+    character.featuresTraits.push({
+      id: crypto.randomUUID(),
+      name: 'Divine Order: Protector',
+      description: 'Trained for battle, you gain proficiency with Martial Weapons and training with Heavy Armor.',
+      source: 'Class',
+    })
+  } else if (selectedDivineOrder === 'Thaumaturge') {
+    // Thaumaturge: +1 cantrip, bonus to Int (Arcana or Religion) checks
+    character.featuresTraits.push({
+      id: crypto.randomUUID(),
+      name: 'Divine Order: Thaumaturge',
+      description: 'You know one extra cantrip from the Cleric spell list. In addition, your mystical connection to the divine gives you a bonus to your Intelligence (Arcana or Religion) checks. The bonus equals your Wisdom modifier (minimum of +1).',
+      source: 'Class',
+    })
+  }
+
+  // Initialize cantrips (3 or 4 based on Divine Order)
+  const clericSpells = (clericSpellsJson as { spells: Array<{
+    name: string
+    level: number
+    school: string
+    castingTime: string
+    range: string
+    components: string
+    duration: string
+    description: string
+  }> }).spells
+
+  selectedCantrips.forEach(cantripName => {
+    const cantripData = clericSpells.find(s => s.name === cantripName && s.level === 0)
+    if (cantripData) {
+      const cantrip: Omit<Spell, 'id'> = {
+        name: cantripData.name,
+        level: cantripData.level,
+        school: cantripData.school,
+        castingTime: cantripData.castingTime,
+        range: cantripData.range,
+        components: cantripData.components,
+        duration: cantripData.duration,
+        description: cantripData.description,
+        prepared: false, // Cantrips don't need to be prepared
+      }
+      character.spells.push({
+        ...cantrip,
+        id: crypto.randomUUID(),
+      })
+    }
+  })
+
+  // Initialize 4 level 1 spells (prepared)
+  selectedSpells.forEach(spellName => {
+    const spellData = clericSpells.find(s => s.name === spellName && s.level === 1)
+    if (spellData) {
+      const spell: Omit<Spell, 'id'> = {
+        name: spellData.name,
+        level: spellData.level,
+        school: spellData.school,
+        castingTime: spellData.castingTime,
+        range: spellData.range,
+        components: spellData.components,
+        duration: spellData.duration,
+        description: spellData.description,
+        prepared: true, // Initial spells are prepared
+      }
+      character.spells.push({
+        ...spell,
+        id: crypto.randomUUID(),
+      })
+    }
+  })
+
+  // Initialize spell slots (2x 1st level)
+  character.spellSlots = getClericSpellSlots(1, [])
+
+  // Add level 1 features (Divine Order, Spellcasting)
+  character.featuresTraits = addMissingClassFeatures(character.featuresTraits, 'Cleric', 1)
+
+  // Add weapon and armor proficiencies as features/traits
+  const proficiencies: FeatureTrait[] = [
+    {
+      id: crypto.randomUUID(),
+      name: 'Weapon Proficiency: Simple Weapons',
+      description: 'Proficient with all simple weapons.',
+      source: 'Class',
+    },
+  ]
+
+  // Add Divine Order-specific proficiencies
+  if (selectedDivineOrder === 'Protector') {
+    proficiencies.push(
+      {
+        id: crypto.randomUUID(),
+        name: 'Weapon Proficiency: Martial Weapons',
+        description: 'Proficient with all martial weapons.',
+        source: 'Class',
+      },
+      {
+        id: crypto.randomUUID(),
+        name: 'Armor Proficiency: Heavy Armor',
+        description: 'Proficient with heavy armor.',
+        source: 'Class',
+      },
+    )
+  }
+
+  proficiencies.push(
+    {
+      id: crypto.randomUUID(),
+      name: 'Armor Proficiency: Light Armor',
+      description: 'Proficient with light armor.',
+      source: 'Class',
+    },
+    {
+      id: crypto.randomUUID(),
+      name: 'Armor Proficiency: Medium Armor',
+      description: 'Proficient with medium armor.',
+      source: 'Class',
+    },
+    {
+      id: crypto.randomUUID(),
+      name: 'Armor Proficiency: Shields',
+      description: 'Proficient with shields.',
+      source: 'Class',
+    },
+  )
+
+  character.featuresTraits = [...character.featuresTraits, ...proficiencies]
 
   // Recalculate AC and Initiative
   const dexModifier = character.abilities.dexterity.modifier
@@ -2072,6 +2280,31 @@ export const useCharacter = () => {
       return
     }
 
+    // Check if any slot totals have changed
+    for (let i = 0; i < currentSlots.length; i++) {
+      if (currentSlots[i].total !== newSlots[i]?.total) {
+        character.value.spellSlots = newSlots
+        return
+      }
+    }
+  })
+
+  // Auto-calculate Cleric spell slots based on Cleric level
+  watchEffect(() => {
+    const classes = character.value.classes ?? []
+    const clericClass = classes.find(c => c.classType === 'Cleric')
+    if (!clericClass) return
+
+    const newSlots = getClericSpellSlots(clericClass.level, character.value.spellSlots)
+
+    // Only update if slots have changed
+    const currentSlots = character.value.spellSlots
+    if (currentSlots.length !== newSlots.length) {
+      character.value.spellSlots = newSlots
+      return
+    }
+
+    // Check if any slot totals have changed
     const hasChanges = currentSlots.some((slot, idx) => {
       const newSlot = newSlots[idx]
       return !newSlot || slot.level !== newSlot.level || slot.total !== newSlot.total
@@ -2981,6 +3214,9 @@ export const useCharacter = () => {
     getMeleeWeapons,
     BARBARIAN_SKILLS,
     ROGUE_SKILLS,
+    PALADIN_SKILLS,
+    CLERIC_SKILLS,
     getSneakAttackDice,
+    applyClericLevel1,
   }
 }

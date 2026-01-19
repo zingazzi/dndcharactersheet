@@ -96,9 +96,9 @@ const closeNewCharacterModal = () => {
   isNewCharacterModalOpen.value = false
 }
 
-const handleCreateCharacter = (characterClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[], selectedExpertise?: string[], abilityScores?: Character['abilities'], origins?: string[]) => {
+const handleCreateCharacter = (characterClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[], selectedExpertise?: string[], abilityScores?: Character['abilities'], origins?: string[], selectedDivineOrder?: 'Protector' | 'Thaumaturge', selectedCantrips?: string[], selectedSpells?: string[]) => {
   const { createNewCharacter, resetCharacter, addOrigin } = useCharacter()
-  const newCharacter = createNewCharacter(characterClass, selectedSkills, selectedFightingStyle, selectedWeaponMasteries, selectedExpertise)
+  const newCharacter = createNewCharacter(characterClass, selectedSkills, selectedFightingStyle, selectedWeaponMasteries, selectedExpertise, selectedDivineOrder, selectedCantrips, selectedSpells)
 
   // Apply custom ability scores if provided
   if (abilityScores) {

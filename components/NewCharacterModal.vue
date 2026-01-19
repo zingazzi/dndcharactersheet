@@ -67,6 +67,19 @@
                 <p class="text-[0.65rem] text-[var(--color-text-tertiary)] italic mt-0.5">A holy warrior bound to a sacred oath who wields divine magic.</p>
               </div>
             </label>
+            <label class="flex items-center p-2 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-secondary)] cursor-pointer hover:bg-[var(--color-bg-primary)] transition-colors"
+              :class="{ 'bg-[var(--color-bg-primary)] border-[var(--color-accent-primary)]': selectedClass === 'Cleric' }">
+              <input
+                v-model="selectedClass"
+                type="radio"
+                value="Cleric"
+                class="mr-2"
+              />
+              <div class="flex-1">
+                <span class="text-sm font-cinzel text-[var(--color-text-primary)]">Cleric</span>
+                <p class="text-[0.65rem] text-[var(--color-text-tertiary)] italic mt-0.5">A priestly champion who wields divine magic in service of a higher power.</p>
+              </div>
+            </label>
           </div>
         </div>
 
@@ -149,8 +162,110 @@
           </div>
         </div>
 
-        <!-- Step 5: Weapon Mastery Selection (for Barbarian, Rogue, and Paladin) -->
-        <div v-if="currentStep === 3 && (selectedClass === 'Barbarian' || selectedClass === 'Rogue' || selectedClass === 'Paladin')" class="mb-2">
+        <!-- Step 3.5: Divine Order Selection (for Cleric) -->
+        <div v-if="currentStep === 3 && selectedClass === 'Cleric'" class="mb-2">
+          <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Step 3.5: Choose Divine Order</h3>
+          <div class="flex flex-col gap-1 mb-1.5">
+            <label
+              class="flex items-start p-1.5 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-secondary)] cursor-pointer transition-colors text-sm"
+              :class="{ 'bg-[var(--color-bg-primary)] border-[var(--color-accent-primary)]': selectedDivineOrder === 'Protector' }"
+            >
+              <input
+                v-model="selectedDivineOrder"
+                type="radio"
+                value="Protector"
+                class="mt-0.5 mr-1.5 w-3 h-3"
+              />
+              <div class="flex-1">
+                <div class="font-semibold text-[var(--color-text-primary)]">Protector</div>
+                <div class="text-xs text-[var(--color-text-tertiary)] mt-0.5">Trained for battle, you gain proficiency with Martial Weapons and training with Heavy Armor.</div>
+              </div>
+            </label>
+            <label
+              class="flex items-start p-1.5 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-secondary)] cursor-pointer transition-colors text-sm"
+              :class="{ 'bg-[var(--color-bg-primary)] border-[var(--color-accent-primary)]': selectedDivineOrder === 'Thaumaturge' }"
+            >
+              <input
+                v-model="selectedDivineOrder"
+                type="radio"
+                value="Thaumaturge"
+                class="mt-0.5 mr-1.5 w-3 h-3"
+              />
+              <div class="flex-1">
+                <div class="font-semibold text-[var(--color-text-primary)]">Thaumaturge</div>
+                <div class="text-xs text-[var(--color-text-tertiary)] mt-0.5">You know one extra cantrip from the Cleric spell list. In addition, your mystical connection to the divine gives you a bonus to your Intelligence (Arcana or Religion) checks. The bonus equals your Wisdom modifier (minimum of +1).</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Step 3.6: Cantrip Selection (for Cleric) -->
+        <div v-if="currentStep === 3 && selectedClass === 'Cleric' && selectedDivineOrder" class="mb-2">
+          <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">
+            Step 3.6: Choose {{ getClericCantripCount(1, selectedDivineOrder as 'Protector' | 'Thaumaturge') }} Cantrips
+          </h3>
+          <div v-if="selectedSkills.length < skillCount" class="text-xs text-[var(--color-text-tertiary)] italic mb-1.5">
+            Select {{ skillCount }} skills first.
+          </div>
+          <div v-else class="max-h-[200px] overflow-y-auto border border-[var(--color-border-primary)] rounded p-1.5 mb-1.5">
+            <div class="grid grid-cols-1 gap-1">
+              <label
+                v-for="cantrip in availableCantrips"
+                :key="cantrip.name"
+                class="flex items-start p-1.5 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-secondary)] cursor-pointer transition-colors text-sm"
+                :class="{ 'bg-[var(--color-bg-primary)] border-[var(--color-accent-primary)]': selectedCantrips.includes(cantrip.name), 'opacity-50 cursor-not-allowed': !selectedCantrips.includes(cantrip.name) && selectedCantrips.length >= getClericCantripCount(1, selectedDivineOrder as 'Protector' | 'Thaumaturge') }"
+              >
+                <input
+                  type="checkbox"
+                  :value="cantrip.name"
+                  v-model="selectedCantrips"
+                  :disabled="!selectedCantrips.includes(cantrip.name) && selectedCantrips.length >= getClericCantripCount(1, selectedDivineOrder as 'Protector' | 'Thaumaturge')"
+                  class="mt-0.5 mr-1.5 w-3 h-3"
+                />
+                <div class="flex-1">
+                  <div class="font-semibold text-[var(--color-text-primary)]">{{ cantrip.name }}</div>
+                  <div class="text-xs text-[var(--color-text-tertiary)] mt-0.5">{{ cantrip.description }}</div>
+                </div>
+              </label>
+            </div>
+          </div>
+          <div class="text-center text-sm" :class="{ 'text-[var(--color-success)]': selectedCantrips.length === getClericCantripCount(1, selectedDivineOrder as 'Protector' | 'Thaumaturge'), 'text-[var(--color-danger)]': selectedCantrips.length !== getClericCantripCount(1, selectedDivineOrder as 'Protector' | 'Thaumaturge') }">
+            Selected: {{ selectedCantrips.length }} / {{ getClericCantripCount(1, selectedDivineOrder as 'Protector' | 'Thaumaturge') }} cantrips
+          </div>
+        </div>
+
+        <!-- Step 3.7: Initial Spell Selection (for Cleric) -->
+        <div v-if="currentStep === 3 && selectedClass === 'Cleric' && selectedCantrips.length === getClericCantripCount(1, selectedDivineOrder as 'Protector' | 'Thaumaturge')" class="mb-2">
+          <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Step 3.7: Choose 4 Level 1 Spells</h3>
+          <div class="max-h-[200px] overflow-y-auto border border-[var(--color-border-primary)] rounded p-1.5 mb-1.5">
+            <div class="grid grid-cols-1 gap-1">
+              <label
+                v-for="spell in availableLevel1Spells"
+                :key="spell.name"
+                class="flex items-start p-1.5 border border-[var(--color-border-primary)] rounded bg-[var(--color-bg-secondary)] cursor-pointer transition-colors text-sm"
+                :class="{ 'bg-[var(--color-bg-primary)] border-[var(--color-accent-primary)]': selectedSpells.includes(spell.name), 'opacity-50 cursor-not-allowed': !selectedSpells.includes(spell.name) && selectedSpells.length >= 4 }"
+              >
+                <input
+                  type="checkbox"
+                  :value="spell.name"
+                  v-model="selectedSpells"
+                  :disabled="!selectedSpells.includes(spell.name) && selectedSpells.length >= 4"
+                  class="mt-0.5 mr-1.5 w-3 h-3"
+                />
+                <div class="flex-1">
+                  <div class="font-semibold text-[var(--color-text-primary)]">{{ spell.name }}</div>
+                  <div class="text-xs text-[var(--color-text-tertiary)] mt-0.5">{{ spell.description }}</div>
+                </div>
+              </label>
+            </div>
+          </div>
+          <div class="text-center text-sm" :class="{ 'text-[var(--color-success)]': selectedSpells.length === 4, 'text-[var(--color-danger)]': selectedSpells.length !== 4 }">
+            Selected: {{ selectedSpells.length }} / 4 spells
+          </div>
+        </div>
+
+        <!-- Step 5: Weapon Mastery Selection (for Barbarian, Rogue, Paladin, and Cleric) -->
+        <div v-if="currentStep === 3 && (selectedClass === 'Barbarian' || selectedClass === 'Rogue' || selectedClass === 'Paladin' || selectedClass === 'Cleric')" class="mb-2">
           <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">
             Step 5: Choose 2 {{ selectedClass === 'Barbarian' ? 'Melee ' : '' }}Weapons for Weapon Mastery
           </h3>
@@ -284,7 +399,9 @@
 <script setup lang="ts">
 import { nextTick } from 'vue'
 import type { Character } from '~/types/character'
-import { FIGHTING_STYLES, WEAPON_MASTERY_WEAPONS, BARBARIAN_SKILLS, ROGUE_SKILLS, PALADIN_SKILLS, getMeleeWeapons } from '~/composables/useCharacter'
+import { FIGHTING_STYLES, WEAPON_MASTERY_WEAPONS, BARBARIAN_SKILLS, ROGUE_SKILLS, PALADIN_SKILLS, CLERIC_SKILLS, getMeleeWeapons } from '~/composables/useCharacter'
+import clericSpellsJson from '~/data/spells/Cleric.json'
+import { getClericCantripCount } from '~/composables/spellSlots'
 import AbilitiesEditModal from './AbilitiesEditModal.vue'
 import OriginSelectionModal from './OriginSelectionModal.vue'
 import originsJson from '~/data/origins.json'
@@ -295,16 +412,19 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
-  create: [charClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[], selectedExpertise?: string[], abilityScores?: Character['abilities'], origins?: string[]]
+  create: [charClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[], selectedExpertise?: string[], abilityScores?: Character['abilities'], origins?: string[], selectedDivineOrder?: 'Protector' | 'Thaumaturge', selectedCantrips?: string[], selectedSpells?: string[]]
 }>()
 
 const currentStep = ref(1) // 1 = class, 2 = ability scores, 3 = skills/fighting style/weapon mastery, 4 = origins (last step)
-const selectedClass = ref<'Fighter' | 'Barbarian' | 'Rogue' | 'Paladin'>('Fighter')
+const selectedClass = ref<'Fighter' | 'Barbarian' | 'Rogue' | 'Paladin' | 'Cleric'>('Fighter')
 const selectedSkills = ref<string[]>([])
 const selectedFightingStyle = ref('')
 const selectedWeaponMasteries = ref<string[]>([])
 const selectedExpertise = ref<string[]>([])
 const selectedOrigins = ref<string[]>([])
+const selectedDivineOrder = ref<'Protector' | 'Thaumaturge' | ''>('')
+const selectedCantrips = ref<string[]>([])
+const selectedSpells = ref<string[]>([])
 const isAbilitiesModalOpen = ref(false)
 const isOriginModalOpen = ref(false)
 const savedAbilityScores = ref<Character['abilities'] | null>(null)
@@ -324,6 +444,7 @@ const fighterSkills = [
 const barbarianSkills = BARBARIAN_SKILLS
 const rogueSkills = ROGUE_SKILLS
 const paladinSkills = PALADIN_SKILLS
+const clericSkills = CLERIC_SKILLS
 const fightingStyles = FIGHTING_STYLES
 
 const availableSkills = computed(() => {
@@ -331,6 +452,7 @@ const availableSkills = computed(() => {
   if (selectedClass.value === 'Barbarian') return barbarianSkills
   if (selectedClass.value === 'Rogue') return rogueSkills
   if (selectedClass.value === 'Paladin') return paladinSkills
+  if (selectedClass.value === 'Cleric') return clericSkills
   return []
 })
 
@@ -341,6 +463,31 @@ const skillCount = computed(() => {
 
 const weaponMasteryWeapons = computed(() => selectedClass.value === 'Barbarian' ? getMeleeWeapons() : WEAPON_MASTERY_WEAPONS)
 const weaponMasteryCount = computed(() => selectedClass.value === 'Fighter' ? 3 : 2)
+
+// Cleric spells data
+const clericSpells = computed(() => {
+  const spellsData = clericSpellsJson as { spells: Array<{
+    name: string
+    level: number
+    school: string
+    castingTime: string
+    range: string
+    components: string
+    duration: string
+    description: string
+  }> }
+  return spellsData.spells
+})
+
+const availableCantrips = computed(() => {
+  if (selectedClass.value !== 'Cleric') return []
+  return clericSpells.value.filter(s => s.level === 0)
+})
+
+const availableLevel1Spells = computed(() => {
+  if (selectedClass.value !== 'Cleric') return []
+  return clericSpells.value.filter(s => s.level === 1)
+})
 
 const canProceedToStep4 = computed(() => {
   if (currentStep.value !== 3) return false
@@ -354,6 +501,13 @@ const canProceedToStep4 = computed(() => {
   } else if (selectedClass.value === 'Paladin') {
     // Paladin gets fighting style at level 2, not level 1, so it's optional at creation
     return selectedWeaponMasteries.value.length === 2
+  } else if (selectedClass.value === 'Cleric') {
+    // Cleric requires Divine Order, cantrips, and initial spells
+    const cantripCount = getClericCantripCount(1, selectedDivineOrder.value as 'Protector' | 'Thaumaturge' | null)
+    return selectedDivineOrder.value !== '' && 
+           selectedCantrips.value.length === cantripCount && 
+           selectedSpells.value.length === 4 &&
+           selectedWeaponMasteries.value.length === 2
   }
   return false
 })
@@ -463,7 +617,10 @@ const createCharacter = () => {
       ? selectedFightingStyle.value
       : undefined
     const expertise = selectedClass.value === 'Rogue' ? selectedExpertise.value : undefined
-    emit('create', selectedClass.value, selectedSkills.value, fightingStyle, selectedWeaponMasteries.value, expertise, savedAbilityScores.value, selectedOrigins.value)
+    const divineOrder = selectedClass.value === 'Cleric' ? (selectedDivineOrder.value as 'Protector' | 'Thaumaturge') : undefined
+    const cantrips = selectedClass.value === 'Cleric' ? selectedCantrips.value : undefined
+    const spells = selectedClass.value === 'Cleric' ? selectedSpells.value : undefined
+    emit('create', selectedClass.value, selectedSkills.value, fightingStyle, selectedWeaponMasteries.value, expertise, savedAbilityScores.value, selectedOrigins.value, divineOrder, cantrips, spells)
     // Reset state
     currentStep.value = 1
     selectedClass.value = 'Fighter'
@@ -472,6 +629,9 @@ const createCharacter = () => {
     selectedWeaponMasteries.value = []
     selectedExpertise.value = []
     selectedOrigins.value = []
+    selectedDivineOrder.value = ''
+    selectedCantrips.value = []
+    selectedSpells.value = []
     savedAbilityScores.value = null
   }
 }
@@ -482,6 +642,9 @@ watch(selectedClass, () => {
   selectedFightingStyle.value = ''
   selectedWeaponMasteries.value = []
   selectedExpertise.value = []
+  selectedDivineOrder.value = ''
+  selectedCantrips.value = []
+  selectedSpells.value = []
 })
 
 // Reset step when modal opens/closes
