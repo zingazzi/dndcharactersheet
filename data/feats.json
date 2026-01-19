@@ -55,11 +55,18 @@
       "type": "origin",
       "prerequisites": [],
       "description": "You are adept at crafting things and bargaining with merchants, granting you the following benefits: Increase your Strength or Intelligence score by 1, to a maximum of 20. You gain proficiency with three types of artisan's tools of your choice. You can craft nonmagical objects for half the usual cost and in half the usual time.",
+      "choices": {
+        "abilityScoreIncrease": {
+          "type": "ability",
+          "options": ["strength", "intelligence"],
+          "description": "Choose which ability score to increase by 1"
+        }
+      },
       "abilityScoreIncreases": {
         "strength": 0,
         "dexterity": 0,
         "constitution": 0,
-        "intelligence": 1,
+        "intelligence": 0,
         "wisdom": 0,
         "charisma": 0
       },
@@ -142,13 +149,20 @@
       "type": "origin",
       "prerequisites": [],
       "description": "You are a practiced musician, granting you the following benefits: Increase your Dexterity or Charisma score by 1, to a maximum of 20. You gain proficiency with the Performance skill. If you're already proficient in it, you instead gain expertise in it. As a bonus action, you can inspire others through stirring words or music. Choose one ally other than yourself within 60 feet of you who can hear you. That creature gains one Bardic Inspiration die, a d6.",
+      "choices": {
+        "abilityScoreIncrease": {
+          "type": "ability",
+          "options": ["dexterity", "charisma"],
+          "description": "Choose which ability score to increase by 1"
+        }
+      },
       "abilityScoreIncreases": {
         "strength": 0,
         "dexterity": 0,
         "constitution": 0,
         "intelligence": 0,
         "wisdom": 0,
-        "charisma": 1
+        "charisma": 0
       },
       "skillProficiencies": ["Performance"],
       "features": [
@@ -499,9 +513,16 @@
       "type": "general",
       "prerequisites": [],
       "description": "You are exceptionally speedy and agile. You gain the following benefits: Increase your Strength or Dexterity score by 1, to a maximum of 20. Your speed increases by 10 feet. When you use the Dash action, difficult terrain doesn't cost you extra movement on that turn. When you make a melee attack against a creature, you don't provoke opportunity attacks from that creature for the rest of the turn, whether you hit or not.",
+      "choices": {
+        "abilityScoreIncrease": {
+          "type": "ability",
+          "options": ["strength", "dexterity"],
+          "description": "Choose which ability score to increase by 1"
+        }
+      },
       "abilityScoreIncreases": {
         "strength": 0,
-        "dexterity": 1,
+        "dexterity": 0,
         "constitution": 0,
         "intelligence": 0,
         "wisdom": 0,
@@ -524,6 +545,13 @@
       "type": "general",
       "prerequisites": [],
       "description": "Choose one ability score. You gain the following benefits: Increase the chosen ability score by 1, to a maximum of 20. You gain proficiency in saving throws using the chosen ability.",
+      "choices": {
+        "abilityScoreIncrease": {
+          "type": "ability",
+          "options": ["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"],
+          "description": "Choose which ability score to increase by 1"
+        }
+      },
       "abilityScoreIncreases": {},
       "skillProficiencies": [],
       "features": [
