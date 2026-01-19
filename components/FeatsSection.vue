@@ -42,6 +42,13 @@
       @close="showModal = false"
       @select="handleFeatSelect"
     />
+    <FeatChoiceModal
+      v-if="showChoiceModal"
+      :is-open="showChoiceModal"
+      :feat-id="pendingFeatId"
+      @close="showChoiceModal = false"
+      @confirm="handleFeatChoiceConfirm"
+    />
   </div>
 </template>
 
@@ -49,9 +56,11 @@
 import { ref } from 'vue'
 import featsJson from '~/data/feats.json'
 
-const { character, addFeat, removeFeat } = useCharacter()
+const { character, addFeat, removeFeat, featRequiresChoices } = useCharacter()
 
 const showModal = ref(false)
+const showChoiceModal = ref(false)
+const pendingFeatId = ref<string | null>(null)
 
 const openSelectionModal = () => {
   showModal.value = true
@@ -68,11 +77,25 @@ const handleFeatSelect = (featIds: string[]) => {
   // Add newly selected feats
   featIds.forEach(featId => {
     if (!character.value.feats.includes(featId)) {
-      addFeat(featId)
+      // Check if feat requires choices
+      if (featRequiresChoices(featId)) {
+        pendingFeatId.value = featId
+        showChoiceModal.value = true
+      } else {
+        addFeat(featId)
+      }
     }
   })
 
   showModal.value = false
+}
+
+const handleFeatChoiceConfirm = (choices: Record<string, any>) => {
+  if (pendingFeatId.value) {
+    addFeat(pendingFeatId.value, choices)
+    pendingFeatId.value = null
+  }
+  showChoiceModal.value = false
 }
 
 const getFeatName = (featId: string): string => {

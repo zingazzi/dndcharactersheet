@@ -2624,10 +2624,15 @@ export const useCharacter = () => {
     }
 
     // Add origin feat automatically
+    // Note: If the origin feat requires choices, the UI should prompt for them before applying advantages
     if (origin.originFeat) {
       if (!character.value.feats.includes(origin.originFeat)) {
         character.value.feats.push(origin.originFeat)
-        applyFeatAdvantages(origin.originFeat)
+        // Only apply advantages if no choices are required
+        // If choices are required, the UI will call addFeat with choices
+        if (!featRequiresChoices(origin.originFeat)) {
+          applyFeatAdvantages(origin.originFeat)
+        }
       }
     }
   }
@@ -2671,22 +2676,42 @@ export const useCharacter = () => {
     }
   }
 
+  // Helper function to check if a feat requires choices
+  const featRequiresChoices = (featId: string): boolean => {
+    const featsData = featsJson as { feats: any[] }
+    const feat = featsData.feats.find(f => f.id === featId)
+    return feat?.choices && Object.keys(feat.choices).length > 0
+  }
+
   // Helper function to apply feat advantages
-  const applyFeatAdvantages = (featId: string): void => {
+  const applyFeatAdvantages = (featId: string, choices?: Record<string, any>): void => {
     const featsData = featsJson as { feats: any[] }
     const feat = featsData.feats.find(f => f.id === featId)
     if (!feat) return
 
-    // Apply ability score increases
-    Object.keys(feat.abilityScoreIncreases || {}).forEach(key => {
-      const abilityKey = key as keyof Character['abilities']
-      const increase = feat.abilityScoreIncreases[abilityKey]
-      if (increase > 0 && character.value.abilities[abilityKey]) {
-        character.value.abilities[abilityKey].score += increase
+    // Use stored choices if available, otherwise use provided choices
+    const featChoices = character.value.featChoices?.[featId] || choices || {}
+
+    // Apply ability score increases (use choices if available)
+    if (featChoices.abilityScoreIncrease) {
+      const abilityKey = featChoices.abilityScoreIncrease as keyof Character['abilities']
+      if (character.value.abilities[abilityKey]) {
+        character.value.abilities[abilityKey].score += 1
         const finalScore = character.value.abilities[abilityKey].score + (character.value.abilities[abilityKey].customModifier || 0)
         character.value.abilities[abilityKey].modifier = Math.floor((finalScore - 10) / 2)
       }
-    })
+    } else {
+      // Fallback to default ability score increases if no choice was made
+      Object.keys(feat.abilityScoreIncreases || {}).forEach(key => {
+        const abilityKey = key as keyof Character['abilities']
+        const increase = feat.abilityScoreIncreases[abilityKey]
+        if (increase > 0 && character.value.abilities[abilityKey]) {
+          character.value.abilities[abilityKey].score += increase
+          const finalScore = character.value.abilities[abilityKey].score + (character.value.abilities[abilityKey].customModifier || 0)
+          character.value.abilities[abilityKey].modifier = Math.floor((finalScore - 10) / 2)
+        }
+      })
+    }
 
     // Apply skill proficiencies
     if (feat.skillProficiencies && Array.isArray(feat.skillProficiencies)) {
@@ -2765,16 +2790,32 @@ export const useCharacter = () => {
     const feat = featsData.feats.find(f => f.id === featId)
     if (!feat) return
 
-    // Remove ability score increases
-    Object.keys(feat.abilityScoreIncreases || {}).forEach(key => {
-      const abilityKey = key as keyof Character['abilities']
-      const increase = feat.abilityScoreIncreases[abilityKey]
-      if (increase > 0 && character.value.abilities[abilityKey]) {
-        character.value.abilities[abilityKey].score -= increase
+    // Remove ability score increases (check stored choices first)
+    const featChoices = character.value.featChoices?.[featId]
+    if (featChoices?.abilityScoreIncrease) {
+      const abilityKey = featChoices.abilityScoreIncrease as keyof Character['abilities']
+      if (character.value.abilities[abilityKey]) {
+        character.value.abilities[abilityKey].score -= 1
         const finalScore = character.value.abilities[abilityKey].score + (character.value.abilities[abilityKey].customModifier || 0)
         character.value.abilities[abilityKey].modifier = Math.floor((finalScore - 10) / 2)
       }
-    })
+    } else {
+      // Fallback to default ability score increases
+      Object.keys(feat.abilityScoreIncreases || {}).forEach(key => {
+        const abilityKey = key as keyof Character['abilities']
+        const increase = feat.abilityScoreIncreases[abilityKey]
+        if (increase > 0 && character.value.abilities[abilityKey]) {
+          character.value.abilities[abilityKey].score -= increase
+          const finalScore = character.value.abilities[abilityKey].score + (character.value.abilities[abilityKey].customModifier || 0)
+          character.value.abilities[abilityKey].modifier = Math.floor((finalScore - 10) / 2)
+        }
+      })
+    }
+
+    // Remove stored choices for this feat
+    if (character.value.featChoices && character.value.featChoices[featId]) {
+      delete character.value.featChoices[featId]
+    }
 
     // Remove skill proficiencies granted by this feat
     character.value.skills.forEach(skill => {
@@ -2831,13 +2872,35 @@ export const useCharacter = () => {
     return true
   }
 
-  // Add feat to character
-  const addFeat = (featId: string): void => {
-    if (character.value.feats.includes(featId)) return
-    if (!canTakeFeat(featId)) return
-    character.value.feats.push(featId)
-    applyFeatAdvantages(featId)
-    updateSkillModifiers()
+  // Add feat to character (with optional choices)
+  const addFeat = (featId: string, choices?: Record<string, any>): void => {
+    const isNewFeat = !character.value.feats.includes(featId)
+
+    if (isNewFeat) {
+      if (!canTakeFeat(featId)) return
+      character.value.feats.push(featId)
+    }
+
+    // Store choices if provided (even if feat already exists, we may be updating choices)
+    if (choices && Object.keys(choices).length > 0) {
+      if (!character.value.featChoices) {
+        character.value.featChoices = {}
+      }
+      character.value.featChoices[featId] = choices
+
+      // If feat already existed but advantages weren't applied (because choices were needed),
+      // apply them now
+      if (!isNewFeat) {
+        applyFeatAdvantages(featId, choices)
+        updateSkillModifiers()
+      }
+    }
+
+    // Apply advantages for new feats
+    if (isNewFeat) {
+      applyFeatAdvantages(featId, choices)
+      updateSkillModifiers()
+    }
   }
 
   // Remove feat from character
@@ -2911,6 +2974,7 @@ export const useCharacter = () => {
     removeOrigin,
     addFeat,
     removeFeat,
+    featRequiresChoices,
     canTakeFeat,
     FIGHTING_STYLES,
     WEAPON_MASTERY_WEAPONS,

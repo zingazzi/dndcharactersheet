@@ -358,6 +358,13 @@ const canProceedToStep4 = computed(() => {
   return false
 })
 
+const canCreate = computed(() => {
+  // Must be on step 4 (origins step) and have completed all previous steps
+  // Since we're on step 4, we know step 3 was already validated (canProceedToStep4 was true)
+  // Origins are optional, so we just need basic requirements
+  return currentStep.value === 4 && selectedClass.value !== null && savedAbilityScores.value !== null
+})
+
 const toggleSkill = (skill: string) => {
   const index = selectedSkills.value.indexOf(skill)
   if (index > -1) {

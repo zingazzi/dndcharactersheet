@@ -103,18 +103,18 @@
           <!-- Unprepared Spells Section -->
           <div>
             <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] mb-1.5" :class="preparedSpellsList.length > 0 ? 'mt-4' : 'mt-0'">Available Spells</h3>
-            <div
-              v-for="level in [1, 2, 3, 4, 5]"
-              :key="level"
-              v-show="selectedLevel === 'all' || selectedLevel === level"
-            >
+          <div
+            v-for="level in [1, 2, 3, 4, 5]"
+            :key="level"
+            v-show="selectedLevel === 'all' || selectedLevel === level"
+          >
               <h4 class="text-xs font-semibold text-[var(--color-text-tertiary)] mb-1.5 mt-2 first:mt-0">Level {{ level }} Spells</h4>
-              <div class="grid grid-cols-1 gap-1.5 mb-3">
-                <div
+            <div class="grid grid-cols-1 gap-1.5 mb-3">
+              <div
                   v-for="spell in getUnpreparedSpellsByLevel(level)"
-                  :key="spell.name"
-                  class="card-compact p-2"
-                >
+                :key="spell.name"
+                class="card-compact p-2"
+              >
                 <div class="flex items-start justify-between gap-2">
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-1">
@@ -148,9 +148,9 @@
                     </button>
                   </div>
                 </div>
-                </div>
               </div>
             </div>
+          </div>
           </div>
           <div v-if="preparedSpellsList.length === 0 && getUnpreparedSpellsByLevel(1).length === 0 && getUnpreparedSpellsByLevel(2).length === 0 && getUnpreparedSpellsByLevel(3).length === 0 && getUnpreparedSpellsByLevel(4).length === 0 && getUnpreparedSpellsByLevel(5).length === 0" class="text-center py-4 text-[var(--color-text-muted)] italic text-sm">
             No spells found
@@ -336,19 +336,19 @@ const togglePrepared = (spellName: string): void => {
     if (!spellData) return
 
     const newSpell: Omit<Spell, 'id'> = {
-      name: spellData.name,
-      level: spellData.level,
-      school: spellData.school,
-      castingTime: spellData.castingTime,
-      range: spellData.range,
-      components: spellData.components,
-      duration: spellData.duration,
-      description: spellData.description,
-      prepared: false,
-    }
+    name: spellData.name,
+    level: spellData.level,
+    school: spellData.school,
+    castingTime: spellData.castingTime,
+    range: spellData.range,
+    components: spellData.components,
+    duration: spellData.duration,
+    description: spellData.description,
+    prepared: false,
+  }
     addSpell(newSpell)
     spell = character.value.spells.find(s => s.name === spellName)
-  }
+}
 
   if (spell) {
     // Check if we can prepare (allow unpreparing always)

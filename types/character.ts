@@ -147,6 +147,7 @@ export interface Character {
   // Origins & Feats
   origins: string[] // Array of origin IDs
   feats: string[] // Array of feat IDs
+  featChoices?: Record<string, Record<string, any>> // Store choices made for each feat: { featId: { choiceType: choiceValue } }
 
   // Class-specific
   classType?: ClassType // DEPRECATED: kept for migration, use classes array instead

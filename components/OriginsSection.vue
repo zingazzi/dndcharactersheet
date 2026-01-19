@@ -42,23 +42,33 @@
       @close="showModal = false"
       @select="handleOriginSelect"
     />
+    <FeatChoiceModal
+      v-if="showChoiceModal"
+      :is-open="showChoiceModal"
+      :feat-id="pendingFeatId"
+      @close="showChoiceModal = false"
+      @confirm="handleFeatChoiceConfirm"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
 import type { Character } from '~/types/character'
 import originsJson from '~/data/origins.json'
+import featsJson from '~/data/feats.json'
 
-const { character, addOrigin, removeOrigin } = useCharacter()
+const { character, addOrigin, removeOrigin, addFeat, featRequiresChoices } = useCharacter()
 
 const showModal = ref(false)
+const showChoiceModal = ref(false)
+const pendingFeatId = ref<string | null>(null)
 
 const openSelectionModal = () => {
   showModal.value = true
 }
 
-const handleOriginSelect = (originIds: string[]) => {
+const handleOriginSelect = async (originIds: string[]) => {
   // Remove origins that are no longer selected
   character.value.origins.forEach(originId => {
     if (!originIds.includes(originId)) {
@@ -66,14 +76,35 @@ const handleOriginSelect = (originIds: string[]) => {
     }
   })
 
-  // Add newly selected origins
-  originIds.forEach(originId => {
+  // Add newly selected origins and check for feat choices
+  for (const originId of originIds) {
     if (!character.value.origins.includes(originId)) {
       addOrigin(originId)
+
+      // Check if the origin grants a feat that requires choices
+      const originsData = originsJson as { origins: any[] }
+      const origin = originsData.origins.find(o => o.id === originId)
+      if (origin?.originFeat && featRequiresChoices(origin.originFeat)) {
+        // Wait for the origin to be added, then prompt for choices
+        await nextTick()
+        pendingFeatId.value = origin.originFeat
+        showChoiceModal.value = true
+        break // Only handle one feat choice at a time
+      }
     }
-  })
+  }
 
   showModal.value = false
+}
+
+const handleFeatChoiceConfirm = (choices: Record<string, any>) => {
+  if (pendingFeatId.value) {
+    // The feat was already added by addOrigin, but we need to apply advantages with choices
+    // addFeat will handle storing choices and applying advantages even if feat already exists
+    addFeat(pendingFeatId.value, choices)
+    pendingFeatId.value = null
+  }
+  showChoiceModal.value = false
 }
 
 const getOriginName = (originId: string): string => {

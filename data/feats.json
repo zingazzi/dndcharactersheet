@@ -185,8 +185,15 @@
       "type": "origin",
       "prerequisites": [],
       "description": "You've learned to make the most of your melee weapon attacks, granting you the following benefits: Increase your Strength or Dexterity score by 1, to a maximum of 20. Once per turn when you roll damage for a melee weapon attack, you can reroll the damage dice if they are 1s or 2s and must use the new roll.",
+      "choices": {
+        "abilityScoreIncrease": {
+          "type": "ability",
+          "options": ["strength", "dexterity"],
+          "description": "Choose which ability score to increase by 1"
+        }
+      },
       "abilityScoreIncreases": {
-        "strength": 1,
+        "strength": 0,
         "dexterity": 0,
         "constitution": 0,
         "intelligence": 0,
