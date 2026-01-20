@@ -298,7 +298,7 @@
           </div>
         </div>
 
-        <!-- Step 4: Origin Selection (Last Step) -->
+        <!-- Step 4: Origin Selection -->
         <div v-if="currentStep === 4" class="mb-2">
           <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Step 4: Select Origins</h3>
           <p class="text-xs text-[var(--color-text-tertiary)] mb-1.5">Select one or more origins. Each origin grants ability score increases, proficiencies, features, and an origin feat.</p>
@@ -315,6 +315,19 @@
           </div>
           <div v-else class="text-center py-4 text-[var(--color-text-muted)] italic text-sm mb-2">
             No origins selected. Click "Select Origins" to choose.
+          </div>
+        </div>
+
+        <!-- Step 5: Species Selection (Last Step) -->
+        <div v-if="currentStep === 5" class="mb-2">
+          <h3 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase mb-1.5 pb-1 border-b border-[var(--color-border-divider)]">Step 5: Select Species</h3>
+          <p class="text-xs text-[var(--color-text-tertiary)] mb-1.5">Select your character's species. Each species grants unique traits, features, and abilities.</p>
+          <button @click="openSpeciesModal" class="btn btn-primary text-sm mb-2">Select Species</button>
+          <div v-if="selectedSpecies" class="card-compact p-1.5 mb-2">
+            <span class="text-sm font-semibold">{{ getSpeciesName(selectedSpecies) }}</span>
+          </div>
+          <div v-else class="text-center py-4 text-[var(--color-text-muted)] italic text-sm mb-2">
+            No species selected. Click "Select Species" to choose.
           </div>
         </div>
       </div>
@@ -338,6 +351,14 @@
         </button>
         <button
           v-else-if="currentStep === 4"
+          @click="goToSpecies"
+          class="btn btn-primary text-sm"
+          :disabled="!canProceedToStep5"
+        >
+          Next
+        </button>
+        <button
+          v-else-if="currentStep === 5"
           @click="createCharacter"
           class="btn btn-primary text-sm"
           :disabled="!canCreate"
@@ -363,6 +384,24 @@
       @select="handleOriginSelect"
     />
 
+    <!-- Species Selection Modal -->
+    <SpeciesSelectionModal
+      v-if="isSpeciesModalOpen"
+      :is-open="isSpeciesModalOpen"
+      :selected-species="selectedSpecies || undefined"
+      @close="isSpeciesModalOpen = false"
+      @select="handleSpeciesSelect"
+    />
+
+    <!-- Species Choice Modal -->
+    <SpeciesChoiceModal
+      v-if="isSpeciesChoiceModalOpen"
+      :is-open="isSpeciesChoiceModalOpen"
+      :species-id="pendingSpeciesId"
+      @close="isSpeciesChoiceModalOpen = false"
+      @confirm="handleSpeciesChoiceConfirm"
+    />
+
   </div>
 </template>
 
@@ -374,7 +413,10 @@ import clericSpellsJson from '~/data/spells/Cleric.json'
 import { getClericCantripCount } from '~/composables/spellSlots'
 import AbilitiesEditModal from './AbilitiesEditModal.vue'
 import OriginSelectionModal from './OriginSelectionModal.vue'
+import SpeciesSelectionModal from './SpeciesSelectionModal.vue'
+import SpeciesChoiceModal from './SpeciesChoiceModal.vue'
 import originsJson from '~/data/origins.json'
+import speciesJson from '~/data/species.json'
 
 const props = defineProps<{
   isOpen: boolean
@@ -382,21 +424,26 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
-  create: [charClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[], selectedExpertise?: string[], abilityScores?: Character['abilities'], origins?: string[], selectedDivineOrder?: 'Protector' | 'Thaumaturge', selectedCantrips?: string[], selectedSpells?: string[]]
+  create: [charClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[], selectedExpertise?: string[], abilityScores?: Character['abilities'], origins?: string[], selectedDivineOrder?: 'Protector' | 'Thaumaturge', selectedCantrips?: string[], selectedSpells?: string[], species?: string, speciesChoices?: Record<string, any>]
 }>()
 
-const currentStep = ref(1) // 1 = class, 2 = ability scores, 3 = skills/fighting style/weapon mastery, 4 = origins (last step)
+const currentStep = ref(1) // 1 = class, 2 = ability scores, 3 = skills/fighting style/weapon mastery, 4 = origins, 5 = species (last step)
 const selectedClass = ref<'Fighter' | 'Barbarian' | 'Rogue' | 'Paladin' | 'Cleric'>('Fighter')
 const selectedSkills = ref<string[]>([])
 const selectedFightingStyle = ref('')
 const selectedWeaponMasteries = ref<string[]>([])
 const selectedExpertise = ref<string[]>([])
 const selectedOrigins = ref<string[]>([])
+const selectedSpecies = ref<string | null>(null)
+const selectedSpeciesChoices = ref<Record<string, any> | undefined>(undefined)
 const selectedDivineOrder = ref<'Protector' | 'Thaumaturge' | ''>('')
 const selectedCantrips = ref<string[]>([])
 const selectedSpells = ref<string[]>([])
 const isAbilitiesModalOpen = ref(false)
 const isOriginModalOpen = ref(false)
+const isSpeciesModalOpen = ref(false)
+const isSpeciesChoiceModalOpen = ref(false)
+const pendingSpeciesId = ref<string | null>(null)
 const savedAbilityScores = ref<Character['abilities'] | null>(null)
 
 const fighterSkills = [
@@ -469,18 +516,22 @@ const canProceedToStep4 = computed(() => {
   } else if (selectedClass.value === 'Cleric') {
     // Cleric requires Divine Order, cantrips, and weapon mastery (spells can be added later)
     const cantripCount = getClericCantripCount(1, selectedDivineOrder.value as 'Protector' | 'Thaumaturge' | null)
-    return selectedDivineOrder.value !== '' && 
-           selectedCantrips.value.length === cantripCount && 
+    return selectedDivineOrder.value !== '' &&
+           selectedCantrips.value.length === cantripCount &&
            selectedWeaponMasteries.value.length === 2
   }
   return false
 })
 
-const canCreate = computed(() => {
-  // Must be on step 4 (origins step) and have completed all previous steps
-  // Since we're on step 4, we know step 3 was already validated (canProceedToStep4 was true)
+const canProceedToStep5 = computed(() => {
+  // Can proceed to species step if on step 4
   // Origins are optional, so we just need basic requirements
   return currentStep.value === 4 && selectedClass.value !== null && savedAbilityScores.value !== null
+})
+
+const canCreate = computed(() => {
+  // Must be on step 5 (species step) and have selected a species
+  return currentStep.value === 5 && selectedClass.value !== null && savedAbilityScores.value !== null && selectedSpecies.value !== null
 })
 
 const toggleSkill = (skill: string) => {
@@ -552,6 +603,10 @@ const goToOrigins = () => {
   currentStep.value = 4
 }
 
+const goToSpecies = () => {
+  currentStep.value = 5
+}
+
 const openOriginModal = () => {
   isOriginModalOpen.value = true
 }
@@ -574,6 +629,47 @@ const getOriginName = (originId: string): string => {
   return origin?.name || originId
 }
 
+const openSpeciesModal = () => {
+  isSpeciesModalOpen.value = true
+}
+
+const handleSpeciesSelect = async (speciesId: string | null) => {
+  if (!speciesId) {
+    isSpeciesModalOpen.value = false
+    return
+  }
+
+  const { speciesRequiresChoices } = useCharacter()
+
+  // Check if species requires choices
+  if (speciesRequiresChoices(speciesId)) {
+    pendingSpeciesId.value = speciesId
+    isSpeciesModalOpen.value = false
+    await nextTick()
+    isSpeciesChoiceModalOpen.value = true
+  } else {
+    // No choices needed, set species directly
+    selectedSpecies.value = speciesId
+    selectedSpeciesChoices.value = undefined
+    isSpeciesModalOpen.value = false
+  }
+}
+
+const handleSpeciesChoiceConfirm = (choices: Record<string, any>) => {
+  if (pendingSpeciesId.value) {
+    selectedSpecies.value = pendingSpeciesId.value
+    selectedSpeciesChoices.value = choices
+    pendingSpeciesId.value = null
+  }
+  isSpeciesChoiceModalOpen.value = false
+}
+
+const getSpeciesName = (speciesId: string): string => {
+  const speciesData = speciesJson as { species: any[] }
+  const species = speciesData.species.find(s => s.id === speciesId)
+  return species?.name || speciesId
+}
+
 const createCharacter = () => {
   if (canCreate.value && savedAbilityScores.value) {
     // Fighter gets fighting style at level 1, Paladin can select it at creation (applied at level 2)
@@ -584,7 +680,7 @@ const createCharacter = () => {
     const divineOrder = selectedClass.value === 'Cleric' ? (selectedDivineOrder.value as 'Protector' | 'Thaumaturge') : undefined
     const cantrips = selectedClass.value === 'Cleric' ? selectedCantrips.value : undefined
     // Spells are not required at creation - can be added later through spell management
-    emit('create', selectedClass.value, selectedSkills.value, fightingStyle, selectedWeaponMasteries.value, expertise, savedAbilityScores.value, selectedOrigins.value, divineOrder, cantrips, undefined)
+    emit('create', selectedClass.value, selectedSkills.value, fightingStyle, selectedWeaponMasteries.value, expertise, savedAbilityScores.value, selectedOrigins.value, divineOrder, cantrips, undefined, selectedSpecies.value || undefined, selectedSpeciesChoices.value)
     // Reset state
     currentStep.value = 1
     selectedClass.value = 'Fighter'
@@ -593,6 +689,8 @@ const createCharacter = () => {
     selectedWeaponMasteries.value = []
     selectedExpertise.value = []
     selectedOrigins.value = []
+    selectedSpecies.value = null
+    selectedSpeciesChoices.value = undefined
     selectedDivineOrder.value = ''
     selectedCantrips.value = []
     selectedSpells.value = []
@@ -609,6 +707,8 @@ watch(selectedClass, () => {
   selectedDivineOrder.value = ''
   selectedCantrips.value = []
   selectedSpells.value = []
+  selectedSpecies.value = null
+  selectedSpeciesChoices.value = undefined
 })
 
 // Reset step when modal opens/closes

@@ -23,6 +23,7 @@ export interface Skill {
   modifier: number
   originId?: string // ID of origin that granted proficiency
   featId?: string // ID of feat that granted proficiency
+  speciesId?: string // ID of species that granted proficiency
 }
 
 export interface Action {
@@ -37,6 +38,7 @@ export interface Action {
   isBonusAction?: boolean // True for bonus actions (e.g., Cunning Action: Dash, Disengage, Hide)
   originId?: string // ID of origin that granted this action
   featId?: string // ID of feat that granted this action
+  speciesId?: string // ID of species that granted this action
 }
 
 export interface SpellSlot {
@@ -58,6 +60,7 @@ export interface Spell {
   prepared?: boolean
   originId?: string // ID of origin that granted this spell
   featId?: string // ID of feat that granted this spell
+  speciesId?: string // ID of species that granted this spell
 }
 
 export interface InventoryItem {
@@ -78,6 +81,7 @@ export interface FeatureTrait {
   source?: string // e.g., "Class", "Race", "Feat", "Origin"
   originId?: string // ID of origin that granted this feature
   featId?: string // ID of feat that granted this feature
+  speciesId?: string // ID of species that granted this feature
 }
 
 export type ResourceReset = 'shortRest' | 'longRest' | 'daily'
@@ -148,6 +152,10 @@ export interface Character {
   origins: string[] // Array of origin IDs
   feats: string[] // Array of feat IDs
   featChoices?: Record<string, Record<string, any>> // Store choices made for each feat: { featId: { choiceType: choiceValue } }
+
+  // Species
+  species?: string // Species ID (single species, not array)
+  speciesChoices?: Record<string, any> // Store choices made for species: { choiceType: choiceValue }
 
   // Class-specific
   classType?: ClassType // DEPRECATED: kept for migration, use classes array instead

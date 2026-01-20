@@ -1,0 +1,612 @@
+{
+  "species": [
+    {
+      "id": "human",
+      "name": "Human",
+      "description": "Humans are the most adaptable and ambitious people among the common species. Whatever drives them, humans are the innovators, the achievers, and the pioneers of the worlds.",
+      "size": "Medium",
+      "speed": 30,
+      "darkvision": 0,
+      "abilityScoreIncreases": {},
+      "choices": {},
+      "skillProficiencies": [],
+      "toolProficiencies": [],
+      "languages": ["Common", "One language of your choice"],
+      "features": [
+        {
+          "name": "Versatile",
+          "description": "You gain proficiency in one skill of your choice."
+        }
+      ],
+      "spells": [],
+      "actions": []
+    },
+    {
+      "id": "elf",
+      "name": "Elf",
+      "description": "Elves are a magical people of otherworldly grace, living in the world but not entirely part of it. They live in places of ethereal beauty, in the midst of ancient forests or in silvery spires glittering with faerie light, where soft music drifts through the air and gentle fragrances waft on the breeze.",
+      "size": "Medium",
+      "speed": 30,
+      "darkvision": 60,
+      "abilityScoreIncreases": {},
+      "choices": {
+        "lineage": {
+          "type": "subrace",
+          "options": ["high-elf", "wood-elf", "drow"],
+          "description": "Choose your elf lineage"
+        }
+      },
+      "skillProficiencies": ["Perception"],
+      "toolProficiencies": [],
+      "languages": ["Common", "Elvish"],
+      "features": [
+        {
+          "name": "Keen Senses",
+          "description": "You have proficiency in the Perception skill."
+        },
+        {
+          "name": "Fey Ancestry",
+          "description": "You have advantage on saving throws against being charmed, and magic can't put you to sleep."
+        },
+        {
+          "name": "Trance",
+          "description": "Elves don't need to sleep. Instead, they meditate deeply, remaining semiconscious, for 4 hours a day. While meditating, you can dream after a fashion; such dreams are actually mental exercises that have become reflexive through years of practice. After resting in this way, you gain the same benefit that a human does from 8 hours of sleep."
+        }
+      ],
+      "spells": [],
+      "actions": [],
+      "lineages": {
+        "high-elf": {
+          "name": "High Elf",
+          "description": "As a high elf, you have a keen mind and a mastery of at least the basics of magic.",
+          "features": [
+            {
+              "name": "Cantrip",
+              "description": "You know one cantrip of your choice from the wizard spell list. Intelligence is your spellcasting ability for it."
+            }
+          ],
+          "spells": [],
+          "toolProficiencies": []
+        },
+        "wood-elf": {
+          "name": "Wood Elf",
+          "description": "As a wood elf, you have keen senses and intuition, and your fleet feet carry you quickly and stealthily through your native forests.",
+          "features": [
+            {
+              "name": "Fleet of Foot",
+              "description": "Your base walking speed increases to 35 feet."
+            },
+            {
+              "name": "Mask of the Wild",
+              "description": "You can attempt to hide even when you are only lightly obscured by foliage, heavy rain, falling snow, mist, and other natural phenomena."
+            }
+          ],
+          "spells": [],
+          "toolProficiencies": []
+        },
+        "drow": {
+          "name": "Drow",
+          "description": "Descended from an earlier subrace of dark-skinned elves, the drow were banished from the surface world for following the goddess Lolth down the path to evil and corruption.",
+          "features": [
+            {
+              "name": "Superior Darkvision",
+              "description": "Your darkvision has a radius of 120 feet."
+            },
+            {
+              "name": "Sunlight Sensitivity",
+              "description": "You have disadvantage on attack rolls and on Wisdom (Perception) checks that rely on sight when you, the target of your attack, or whatever you are trying to perceive is in direct sunlight."
+            }
+          ],
+          "spells": [
+            {
+              "name": "Dancing Lights",
+              "level": 0,
+              "school": "Evocation",
+              "castingTime": "1 action",
+              "range": "120 feet",
+              "components": "V, S, M",
+              "duration": "Concentration, up to 1 minute",
+              "description": "You create up to four torch-sized lights within range, each of which sheds dim light in a 10-foot radius."
+            }
+          ],
+          "toolProficiencies": []
+        }
+      }
+    },
+    {
+      "id": "dwarf",
+      "name": "Dwarf",
+      "description": "Bold and hardy, dwarves are known as skilled warriors, miners, and workers of stone and metal. Though they stand well under 5 feet tall, dwarves are so broad and compact that they can weigh as much as a human standing nearly two feet taller.",
+      "size": "Medium",
+      "speed": 25,
+      "darkvision": 60,
+      "abilityScoreIncreases": {},
+      "choices": {
+        "lineage": {
+          "type": "subrace",
+          "options": ["hill-dwarf", "mountain-dwarf"],
+          "description": "Choose your dwarf lineage"
+        }
+      },
+      "skillProficiencies": [],
+      "toolProficiencies": [],
+      "languages": ["Common", "Dwarvish"],
+      "features": [
+        {
+          "name": "Darkvision",
+          "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+        },
+        {
+          "name": "Dwarven Resilience",
+          "description": "You have advantage on saving throws against poison, and you have resistance against poison damage."
+        },
+        {
+          "name": "Stonecunning",
+          "description": "Whenever you make an Intelligence (History) check related to the origin of stonework, you are considered proficient in the History skill and add double your proficiency bonus to the check, instead of your normal proficiency bonus."
+        }
+      ],
+      "spells": [],
+      "actions": [],
+      "lineages": {
+        "hill-dwarf": {
+          "name": "Hill Dwarf",
+          "description": "As a hill dwarf, you have keen senses, deep intuition, and remarkable resilience.",
+          "features": [
+            {
+              "name": "Dwarven Toughness",
+              "description": "Your hit point maximum increases by 1, and it increases by 1 every time you gain a level."
+            }
+          ],
+          "spells": [],
+          "toolProficiencies": []
+        },
+        "mountain-dwarf": {
+          "name": "Mountain Dwarf",
+          "description": "As a mountain dwarf, you're strong and hardy, accustomed to a difficult life in rugged terrain.",
+          "features": [
+            {
+              "name": "Dwarven Armor Training",
+              "description": "You have proficiency with light and medium armor."
+            }
+          ],
+          "spells": [],
+          "toolProficiencies": []
+        }
+      }
+    },
+    {
+      "id": "halfling",
+      "name": "Halfling",
+      "description": "The comforts of home are the goals of most halflings' lives: a place to settle in peace and quiet, far from marauding monsters and clashing armies; a blazing fire and a generous meal; fine drink and good company.",
+      "size": "Small",
+      "speed": 25,
+      "darkvision": 0,
+      "abilityScoreIncreases": {},
+      "choices": {
+        "lineage": {
+          "type": "subrace",
+          "options": ["lightfoot", "stout"],
+          "description": "Choose your halfling lineage"
+        }
+      },
+      "skillProficiencies": [],
+      "toolProficiencies": [],
+      "languages": ["Common", "Halfling"],
+      "features": [
+        {
+          "name": "Lucky",
+          "description": "When you roll a 1 on an attack roll, ability check, or saving throw, you can reroll the die and must use the new roll."
+        },
+        {
+          "name": "Brave",
+          "description": "You have advantage on saving throws against being frightened."
+        },
+        {
+          "name": "Halfling Nimbleness",
+          "description": "You can move through the space of any creature that is of a size larger than yours."
+        }
+      ],
+      "spells": [],
+      "actions": [],
+      "lineages": {
+        "lightfoot": {
+          "name": "Lightfoot",
+          "description": "As a lightfoot halfling, you can easily hide from notice, even using other people as cover.",
+          "features": [
+            {
+              "name": "Naturally Stealthy",
+              "description": "You can attempt to hide even when you are obscured only by a creature that is at least one size larger than you."
+            }
+          ],
+          "spells": [],
+          "toolProficiencies": []
+        },
+        "stout": {
+          "name": "Stout",
+          "description": "As a stout halfling, you're hardier than average and have some resistance to poison.",
+          "features": [
+            {
+              "name": "Stout Resilience",
+              "description": "You have advantage on saving throws against poison, and you have resistance against poison damage."
+            }
+          ],
+          "spells": [],
+          "toolProficiencies": []
+        }
+      }
+    },
+    {
+      "id": "dragonborn",
+      "name": "Dragonborn",
+      "description": "Born of dragons, as their name proclaims, the dragonborn walk proudly through a world that greets them with fearful incomprehension. Shaped by draconic gods or the dragons themselves, dragonborn originally hatched from dragon eggs as a unique race, combining the best attributes of dragons and humanoids.",
+      "size": "Medium",
+      "speed": 30,
+      "darkvision": 0,
+      "abilityScoreIncreases": {},
+      "choices": {
+        "draconicAncestry": {
+          "type": "ability",
+          "options": ["black", "blue", "brass", "bronze", "copper", "gold", "green", "red", "silver", "white"],
+          "description": "Choose your draconic ancestry"
+        }
+      },
+      "skillProficiencies": [],
+      "toolProficiencies": [],
+      "languages": ["Common", "Draconic"],
+      "features": [
+        {
+          "name": "Breath Weapon",
+          "description": "You can use your action to exhale destructive energy. Your draconic ancestry determines the size, shape, and damage type of the exhalation. When you use your breath weapon, each creature in the area of the exhalation must make a saving throw, the type of which is determined by your draconic ancestry. The DC for this saving throw equals 8 + your Constitution modifier + your proficiency bonus. A creature takes 2d6 damage on a failed save, and half as much damage on a successful one. The damage increases to 3d6 at 6th level, 4d6 at 11th level, and 5d6 at 16th level. After you use your breath weapon, you can't use it again until you complete a short or long rest."
+        },
+        {
+          "name": "Damage Resistance",
+          "description": "You have resistance to the damage type associated with your draconic ancestry."
+        }
+      ],
+      "spells": [],
+      "actions": []
+    },
+    {
+      "id": "gnome",
+      "name": "Gnome",
+      "description": "A constant hum of busy activity pervades the warrens and neighborhoods where gnomes form their close-knit communities. Louder sounds punctuate the hum: a crunch of grinding gears here, a minor explosion there, a yelp of surprise or triumph, and especially bursts of laughter.",
+      "size": "Small",
+      "speed": 25,
+      "darkvision": 60,
+      "abilityScoreIncreases": {},
+      "choices": {
+        "lineage": {
+          "type": "subrace",
+          "options": ["forest-gnome", "rock-gnome"],
+          "description": "Choose your gnome lineage"
+        }
+      },
+      "skillProficiencies": [],
+      "toolProficiencies": [],
+      "languages": ["Common", "Gnomish"],
+      "features": [
+        {
+          "name": "Darkvision",
+          "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+        },
+        {
+          "name": "Gnome Cunning",
+          "description": "You have advantage on all Intelligence, Wisdom, and Charisma saving throws against magic."
+        }
+      ],
+      "spells": [],
+      "actions": [],
+      "lineages": {
+        "forest-gnome": {
+          "name": "Forest Gnome",
+          "description": "As a forest gnome, you have a natural knack for illusion and inherent quickness.",
+          "features": [
+            {
+              "name": "Natural Illusionist",
+              "description": "You know the minor illusion cantrip. Intelligence is your spellcasting ability for it."
+            },
+            {
+              "name": "Speak with Small Beasts",
+              "description": "Through sounds and gestures, you can communicate simple ideas with Small or smaller beasts. Forest gnomes love animals and often keep squirrels, badgers, rabbits, moles, woodpeckers, and other creatures as beloved pets."
+            }
+          ],
+          "spells": [],
+          "toolProficiencies": []
+        },
+        "rock-gnome": {
+          "name": "Rock Gnome",
+          "description": "As a rock gnome, you have a natural inventiveness and hardiness beyond that of other gnomes.",
+          "features": [
+            {
+              "name": "Artificer's Lore",
+              "description": "Whenever you make an Intelligence (History) check related to magic items, alchemical objects, or technological devices, you can add twice your proficiency bonus, instead of any proficiency bonus you normally apply."
+            },
+            {
+              "name": "Tinker",
+              "description": "You have proficiency with artisan's tools (tinker's tools). Using those tools, you can spend 1 hour and 10 gp worth of materials to construct a Tiny clockwork device (AC 5, 1 hp). The device ceases to function after 24 hours (unless you spend 1 hour repairing it to keep the device functioning), or when you use your action to dismantle it."
+            }
+          ],
+          "spells": [],
+          "toolProficiencies": ["Tinker's tools"]
+        }
+      }
+    },
+    {
+      "id": "tiefling",
+      "name": "Tiefling",
+      "description": "To be greeted with stares and whispers, to suffer violence and insult on the street, to see mistrust and fear in every eye: this is the lot of the tiefling. And to twist the knife, tieflings know that this is because a pact struck generations ago infused the essence of Asmodeus—overlord of the Nine Hells—into their bloodline.",
+      "size": "Medium",
+      "speed": 30,
+      "darkvision": 60,
+      "abilityScoreIncreases": {},
+      "choices": {
+        "legacy": {
+          "type": "subrace",
+          "options": ["infernal", "abyssal", "chthonic"],
+          "description": "Choose your fiendish legacy"
+        }
+      },
+      "skillProficiencies": [],
+      "toolProficiencies": [],
+      "languages": ["Common", "Infernal"],
+      "features": [
+        {
+          "name": "Darkvision",
+          "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+        },
+        {
+          "name": "Hellish Resistance",
+          "description": "You have resistance to fire damage."
+        }
+      ],
+      "spells": [],
+      "actions": [],
+      "lineages": {
+        "infernal": {
+          "name": "Infernal Legacy",
+          "description": "You are descended from a devil, most commonly from Asmodeus.",
+          "spells": [
+            {
+              "name": "Thaumaturgy",
+              "level": 0,
+              "school": "Transmutation",
+              "castingTime": "1 action",
+              "range": "30 feet",
+              "components": "V",
+              "duration": "Up to 1 minute",
+              "description": "You manifest a minor wonder, a sign of supernatural power, within range."
+            },
+            {
+              "name": "Hellish Rebuke",
+              "level": 1,
+              "school": "Evocation",
+              "castingTime": "1 reaction",
+              "range": "60 feet",
+              "components": "V, S",
+              "duration": "Instantaneous",
+              "description": "You point your finger, and the creature that damaged you is momentarily surrounded by hellish flames."
+            },
+            {
+              "name": "Darkness",
+              "level": 2,
+              "school": "Evocation",
+              "castingTime": "1 action",
+              "range": "60 feet",
+              "components": "V, M",
+              "duration": "Concentration, up to 10 minutes",
+              "description": "Magical darkness spreads from a point you choose within range to fill a 15-foot-radius sphere for the duration."
+            }
+          ],
+          "features": []
+        },
+        "abyssal": {
+          "name": "Abyssal Legacy",
+          "description": "You are descended from a demon of the Abyss.",
+          "spells": [
+            {
+              "name": "Vicious Mockery",
+              "level": 0,
+              "school": "Enchantment",
+              "castingTime": "1 action",
+              "range": "60 feet",
+              "components": "V",
+              "duration": "Instantaneous",
+              "description": "You unleash a string of insults laced with subtle enchantments at a creature you can see within range."
+            },
+            {
+              "name": "Dissonant Whispers",
+              "level": 1,
+              "school": "Enchantment",
+              "castingTime": "1 action",
+              "range": "60 feet",
+              "components": "V",
+              "duration": "Instantaneous",
+              "description": "You whisper a discordant melody that only one creature of your choice within range can hear."
+            },
+            {
+              "name": "Calm Emotions",
+              "level": 2,
+              "school": "Enchantment",
+              "castingTime": "1 action",
+              "range": "60 feet",
+              "components": "V, S",
+              "duration": "Concentration, up to 1 minute",
+              "description": "You attempt to suppress strong emotions in a group of people."
+            }
+          ],
+          "features": []
+        },
+        "chthonic": {
+          "name": "Chthonic Legacy",
+          "description": "You are descended from a yugoloth or other fiend of the Lower Planes.",
+          "spells": [
+            {
+              "name": "Mage Hand",
+              "level": 0,
+              "school": "Conjuration",
+              "castingTime": "1 action",
+              "range": "30 feet",
+              "components": "V, S",
+              "duration": "1 minute",
+              "description": "A spectral, floating hand appears at a point you choose within range."
+            },
+            {
+              "name": "Arms of Hadar",
+              "level": 1,
+              "school": "Conjuration",
+              "castingTime": "1 action",
+              "range": "Self (10-foot radius)",
+              "components": "V, S",
+              "duration": "Instantaneous",
+              "description": "You invoke the power of Hadar, the Dark Hunger. Tendrils of dark energy erupt from you and batter all creatures within 10 feet of you."
+            },
+            {
+              "name": "Hold Person",
+              "level": 2,
+              "school": "Enchantment",
+              "castingTime": "1 action",
+              "range": "60 feet",
+              "components": "V, S, M",
+              "duration": "Concentration, up to 1 minute",
+              "description": "Choose a humanoid you can see within range. The target must succeed on a Wisdom saving throw or be paralyzed for the duration."
+            }
+          ],
+          "features": []
+        }
+      }
+    },
+    {
+      "id": "orc",
+      "name": "Orc",
+      "description": "Orcs are a strong and hardy people, known for their courage in battle and their ability to endure hardship. They are fierce warriors with a proud, though often misunderstood, heritage.",
+      "size": "Medium",
+      "speed": 30,
+      "darkvision": 60,
+      "abilityScoreIncreases": {},
+      "choices": {},
+      "skillProficiencies": [],
+      "toolProficiencies": [],
+      "languages": ["Common", "Orc"],
+      "features": [
+        {
+          "name": "Darkvision",
+          "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+        },
+        {
+          "name": "Relentless Endurance",
+          "description": "When you are reduced to 0 hit points but not killed outright, you can drop to 1 hit point instead. You can't use this feature again until you finish a long rest."
+        },
+        {
+          "name": "Savage Attacks",
+          "description": "When you score a critical hit with a melee weapon attack, you can roll one of the weapon's damage dice one additional time and add it to the extra damage of the critical hit."
+        }
+      ],
+      "spells": [],
+      "actions": []
+    },
+    {
+      "id": "goliath",
+      "name": "Goliath",
+      "description": "Goliaths are a race of strong, honor-bound people from the highest mountain peaks. They are known for their great size, strength, and their competitive nature.",
+      "size": "Medium",
+      "speed": 30,
+      "darkvision": 0,
+      "abilityScoreIncreases": {},
+      "choices": {
+        "giantAncestry": {
+          "type": "ability",
+          "options": ["cloud", "fire", "frost", "hill", "stone", "storm"],
+          "description": "Choose your giant ancestry"
+        }
+      },
+      "skillProficiencies": [],
+      "toolProficiencies": [],
+      "languages": ["Common", "Giant"],
+      "features": [
+        {
+          "name": "Powerful Build",
+          "description": "You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift."
+        },
+        {
+          "name": "Stone's Endurance",
+          "description": "You can focus yourself to occasionally shrug off injury. When you take damage, you can use your reaction to roll a d12. Add your Constitution modifier to the number rolled, and reduce the damage by that total. After you use this trait, you can't use it again until you finish a short or long rest."
+        }
+      ],
+      "spells": [],
+      "actions": []
+    },
+    {
+      "id": "aasimar",
+      "name": "Aasimar",
+      "description": "Aasimar are descended from celestials—beings of the Upper Planes. They are touched by the power of the divine, which manifests in their appearance and abilities.",
+      "size": "Medium",
+      "speed": 30,
+      "darkvision": 60,
+      "abilityScoreIncreases": {},
+      "choices": {
+        "celestialLegacy": {
+          "type": "subrace",
+          "options": ["protector", "scourge", "fallen"],
+          "description": "Choose your celestial legacy"
+        }
+      },
+      "skillProficiencies": [],
+      "toolProficiencies": [],
+      "languages": ["Common", "Celestial"],
+      "features": [
+        {
+          "name": "Darkvision",
+          "description": "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray."
+        },
+        {
+          "name": "Celestial Resistance",
+          "description": "You have resistance to necrotic damage and radiant damage."
+        },
+        {
+          "name": "Healing Hands",
+          "description": "As an action, you can touch a creature and cause it to regain a number of hit points equal to your level. Once you use this trait, you can't use it again until you finish a long rest."
+        }
+      ],
+      "spells": [],
+      "actions": [],
+      "lineages": {
+        "protector": {
+          "name": "Protector",
+          "description": "Protector aasimar are charged by the powers of good to guard the weak, to strike at evil wherever it arises, and to stand vigilant against the darkness.",
+          "features": [
+            {
+              "name": "Radiant Soul",
+              "description": "Starting at 3rd level, you can use your action to unleash the divine energy within yourself, causing your eyes to glimmer and two luminous, incorporeal wings to sprout from your back. Your transformation lasts for 1 minute or until you end it as a bonus action. During it, you have a flying speed of 30 feet, and once on each of your turns, you can deal extra radiant damage to one target when you deal damage to it with an attack or a spell. The extra radiant damage equals your level. Once you use this trait, you can't use it again until you finish a long rest."
+            }
+          ],
+          "spells": [],
+          "toolProficiencies": []
+        },
+        "scourge": {
+          "name": "Scourge",
+          "description": "Scourge aasimar are imbued with a divine energy that blazes brightly within them. It feeds a powerful desire to destroy evil—a desire that is, at its best, unflinching and, at its worst, all-consuming.",
+          "features": [
+            {
+              "name": "Radiant Consumption",
+              "description": "Starting at 3rd level, you can use your action to unleash the divine energy within yourself, causing a searing light to radiate from you, pour out of your eyes and mouth, and threaten to char you. Your transformation lasts for 1 minute or until you end it as a bonus action. During it, you shed bright light in a 10-foot radius and dim light for an additional 10 feet, and at the end of each of your turns, you and each creature within 10 feet of you take radiant damage equal to half your level (rounded up). In addition, once on each of your turns, you can deal extra radiant damage to one target when you deal damage to it with an attack or a spell. The extra damage equals your level. Once you use this trait, you can't use it again until you finish a long rest."
+            }
+          ],
+          "spells": [],
+          "toolProficiencies": []
+        },
+        "fallen": {
+          "name": "Fallen",
+          "description": "Fallen aasimar are those who have been touched by dark powers or who have succumbed to evil. Their transformation reflects their fall from grace.",
+          "features": [
+            {
+              "name": "Necrotic Shroud",
+              "description": "Starting at 3rd level, you can use your action to unleash the divine energy within yourself, causing your eyes to turn into pools of darkness and two skeletal, ghostly, flightless wings to sprout from your back. The instant you transform, other creatures within 10 feet of you that can see you must each succeed on a Charisma saving throw or become frightened of you until the end of your next turn. Your transformation lasts for 1 minute or until you end it as a bonus action. During it, once on each of your turns, you can deal extra necrotic damage to one target when you deal damage to it with an attack or a spell. The extra damage equals your level. Once you use this trait, you can't use it again until you finish a long rest."
+            }
+          ],
+          "spells": [],
+          "toolProficiencies": []
+        }
+      }
+    }
+  ]
+}

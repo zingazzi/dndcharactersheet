@@ -96,8 +96,8 @@ const closeNewCharacterModal = () => {
   isNewCharacterModalOpen.value = false
 }
 
-const handleCreateCharacter = (characterClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[], selectedExpertise?: string[], abilityScores?: Character['abilities'], origins?: string[], selectedDivineOrder?: 'Protector' | 'Thaumaturge', selectedCantrips?: string[], selectedSpells?: string[]) => {
-  const { createNewCharacter, resetCharacter, addOrigin } = useCharacter()
+const handleCreateCharacter = (characterClass: string, selectedSkills: string[], selectedFightingStyle: string | undefined, selectedWeaponMasteries: string[], selectedExpertise?: string[], abilityScores?: Character['abilities'], origins?: string[], selectedDivineOrder?: 'Protector' | 'Thaumaturge', selectedCantrips?: string[], selectedSpells?: string[], species?: string, speciesChoices?: Record<string, any>) => {
+  const { createNewCharacter, resetCharacter, addOrigin, setSpecies } = useCharacter()
   const newCharacter = createNewCharacter(characterClass, selectedSkills, selectedFightingStyle, selectedWeaponMasteries, selectedExpertise, selectedDivineOrder, selectedCantrips, selectedSpells)
 
   // Apply custom ability scores if provided
@@ -124,6 +124,11 @@ const handleCreateCharacter = (characterClass: string, selectedSkills: string[],
     origins.forEach(originId => {
       addOrigin(originId)
     })
+  }
+
+  // Apply species (after origins)
+  if (species) {
+    setSpecies(species, speciesChoices)
   }
 
   closeNewCharacterModal()

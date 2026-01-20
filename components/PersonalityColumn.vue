@@ -185,6 +185,10 @@
     </div>
 
     <!-- Origins -->
+    <!-- Species -->
+    <SpeciesSection />
+
+    <!-- Origins -->
     <OriginsSection />
 
     <!-- Feats -->
@@ -258,6 +262,7 @@
 <script setup lang="ts">
 import type { FeatureTrait, Skill } from '~/types/character'
 import { FIGHTING_STYLES, WEAPON_MASTERY_WEAPONS } from '~/composables/useCharacter'
+import SpeciesSection from './SpeciesSection.vue'
 import OriginsSection from './OriginsSection.vue'
 import FeatsSection from './FeatsSection.vue'
 

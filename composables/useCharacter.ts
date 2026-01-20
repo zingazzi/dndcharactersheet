@@ -7,6 +7,7 @@ import paladinSpellsJson from '~/data/spells/Paladin.json'
 import clericSpellsJson from '~/data/spells/Cleric.json'
 import originsJson from '~/data/origins.json'
 import featsJson from '~/data/feats.json'
+import speciesJson from '~/data/species.json'
 
 export interface FightingStyle {
   name: string
@@ -888,6 +889,8 @@ function createEmptyCharacter(): Character {
     featuresTraits: [],
     origins: [],
     feats: [],
+    species: undefined,
+    speciesChoices: undefined,
     classes: [],
     classType: undefined,
     fightingStyle: undefined,
@@ -3079,6 +3082,200 @@ export const useCharacter = () => {
     }
   }
 
+  // Helper function to check if a species requires choices
+  const speciesRequiresChoices = (speciesId: string): boolean => {
+    const speciesData = speciesJson as { species: any[] }
+    const species = speciesData.species.find(s => s.id === speciesId)
+    return species?.choices && Object.keys(species.choices).length > 0
+  }
+
+  // Helper function to apply species advantages
+  const applySpeciesAdvantages = (speciesId: string, choices?: Record<string, any>): void => {
+    const speciesData = speciesJson as { species: any[] }
+    const species = speciesData.species.find(s => s.id === speciesId)
+    if (!species) return
+
+    // Use stored choices if available, otherwise use provided choices
+    const speciesChoices = character.value.speciesChoices || choices || {}
+
+    // Apply ability score increases (species don't grant ASI in 2024, but handle if present)
+    Object.keys(species.abilityScoreIncreases || {}).forEach(key => {
+      const abilityKey = key as keyof Character['abilities']
+      const increase = species.abilityScoreIncreases[abilityKey]
+      if (increase > 0 && character.value.abilities[abilityKey]) {
+        character.value.abilities[abilityKey].score += increase
+        const finalScore = character.value.abilities[abilityKey].score + (character.value.abilities[abilityKey].customModifier || 0)
+        character.value.abilities[abilityKey].modifier = Math.floor((finalScore - 10) / 2)
+      }
+    })
+
+    // Apply skill proficiencies
+    if (species.skillProficiencies && Array.isArray(species.skillProficiencies)) {
+      species.skillProficiencies.forEach((skillName: string) => {
+        const skill = character.value.skills.find(s => s.name === skillName)
+        if (skill && !skill.proficient) {
+          skill.proficient = true
+          skill.speciesId = speciesId
+          updateSkillModifiers()
+        }
+      })
+    }
+
+    // Add features
+    if (species.features && Array.isArray(species.features)) {
+      species.features.forEach((feature: any) => {
+        character.value.featuresTraits.push({
+          id: crypto.randomUUID(),
+          name: feature.name,
+          description: feature.description,
+          source: 'Species',
+          speciesId: speciesId,
+        })
+      })
+    }
+
+    // Handle lineage/subrace/legacy choices
+    const lineageId = speciesChoices.lineage || speciesChoices.legacy
+    if (lineageId && species.lineages && species.lineages[lineageId]) {
+      const lineage = species.lineages[lineageId]
+
+      // Add lineage features
+      if (lineage.features && Array.isArray(lineage.features)) {
+        lineage.features.forEach((feature: any) => {
+          character.value.featuresTraits.push({
+            id: crypto.randomUUID(),
+            name: feature.name,
+            description: feature.description,
+            source: 'Species',
+            speciesId: speciesId,
+          })
+        })
+      }
+
+      // Add lineage spells
+      if (lineage.spells && Array.isArray(lineage.spells)) {
+        lineage.spells.forEach((spell: any) => {
+          const existingSpell = character.value.spells.find(s => s.name === spell.name && s.speciesId === speciesId)
+          if (!existingSpell) {
+            character.value.spells.push({
+              ...spell,
+              id: crypto.randomUUID(),
+              speciesId: speciesId,
+            })
+          }
+        })
+      }
+
+      // Add lineage tool proficiencies
+      if (lineage.toolProficiencies && Array.isArray(lineage.toolProficiencies)) {
+        // Tool proficiencies are typically handled separately, but we can track them
+        // For now, we'll just note them in features if needed
+      }
+    }
+
+    // Handle other choices (like draconic ancestry, giant ancestry, etc.)
+    if (speciesChoices.draconicAncestry || speciesChoices.giantAncestry || speciesChoices.celestialLegacy) {
+      // These choices affect features/abilities but don't add separate lineage data
+      // The features are already in the base species
+    }
+
+    // Add spells
+    if (species.spells && Array.isArray(species.spells)) {
+      species.spells.forEach((spell: any) => {
+        const existingSpell = character.value.spells.find(s => s.name === spell.name && s.speciesId === speciesId)
+        if (!existingSpell) {
+          character.value.spells.push({
+            ...spell,
+            id: crypto.randomUUID(),
+            speciesId: speciesId,
+          })
+        }
+      })
+    }
+
+    // Add actions
+    if (species.actions && Array.isArray(species.actions)) {
+      species.actions.forEach((action: any) => {
+        character.value.actions.push({
+          ...action,
+          id: crypto.randomUUID(),
+          speciesId: speciesId,
+        })
+      })
+    }
+  }
+
+  // Helper function to remove species advantages
+  const removeSpeciesAdvantages = (speciesId: string): void => {
+    const speciesData = speciesJson as { species: any[] }
+    const species = speciesData.species.find(s => s.id === speciesId)
+    if (!species) return
+
+    // Remove ability score increases
+    Object.keys(species.abilityScoreIncreases || {}).forEach(key => {
+      const abilityKey = key as keyof Character['abilities']
+      const increase = species.abilityScoreIncreases[abilityKey]
+      if (increase > 0 && character.value.abilities[abilityKey]) {
+        character.value.abilities[abilityKey].score -= increase
+        const finalScore = character.value.abilities[abilityKey].score + (character.value.abilities[abilityKey].customModifier || 0)
+        character.value.abilities[abilityKey].modifier = Math.floor((finalScore - 10) / 2)
+      }
+    })
+
+    // Remove skill proficiencies granted by this species
+    character.value.skills.forEach(skill => {
+      if (skill.speciesId === speciesId) {
+        skill.proficient = false
+        skill.speciesId = undefined
+        updateSkillModifiers()
+      }
+    })
+
+    // Remove features granted by this species
+    character.value.featuresTraits = character.value.featuresTraits.filter(f => f.speciesId !== speciesId)
+
+    // Remove spells granted by this species
+    character.value.spells = character.value.spells.filter(s => s.speciesId !== speciesId)
+
+    // Remove actions granted by this species
+    character.value.actions = character.value.actions.filter(a => a.speciesId !== speciesId)
+  }
+
+  // Set species for character (replaces existing species if any)
+  const setSpecies = (speciesId: string, choices?: Record<string, any>): void => {
+    // Remove existing species if any
+    if (character.value.species) {
+      removeSpecies()
+    }
+
+    // Set new species
+    character.value.species = speciesId
+
+    // Store choices
+    if (choices && Object.keys(choices).length > 0) {
+      if (!character.value.speciesChoices) {
+        character.value.speciesChoices = {}
+      }
+      character.value.speciesChoices = { ...choices }
+    } else {
+      character.value.speciesChoices = undefined
+    }
+
+    // Apply species advantages
+    applySpeciesAdvantages(speciesId, choices)
+    updateSkillModifiers()
+  }
+
+  // Remove species from character
+  const removeSpecies = (): void => {
+    if (!character.value.species) return
+    const speciesId = character.value.species
+    removeSpeciesAdvantages(speciesId)
+    character.value.species = undefined
+    character.value.speciesChoices = undefined
+    updateSkillModifiers()
+  }
+
   // Add origin to character
   const addOrigin = (originId: string): void => {
     if (character.value.origins.includes(originId)) return
@@ -3212,6 +3409,9 @@ export const useCharacter = () => {
     removeFeat,
     featRequiresChoices,
     canTakeFeat,
+    setSpecies,
+    removeSpecies,
+    speciesRequiresChoices,
     FIGHTING_STYLES,
     WEAPON_MASTERY_WEAPONS,
     getMeleeWeapons,
